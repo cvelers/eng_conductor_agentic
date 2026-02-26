@@ -1,0 +1,16 @@
+[
+  {
+    "id": "ec3.en1993-1-1.2005",
+    "title": "Eurocode 3: Design of steel structures — Part 1-1: General rules and rules for buildings",
+    "standard": "EN 1993-1-1",
+    "year_version": "2005",
+    "file_path": "data/ec3/en_1993_1_1_2005_structured.json",
+    "coverage_notes": "83 structured clauses extracted from OCR covering Sections 1–7, Annexes A/B/AB/BB. Includes section classification (5.5), ULS resistance checks (6.2), buckling (6.3), SLS (7), and material tables.",
+    "clause_locator": {
+      "id_field": "clause_id",
+      "title_field": "title",
+      "text_field": "text",
+      "pointer_field": "pointer"
+    }
+  }
+]

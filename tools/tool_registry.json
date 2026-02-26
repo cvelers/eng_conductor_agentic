@@ -1,0 +1,442 @@
+[
+  {
+    "tool_name": "section_classification_ec3",
+    "description": "Classifies an I/H steel cross-section (Classes 1-4) using simplified EC3-style slenderness checks.",
+    "tags": ["EC3", "EN 1993-1-1", "5.5.2", "Table 5.2", "classification"],
+    "script_path": "tools/mcp/section_classification.py",
+    "input_schema": {
+      "type": "object",
+      "required": ["steel_grade"],
+      "properties": {
+        "section_name": {"type": "string", "description": "e.g. IPE300"},
+        "h_mm": {"type": "number"},
+        "b_mm": {"type": "number"},
+        "tw_mm": {"type": "number"},
+        "tf_mm": {"type": "number"},
+        "steel_grade": {"type": "string", "description": "e.g. S355"},
+        "fy_mpa": {"type": "number"}
+      }
+    },
+    "output_schema": {
+      "type": "object",
+      "properties": {
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "web_class": {"type": "integer"},
+            "flange_class": {"type": "integer"},
+            "governing_class": {"type": "integer"}
+          }
+        }
+      }
+    },
+    "units": {"h_mm": "mm", "b_mm": "mm", "tw_mm": "mm", "tf_mm": "mm", "fy_mpa": "MPa"},
+    "constraints": ["Geometry values must be positive.", "If geometry missing, section_name must map to built-in library."],
+    "examples": [{"input": {"section_name": "IPE300", "steel_grade": "S355"}, "output_key": "governing_class"}]
+  },
+  {
+    "tool_name": "member_resistance_ec3",
+    "description": "Computes simplified axial, bending, and shear design resistances from section properties and steel grade.",
+    "tags": ["EC3", "EN 1993-1-1", "6.2.4", "6.2.5", "6.2.6", "resistance"],
+    "script_path": "tools/mcp/member_resistance.py",
+    "input_schema": {
+      "type": "object",
+      "required": ["steel_grade", "section_class", "gamma_M0"],
+      "properties": {
+        "section_name": {"type": "string"},
+        "steel_grade": {"type": "string"},
+        "fy_mpa": {"type": "number"},
+        "section_class": {"type": "integer", "minimum": 1, "maximum": 4},
+        "gamma_M0": {"type": "number", "exclusiveMinimum": 0},
+        "area_cm2": {"type": "number"},
+        "wpl_y_cm3": {"type": "number"},
+        "wel_y_cm3": {"type": "number"},
+        "av_z_cm2": {"type": "number"}
+      }
+    },
+    "output_schema": {
+      "type": "object",
+      "properties": {
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "M_Rd_kNm": {"type": "number"},
+            "N_Rd_kN": {"type": "number"},
+            "V_Rd_kN": {"type": "number"}
+          }
+        }
+      }
+    },
+    "units": {"fy_mpa": "MPa", "area_cm2": "cm2", "wpl_y_cm3": "cm3", "wel_y_cm3": "cm3", "av_z_cm2": "cm2"},
+    "constraints": ["Section properties must be positive.", "Class 1-2 uses plastic modulus; Class 3-4 uses elastic."],
+    "examples": [{"input": {"section_name": "IPE300", "steel_grade": "S355", "section_class": 2, "gamma_M0": 1.0}, "output_key": "M_Rd_kNm"}]
+  },
+  {
+    "tool_name": "interaction_check_ec3",
+    "description": "Runs a simplified linear axial+bending interaction check and returns utilization.",
+    "tags": ["EC3", "EN 1993-1-1", "6.2.9", "interaction"],
+    "script_path": "tools/mcp/interaction_check.py",
+    "input_schema": {
+      "type": "object",
+      "required": ["MEd_kNm", "NEd_kN", "M_Rd_kNm", "N_Rd_kN"],
+      "properties": {
+        "MEd_kNm": {"type": "number", "exclusiveMinimum": 0},
+        "NEd_kN": {"type": "number", "exclusiveMinimum": 0},
+        "M_Rd_kNm": {"type": "number", "exclusiveMinimum": 0},
+        "N_Rd_kN": {"type": "number", "exclusiveMinimum": 0},
+        "alpha_m": {"type": "number", "default": 1.0},
+        "alpha_n": {"type": "number", "default": 1.0}
+      }
+    },
+    "output_schema": {
+      "type": "object",
+      "properties": {
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "utilization": {"type": "number"},
+            "pass": {"type": "boolean"}
+          }
+        }
+      }
+    },
+    "units": {"MEd_kNm": "kNm", "NEd_kN": "kN", "M_Rd_kNm": "kNm", "N_Rd_kN": "kN"},
+    "constraints": ["All resistance and action inputs must be positive."],
+    "examples": [{"input": {"MEd_kNm": 140, "NEd_kN": 220, "M_Rd_kNm": 200, "N_Rd_kN": 1100}, "output_key": "utilization"}]
+  },
+  {
+    "tool_name": "ipe_moment_resistance_ec3",
+    "description": "Computes EC3-style cross-section moment resistance for IPE sections.",
+    "tags": ["EC3", "EN 1993-1-1", "6.2.5", "IPE", "moment resistance"],
+    "script_path": "tools/mcp/ipe_moment_resistance.py",
+    "input_schema": {
+      "type": "object",
+      "required": ["section_name"],
+      "properties": {
+        "section_name": {"type": "string", "description": "IPE section label, e.g., IPE300"},
+        "steel_grade": {"type": "string", "description": "e.g. S355"},
+        "fy_mpa": {"type": "number"},
+        "section_class": {"type": "integer", "minimum": 1, "maximum": 4, "default": 2},
+        "gamma_M0": {"type": "number", "exclusiveMinimum": 0, "default": 1.0}
+      }
+    },
+    "output_schema": {
+      "type": "object",
+      "properties": {
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "M_Rd_kNm": {"type": "number"},
+            "formula": {"type": "string"}
+          }
+        }
+      }
+    },
+    "units": {"fy_mpa": "MPa", "gamma_M0": "-", "M_Rd_kNm": "kNm"},
+    "constraints": ["section_name must be an IPE section.", "Class 1-2 uses Wpl; Class 3-4 uses Wel."],
+    "examples": [{"input": {"section_name": "IPE300", "steel_grade": "S355", "section_class": 2, "gamma_M0": 1.0}, "output_key": "M_Rd_kNm"}]
+  },
+  {
+    "tool_name": "simple_beam_calculator",
+    "description": "Calculates bending moment, shear force, reactions and deflection for a simply supported beam under point load or UDL.",
+    "tags": ["beam", "structural mechanics", "moment", "shear", "deflection"],
+    "script_path": "tools/mcp/simple_beam.py",
+    "input_schema": {
+      "type": "object",
+      "required": ["span_m"],
+      "properties": {
+        "load_type": {"type": "string", "enum": ["point_mid", "point", "udl"], "default": "udl"},
+        "span_m": {"type": "number", "exclusiveMinimum": 0},
+        "load_kn": {"type": "number", "exclusiveMinimum": 0, "description": "Point load in kN"},
+        "load_kn_per_m": {"type": "number", "exclusiveMinimum": 0, "description": "UDL in kN/m"},
+        "position_a_m": {"type": "number", "exclusiveMinimum": 0, "description": "Point load position from left"},
+        "E_gpa": {"type": "number", "default": 210},
+        "I_cm4": {"type": "number", "description": "Second moment of area for deflection"}
+      }
+    },
+    "output_schema": {
+      "type": "object",
+      "properties": {
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "M_max_kNm": {"type": "number"},
+            "V_max_kN": {"type": "number"},
+            "R_A_kN": {"type": "number"},
+            "R_B_kN": {"type": "number"},
+            "delta_max_mm": {}
+          }
+        }
+      }
+    },
+    "units": {"span_m": "m", "load_kn": "kN", "load_kn_per_m": "kN/m", "E_gpa": "GPa", "I_cm4": "cm4", "M_max_kNm": "kNm"},
+    "constraints": ["Euler-Bernoulli beam theory.", "Point load position must not exceed span."],
+    "examples": [
+      {"input": {"load_type": "udl", "span_m": 6.0, "load_kn_per_m": 15.0}, "output_key": "M_max_kNm"},
+      {"input": {"load_type": "point_mid", "span_m": 8.0, "load_kn": 50.0}, "output_key": "M_max_kNm"}
+    ]
+  },
+  {
+    "tool_name": "cantilever_beam_calculator",
+    "description": "Calculates moment, shear, reaction and deflection for a cantilever beam under point load at tip or UDL.",
+    "tags": ["beam", "cantilever", "structural mechanics", "moment", "shear"],
+    "script_path": "tools/mcp/cantilever_beam.py",
+    "input_schema": {
+      "type": "object",
+      "required": ["span_m"],
+      "properties": {
+        "load_type": {"type": "string", "enum": ["point_tip", "udl"], "default": "point_tip"},
+        "span_m": {"type": "number", "exclusiveMinimum": 0},
+        "load_kn": {"type": "number", "exclusiveMinimum": 0, "description": "Tip point load in kN"},
+        "load_kn_per_m": {"type": "number", "exclusiveMinimum": 0, "description": "UDL in kN/m"},
+        "E_gpa": {"type": "number", "default": 210},
+        "I_cm4": {"type": "number"}
+      }
+    },
+    "output_schema": {
+      "type": "object",
+      "properties": {
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "M_max_kNm": {"type": "number"},
+            "V_max_kN": {"type": "number"},
+            "delta_tip_mm": {}
+          }
+        }
+      }
+    },
+    "units": {"span_m": "m", "load_kn": "kN", "load_kn_per_m": "kN/m"},
+    "constraints": ["Euler-Bernoulli beam theory."],
+    "examples": [{"input": {"load_type": "point_tip", "span_m": 3.0, "load_kn": 20.0}, "output_key": "M_max_kNm"}]
+  },
+  {
+    "tool_name": "steel_grade_properties",
+    "description": "Looks up yield strength fy, ultimate strength fu, and ε factor for a steel grade per EC3 Table 3.1. Accounts for thickness reduction.",
+    "tags": ["EC3", "EN 1993-1-1", "Table 3.1", "steel", "material", "yield strength"],
+    "script_path": "tools/mcp/steel_grade_properties.py",
+    "input_schema": {
+      "type": "object",
+      "required": ["steel_grade"],
+      "properties": {
+        "steel_grade": {"type": "string", "description": "e.g. S235, S275, S355, S420, S460"},
+        "thickness_mm": {"type": "number", "exclusiveMinimum": 0, "description": "Element thickness in mm"}
+      }
+    },
+    "output_schema": {
+      "type": "object",
+      "properties": {
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "fy_mpa": {"type": "number"},
+            "fu_mpa": {"type": "number"},
+            "epsilon": {"type": "number"},
+            "E_gpa": {"type": "number"}
+          }
+        }
+      }
+    },
+    "units": {"thickness_mm": "mm", "fy_mpa": "MPa", "fu_mpa": "MPa"},
+    "constraints": ["Grades S235, S275, S355, S420, S460 supported.", "Thickness >80mm uses 40-80mm values."],
+    "examples": [{"input": {"steel_grade": "S355", "thickness_mm": 20}, "output_key": "fy_mpa"}]
+  },
+  {
+    "tool_name": "effective_length_ec3",
+    "description": "Determines the effective buckling length factor k and effective length Lcr for a member based on end restraint conditions.",
+    "tags": ["EC3", "EN 1993-1-1", "BB.1", "buckling", "effective length"],
+    "script_path": "tools/mcp/effective_length.py",
+    "input_schema": {
+      "type": "object",
+      "required": ["support_conditions", "system_length_m"],
+      "properties": {
+        "support_conditions": {
+          "type": "string",
+          "enum": ["pinned-pinned", "fixed-pinned", "fixed-fixed", "fixed-free", "fixed-slide", "pinned-slide"]
+        },
+        "system_length_m": {"type": "number", "exclusiveMinimum": 0}
+      }
+    },
+    "output_schema": {
+      "type": "object",
+      "properties": {
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "k_factor": {"type": "number"},
+            "L_cr_m": {"type": "number"}
+          }
+        }
+      }
+    },
+    "units": {"system_length_m": "m", "L_cr_m": "m"},
+    "constraints": ["Standard idealized end conditions."],
+    "examples": [{"input": {"support_conditions": "pinned-pinned", "system_length_m": 5.0}, "output_key": "L_cr_m"}]
+  },
+  {
+    "tool_name": "column_buckling_ec3",
+    "description": "Computes flexural buckling resistance Nb,Rd of a compression member per EC3 6.3.1, including reduction factor χ and relative slenderness.",
+    "tags": ["EC3", "EN 1993-1-1", "6.3.1", "buckling", "column", "compression"],
+    "script_path": "tools/mcp/column_buckling.py",
+    "input_schema": {
+      "type": "object",
+      "required": ["system_length_m"],
+      "properties": {
+        "section_name": {"type": "string"},
+        "steel_grade": {"type": "string", "default": "S355"},
+        "system_length_m": {"type": "number", "exclusiveMinimum": 0},
+        "k_factor": {"type": "number", "default": 1.0},
+        "buckling_curve": {"type": "string", "enum": ["a0", "a", "b", "c", "d"], "default": "b"},
+        "gamma_M1": {"type": "number", "default": 1.0},
+        "area_cm2": {"type": "number"},
+        "I_cm4": {"type": "number"},
+        "section_class": {"type": "integer", "minimum": 1, "maximum": 4, "default": 2}
+      }
+    },
+    "output_schema": {
+      "type": "object",
+      "properties": {
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "Nb_Rd_kN": {"type": "number"},
+            "chi": {"type": "number"},
+            "lambda_bar": {"type": "number"},
+            "N_cr_kN": {"type": "number"}
+          }
+        }
+      }
+    },
+    "units": {"system_length_m": "m", "Nb_Rd_kN": "kN"},
+    "constraints": ["Requires section geometry (from library or manual input).", "Uses EC3 buckling curves per Table 6.2."],
+    "examples": [{"input": {"section_name": "IPE300", "steel_grade": "S355", "system_length_m": 5.0, "buckling_curve": "b"}, "output_key": "Nb_Rd_kN"}]
+  },
+  {
+    "tool_name": "bolt_shear_ec3",
+    "description": "Calculates design shear resistance of bolts per EC3-1-8 Table 3.4. Supports common bolt classes and diameters.",
+    "tags": ["EC3", "EN 1993-1-8", "Table 3.4", "bolt", "shear", "connection"],
+    "script_path": "tools/mcp/bolt_shear.py",
+    "input_schema": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "bolt_class": {"type": "string", "enum": ["4.6", "4.8", "5.6", "5.8", "6.8", "8.8", "10.9"], "default": "8.8"},
+        "bolt_diameter_mm": {"type": "integer", "enum": [12, 14, 16, 18, 20, 22, 24, 27, 30, 36], "default": 20},
+        "n_shear_planes": {"type": "integer", "minimum": 1, "default": 1},
+        "shear_through_threads": {"type": "boolean", "default": true},
+        "gamma_M2": {"type": "number", "default": 1.25},
+        "n_bolts": {"type": "integer", "minimum": 1, "default": 1}
+      }
+    },
+    "output_schema": {
+      "type": "object",
+      "properties": {
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "Fv_Rd_per_bolt_kN": {"type": "number"},
+            "Fv_Rd_total_kN": {"type": "number"}
+          }
+        }
+      }
+    },
+    "units": {"Fv_Rd_per_bolt_kN": "kN", "Fv_Rd_total_kN": "kN"},
+    "constraints": ["Shear resistance only; bearing should be checked separately."],
+    "examples": [{"input": {"bolt_class": "8.8", "bolt_diameter_mm": 20, "n_shear_planes": 1, "n_bolts": 4}, "output_key": "Fv_Rd_total_kN"}]
+  },
+  {
+    "tool_name": "weld_resistance_ec3",
+    "description": "Calculates design resistance of a fillet weld per EC3-1-8 simplified method (clause 4.5.3.3).",
+    "tags": ["EC3", "EN 1993-1-8", "4.5.3.3", "weld", "fillet", "connection"],
+    "script_path": "tools/mcp/weld_resistance.py",
+    "input_schema": {
+      "type": "object",
+      "required": ["throat_thickness_mm", "weld_length_mm"],
+      "properties": {
+        "throat_thickness_mm": {"type": "number", "exclusiveMinimum": 0},
+        "weld_length_mm": {"type": "number", "exclusiveMinimum": 0},
+        "steel_grade": {"type": "string", "default": "S355"},
+        "gamma_M2": {"type": "number", "default": 1.25}
+      }
+    },
+    "output_schema": {
+      "type": "object",
+      "properties": {
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "Fw_Rd_kN": {"type": "number"},
+            "Fw_Rd_per_mm_kN": {"type": "number"}
+          }
+        }
+      }
+    },
+    "units": {"throat_thickness_mm": "mm", "weld_length_mm": "mm", "Fw_Rd_kN": "kN"},
+    "constraints": ["Simplified method only; directional method may give higher resistance."],
+    "examples": [{"input": {"throat_thickness_mm": 5, "weld_length_mm": 200, "steel_grade": "S355"}, "output_key": "Fw_Rd_kN"}]
+  },
+  {
+    "tool_name": "deflection_check",
+    "description": "Checks serviceability deflection against standard span/deflection limit ratios per EC0 Annex A1.",
+    "tags": ["EC0", "EN 1990", "A1.4.3", "deflection", "serviceability", "SLS"],
+    "script_path": "tools/mcp/deflection_check.py",
+    "input_schema": {
+      "type": "object",
+      "required": ["span_m", "actual_deflection_mm"],
+      "properties": {
+        "span_m": {"type": "number", "exclusiveMinimum": 0},
+        "actual_deflection_mm": {"type": "number", "exclusiveMinimum": 0},
+        "limit_ratio": {"type": "string", "enum": ["L/200", "L/250", "L/300", "L/350", "L/400", "L/500"], "default": "L/250"}
+      }
+    },
+    "output_schema": {
+      "type": "object",
+      "properties": {
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "allowable_deflection_mm": {"type": "number"},
+            "utilization": {"type": "number"},
+            "pass": {"type": "boolean"}
+          }
+        }
+      }
+    },
+    "units": {"span_m": "m", "actual_deflection_mm": "mm", "allowable_deflection_mm": "mm"},
+    "constraints": ["L/250 for total deflection, L/300 for variable actions per EC0 Table A1.4."],
+    "examples": [{"input": {"span_m": 6.0, "actual_deflection_mm": 20.0, "limit_ratio": "L/250"}, "output_key": "pass"}]
+  },
+  {
+    "tool_name": "unit_converter",
+    "description": "Converts between common structural engineering units: length (mm/cm/m/in/ft), force (N/kN/MN), moment (Nm/kNm), stress (Pa/kPa/MPa/GPa/psi), area, and section modulus.",
+    "tags": ["units", "conversion", "utility"],
+    "script_path": "tools/mcp/unit_converter.py",
+    "input_schema": {
+      "type": "object",
+      "required": ["value", "from_unit", "to_unit"],
+      "properties": {
+        "value": {"type": "number"},
+        "from_unit": {"type": "string", "description": "e.g. mm, kN, MPa, cm4"},
+        "to_unit": {"type": "string", "description": "e.g. m, N, GPa, mm4"}
+      }
+    },
+    "output_schema": {
+      "type": "object",
+      "properties": {
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "result": {"type": "number"},
+            "formatted": {"type": "string"}
+          }
+        }
+      }
+    },
+    "units": {},
+    "constraints": ["Both units must be in the same physical dimension."],
+    "examples": [
+      {"input": {"value": 355, "from_unit": "MPa", "to_unit": "psi"}, "output_key": "result"},
+      {"input": {"value": 6000, "from_unit": "mm", "to_unit": "m"}, "output_key": "result"}
+    ]
+  }
+]

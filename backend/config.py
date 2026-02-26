@@ -1,0 +1,127 @@
+from __future__ import annotations
+
+import os
+from dataclasses import dataclass, replace
+from pathlib import Path
+
+
+def _to_bool(value: str | None, default: bool) -> bool:
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _to_int(value: str | None, default: int) -> int:
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except ValueError:
+        return default
+
+
+@dataclass(frozen=True)
+class Settings:
+    project_root: Path
+    log_level: str = "INFO"
+
+    orchestrator_provider: str = "gemini"
+    orchestrator_model: str = "gemini-3.1-pro"
+    orchestrator_api_key: str = ""
+    orchestrator_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai"
+
+    search_provider: str = "openrouter"
+    search_model: str = "moonshotai/kimi-k2.5"
+    search_api_key: str = ""
+    search_base_url: str = "https://openrouter.ai/api/v1"
+
+    tool_writer_provider: str = ""
+    tool_writer_model: str = ""
+    tool_writer_api_key: str = ""
+    tool_writer_base_url: str = ""
+
+    agentic_search_enabled: bool = True
+    recursive_retrieval_enabled: bool = False
+    embeddings_enabled: bool = False
+    max_retrieval_iters: int = 3
+    top_k_clauses: int = 6
+
+    default_steel_grade: str = "S355"
+    default_section_name: str = "IPE300"
+    default_gamma_m0: float = 1.0
+    default_med_knm: float = 120.0
+    default_ned_kn: float = 200.0
+
+    document_registry_path: Path | None = None
+    tool_registry_path: Path | None = None
+
+    supabase_url: str = ""
+    supabase_anon_key: str = ""
+    supabase_jwt_secret: str = ""
+
+    @property
+    def auth_enabled(self) -> bool:
+        return bool(self.supabase_url and self.supabase_anon_key)
+
+    @property
+    def resolved_document_registry_path(self) -> Path:
+        if self.document_registry_path:
+            return self.document_registry_path
+        return self.project_root / "data" / "document_registry.json"
+
+    @property
+    def resolved_tool_registry_path(self) -> Path:
+        if self.tool_registry_path:
+            return self.tool_registry_path
+        return self.project_root / "tools" / "tool_registry.json"
+
+    @classmethod
+    def load(cls) -> "Settings":
+        project_root = Path(__file__).resolve().parents[1]
+        return cls(
+            project_root=project_root,
+            log_level=os.getenv("LOG_LEVEL", "INFO"),
+            orchestrator_provider=os.getenv("ORCHESTRATOR_PROVIDER", "gemini"),
+            orchestrator_model=os.getenv("ORCHESTRATOR_MODEL", "gemini-3.1-pro"),
+            orchestrator_api_key=os.getenv("ORCHESTRATOR_API_KEY", ""),
+            orchestrator_base_url=os.getenv(
+                "ORCHESTRATOR_BASE_URL",
+                "https://generativelanguage.googleapis.com/v1beta/openai",
+            ),
+            search_provider=os.getenv("SEARCH_PROVIDER", "openrouter"),
+            search_model=os.getenv("SEARCH_MODEL", "moonshotai/kimi-k2.5"),
+            search_api_key=os.getenv("SEARCH_API_KEY", ""),
+            search_base_url=os.getenv("SEARCH_BASE_URL", "https://openrouter.ai/api/v1"),
+            tool_writer_provider=os.getenv("TOOL_WRITER_PROVIDER", ""),
+            tool_writer_model=os.getenv("TOOL_WRITER_MODEL", ""),
+            tool_writer_api_key=os.getenv("TOOL_WRITER_API_KEY", ""),
+            tool_writer_base_url=os.getenv("TOOL_WRITER_BASE_URL", ""),
+            agentic_search_enabled=_to_bool(os.getenv("AGENTIC_SEARCH_ENABLED"), True),
+            recursive_retrieval_enabled=_to_bool(
+                os.getenv("RECURSIVE_RETRIEVAL_ENABLED"), False
+            ),
+            embeddings_enabled=_to_bool(os.getenv("EMBEDDINGS_ENABLED"), False),
+            max_retrieval_iters=_to_int(os.getenv("MAX_RETRIEVAL_ITERS"), 3),
+            top_k_clauses=_to_int(os.getenv("TOP_K_CLAUSES"), 6),
+            default_steel_grade=os.getenv("DEFAULT_STEEL_GRADE", "S355"),
+            default_section_name=os.getenv("DEFAULT_SECTION_NAME", "IPE300"),
+            default_gamma_m0=float(os.getenv("DEFAULT_GAMMA_M0", "1.0")),
+            default_med_knm=float(os.getenv("DEFAULT_MED_KNM", "120.0")),
+            default_ned_kn=float(os.getenv("DEFAULT_NED_KN", "200.0")),
+            document_registry_path=(
+                Path(os.environ["DOCUMENT_REGISTRY_PATH"])
+                if os.getenv("DOCUMENT_REGISTRY_PATH")
+                else None
+            ),
+            tool_registry_path=(
+                Path(os.environ["TOOL_REGISTRY_PATH"])
+                if os.getenv("TOOL_REGISTRY_PATH")
+                else None
+            ),
+            supabase_url=os.getenv("SUPABASE_URL", ""),
+            supabase_anon_key=os.getenv("SUPABASE_ANON_KEY", ""),
+            supabase_jwt_secret=os.getenv("SUPABASE_JWT_SECRET", ""),
+        )
+
+    def with_overrides(self, **kwargs: object) -> "Settings":
+        return replace(self, **kwargs)
