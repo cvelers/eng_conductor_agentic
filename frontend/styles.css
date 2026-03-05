@@ -396,18 +396,10 @@ body {
 
 .error-msg { color: var(--danger); padding: 8px; border: 1px solid rgba(224, 96, 96, 0.3); border-radius: var(--radius-sm); background: rgba(224, 96, 96, 0.06); }
 
-/* Thinking block */
-.thinking-block { margin-bottom: 10px; }
-.thinking-block.hidden { display: none; }
-.thinking-toggle {
-  width: 100%; display: flex; align-items: center; gap: 8px;
-  padding: 6px 0; background: transparent; border: none;
-  color: var(--muted); cursor: pointer; font-size: 0.78rem; font-family: var(--font-sans);
-  transition: color 120ms;
-}
-.thinking-toggle:hover { color: var(--text-2); }
-.thinking-chevron { transition: transform 200ms ease; flex-shrink: 0; }
-.thinking-block:not(.collapsed) .thinking-chevron { transform: rotate(90deg); }
+/* Message panels */
+.msg-panel { margin-bottom: 8px; }
+.msg-panel.hidden { display: none; }
+
 .thinking-label {
   text-align: left; font-weight: 600;
   transition: opacity 200ms ease;
@@ -424,18 +416,9 @@ body {
 }
 .thinking-dots span:nth-child(2) { animation-delay: 0.15s; }
 .thinking-dots span:nth-child(3) { animation-delay: 0.3s; }
-.thinking-block.is-thinking .thinking-label { color: var(--accent-2); }
-.thinking-block.is-thinking .thinking-dots { display: inline-flex; }
+.thinking-panel.is-thinking .thinking-label { color: var(--accent-2); }
+.thinking-panel.is-thinking .thinking-dots { display: inline-flex; }
 .thinking-meta { margin-left: auto; font-size: 0.72rem; color: var(--muted); font-weight: 500; }
-
-.thinking-content {
-  max-height: 620px; overflow-y: auto; overflow-x: hidden;
-  transition: max-height 250ms ease, opacity 200ms ease; opacity: 1;
-  padding: 6px 0 0;
-  display: flex; flex-direction: column; gap: 10px;
-  background: transparent;
-}
-.thinking-block.collapsed .thinking-content { max-height: 0; opacity: 0; padding: 0; }
 
 /* Flow graph — redesigned compact icon layout */
 .flow-graph {
@@ -1258,16 +1241,50 @@ body.chat-started .attach-menu {
   .flow-canvas { transform: scale(0.72); transform-origin: top left; }
 }
 
+/* ── Message Panels ─────────────────────────────────────────────── */
+
+.diagram-panel,
+.thinking-panel {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--muted);
+  padding: 8px 12px 4px;
+  font-family: var(--font-mono);
+}
+
+.diagram-panel {
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.diagram-panel .flow-graph {
+  padding: 2px 8px 8px;
+}
+
+.thinking-panel {
+  max-height: 300px;
+  overflow-y: auto;
+}
+.thinking-panel:has(.activity-feed:empty) { display: none; }
+
 /* ── Activity Feed (Agent Mode) ─────────────────────────────────── */
 
 .activity-feed {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 10px 12px;
-  max-height: 420px;
-  overflow-y: auto;
-  scroll-behavior: smooth;
+  padding: 4px 8px 8px;
 }
 .activity-feed:empty { display: none; }
 

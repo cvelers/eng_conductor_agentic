@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Eurocodes Chatbot (EC3)</title>
-    <link rel="stylesheet" href="/static/styles.css?v=5" />
+    <link rel="stylesheet" href="/static/styles.css?v=7" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
@@ -278,27 +278,25 @@
             </button>
           </div>
         </div>
-        <section class="thinking-block hidden">
-          <button class="thinking-toggle" type="button">
-            <svg class="thinking-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="9 18 15 12 9 6"/></svg>
+        <section class="msg-panel diagram-panel hidden">
+          <div class="panel-header">Diagram</div>
+          <div class="flow-graph" aria-hidden="true"></div>
+        </section>
+        <section class="msg-panel thinking-panel hidden">
+          <div class="panel-header">
             <span class="thinking-label">Thinking</span>
             <span class="thinking-dots" aria-hidden="true">
-              <span></span>
-              <span></span>
-              <span></span>
+              <span></span><span></span><span></span>
             </span>
             <span class="thinking-meta"></span>
-          </button>
-          <div class="thinking-content">
-            <div class="flow-graph" aria-hidden="true"></div>
-            <div class="activity-feed"></div>
-            <div class="machine-log-wrap hidden">
-              <div class="machine-log-title">Orchestrator Steps</div>
-              <ul class="machine-log"></ul>
-            </div>
+          </div>
+          <div class="activity-feed"></div>
+          <div class="machine-log-wrap hidden">
+            <div class="machine-log-title">Orchestrator Steps</div>
+            <ul class="machine-log"></ul>
           </div>
         </section>
-        <div class="content"></div>
+        <div class="msg-panel response-panel content"></div>
         <details class="trace hidden">
           <summary>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
@@ -309,6 +307,6 @@
       </article>
     </template>
 
-    <script src="/static/app.js?v=5" defer></script>
+    <script src="/static/app.js?v=7" defer></script>
   </body>
 </html>

@@ -37,6 +37,9 @@ from backend.utils.json_utils import parse_json_loose
 logger = logging.getLogger(__name__)
 
 
+MAX_TOOL_RETRIES = 2
+
+
 @dataclass
 class _TaskSpec:
     """One decomposed sub-task."""
@@ -268,6 +271,7 @@ class AgentLoop:
 
             # 2b. CALCULATE — tools needed for this task only
             task_tool_outputs: dict[str, dict[str, Any]] = {}
+            tool_failures: list[str] = []
             if task.tools:
                 ordered = self.cio._normalize_tool_chain(task.tools)
                 yield ("machine", {"node": "tools", "status": "active", "title": "Tools", "detail": "Executing tool chain."})
@@ -275,64 +279,84 @@ class AgentLoop:
                     inputs = self._build_task_tool_inputs(
                         tool_name, task, task_tool_outputs
                     )
-                    yield (
-                        "tool_start",
-                        {
-                            "tool": tool_name,
-                            "args": inputs,
-                        },
-                    )
-                    try:
-                        payload = self.cio.tool_runner.run(tool_name, inputs)
-                        result = payload.get("result", {})
-                        task_tool_outputs[tool_name] = result
-                        all_tool_outputs[tool_name] = result
-                        step = ToolTraceStep(
-                            tool_name=tool_name,
-                            status="ok",
-                            inputs=inputs,
-                            outputs=result.get("outputs", result),
-                        )
-                        all_tool_trace.append(step)
-
-                        # Compact summary for the UI
-                        outputs = result.get("outputs", {})
-                        summary_parts = []
-                        for k, v in outputs.items():
-                            if isinstance(v, (int, float)):
-                                summary_parts.append(
-                                    f"{k.replace('_', ' ')} = {v}"
-                                )
-                        summary = "; ".join(summary_parts[:3]) or "Complete"
-
-                        yield ("machine", {"node": "tools", "status": "active", "title": "Tools", "detail": f"Tool {tool_name} completed.", "meta": {"tool": tool_name}})
+                    success = False
+                    last_error = ""
+                    for attempt in range(1 + MAX_TOOL_RETRIES):
                         yield (
-                            "tool_result",
+                            "tool_start",
                             {
                                 "tool": tool_name,
-                                "status": "ok",
-                                "summary": summary,
-                                "result": result,
+                                "args": inputs,
                             },
                         )
-                    except Exception as exc:
+                        try:
+                            payload = self.cio.tool_runner.run(tool_name, inputs)
+                            result = payload.get("result", {})
+                            task_tool_outputs[tool_name] = result
+                            all_tool_outputs[tool_name] = result
+                            step = ToolTraceStep(
+                                tool_name=tool_name,
+                                status="ok",
+                                inputs=inputs,
+                                outputs=result.get("outputs", result),
+                            )
+                            all_tool_trace.append(step)
+
+                            # Compact summary for the UI
+                            outputs = result.get("outputs", {})
+                            summary_parts = []
+                            for k, v in outputs.items():
+                                if isinstance(v, (int, float)):
+                                    summary_parts.append(
+                                        f"{k.replace('_', ' ')} = {v}"
+                                    )
+                            summary = "; ".join(summary_parts[:3]) or "Complete"
+
+                            yield ("machine", {"node": "tools", "status": "active", "title": "Tools", "detail": f"Tool {tool_name} completed.", "meta": {"tool": tool_name}})
+                            yield (
+                                "tool_result",
+                                {
+                                    "tool": tool_name,
+                                    "status": "ok",
+                                    "summary": summary,
+                                    "result": result,
+                                },
+                            )
+                            success = True
+                            break
+                        except Exception as exc:
+                            last_error = str(exc)
+                            yield (
+                                "tool_result",
+                                {
+                                    "tool": tool_name,
+                                    "status": "error",
+                                    "summary": f"Failed (attempt {attempt + 1}): {exc}",
+                                    "result": {},
+                                },
+                            )
+                            if attempt < MAX_TOOL_RETRIES:
+                                # Ask LLM to fix inputs
+                                fixed = self._fix_tool_inputs(
+                                    tool_name, inputs, last_error, task
+                                )
+                                if fixed and fixed != inputs:
+                                    inputs = fixed
+                                    yield ("machine", {"node": "tools", "status": "active", "title": "Tools", "detail": f"Retrying {tool_name} with corrected inputs..."})
+                                else:
+                                    break  # LLM couldn't fix — stop retrying
+
+                    if not success:
                         step = ToolTraceStep(
                             tool_name=tool_name,
                             status="error",
                             inputs=inputs,
-                            error=str(exc),
+                            error=last_error,
                         )
                         all_tool_trace.append(step)
-                        yield ("machine", {"node": "tools", "status": "error", "title": "Tools", "detail": f"Tool {tool_name} failed.", "meta": {"tool": tool_name}})
-                        yield (
-                            "tool_result",
-                            {
-                                "tool": tool_name,
-                                "status": "error",
-                                "summary": f"Failed: {exc}",
-                                "result": {},
-                            },
-                        )
+                        tool_failures.append(f"{tool_name}: {last_error}")
+                        yield ("machine", {"node": "tools", "status": "error", "title": "Tools", "detail": f"Tool {tool_name} failed after retries.", "meta": {"tool": tool_name}})
+
                 yield ("machine", {"node": "tools", "status": "done", "title": "Tools", "detail": "Tool execution finished."})
 
             # Track inputs/assumptions from task
@@ -351,6 +375,7 @@ class AgentLoop:
                 original_query=query,
                 retrieved=task_clauses,
                 tool_outputs=task_tool_outputs,
+                tool_failures=tool_failures,
                 thinking_mode=selected_mode,
             )
 
@@ -731,18 +756,84 @@ class AgentLoop:
                 )
                 base[input_key] = val if val is not None else default
 
-        # Filter to only params the tool expects
+        # Filter to only params the tool expects and normalize enums
         entry = self.cio.tool_registry.get(tool_name)
         if entry:
-            expected = set(entry.input_schema.get("properties", {}).keys())
+            props = entry.input_schema.get("properties", {})
+            expected = set(props.keys())
             if expected:
                 base = {k: v for k, v in base.items() if k in expected and v is not None}
             else:
                 base = {k: v for k, v in base.items() if v is not None}
+            # Normalize enum values (e.g. "UDL" → "udl")
+            for k, v in list(base.items()):
+                if isinstance(v, str) and k in props:
+                    allowed = props[k].get("enum")
+                    if allowed and v not in allowed:
+                        lower = v.lower()
+                        if lower in allowed:
+                            base[k] = lower
         else:
             base = {k: v for k, v in base.items() if v is not None}
 
         return base
+
+    def _fix_tool_inputs(
+        self,
+        tool_name: str,
+        failed_inputs: dict[str, Any],
+        error_msg: str,
+        task: _TaskSpec,
+    ) -> dict[str, Any] | None:
+        """Ask the LLM to correct tool inputs after a failure."""
+        if not self.cio.orchestrator_llm.available:
+            return None
+
+        entry = self.cio.tool_registry.get(tool_name)
+        schema_desc = ""
+        if entry:
+            props = entry.input_schema.get("properties", {})
+            required = entry.input_schema.get("required", [])
+            schema_desc = json.dumps(
+                {"properties": props, "required": required}, indent=2
+            )
+
+        try:
+            raw = self.cio.orchestrator_llm.generate(
+                system_prompt=(
+                    "You are a tool-input repair agent. A calculator tool failed due "
+                    "to invalid inputs. Fix the inputs and return ONLY a JSON object "
+                    "with corrected values. No explanation."
+                ),
+                user_prompt=(
+                    f"Tool: {tool_name}\n"
+                    f"User query: {task.query}\n"
+                    f"Input schema:\n{schema_desc}\n\n"
+                    f"Failed inputs: {json.dumps(failed_inputs, default=str)}\n"
+                    f"Error: {error_msg}\n\n"
+                    "Return corrected JSON inputs only."
+                ),
+                temperature=0,
+                max_tokens=1024,
+                reasoning_effort="low",
+            )
+            fixed = parse_json_loose(raw)
+            if isinstance(fixed, dict):
+                # Re-apply enum normalization
+                if entry:
+                    props = entry.input_schema.get("properties", {})
+                    for k, v in list(fixed.items()):
+                        if isinstance(v, str) and k in props:
+                            allowed = props[k].get("enum")
+                            if allowed and v not in allowed:
+                                lower = v.lower()
+                                if lower in allowed:
+                                    fixed[k] = lower
+                return fixed
+        except Exception as exc:
+            logger.warning("fix_tool_inputs_failed", extra={"error": str(exc)})
+
+        return None
 
     # ── Task-level composition ──────────────────────────────────────
 
@@ -753,6 +844,7 @@ class AgentLoop:
         original_query: str,
         retrieved: list,
         tool_outputs: dict[str, dict[str, Any]],
+        tool_failures: list[str] | None = None,
         thinking_mode: str,
     ) -> str:
         """Compose a focused answer for one task with isolated context."""
@@ -788,6 +880,18 @@ class AgentLoop:
             else ""
         )
 
+        # If tools failed and we have no tool outputs, tell the LLM honestly
+        failure_note = ""
+        if tool_failures and not tool_outputs:
+            failure_note = (
+                "\n\nIMPORTANT: The required calculator tools failed after multiple "
+                "retries. You MUST NOT answer the calculation from general knowledge. "
+                "Instead, explain that the calculation could not be completed right now "
+                "due to a tool error, apologise, and suggest the user try again or "
+                "rephrase their query. Be specific about what went wrong.\n"
+                f"Tool errors: {'; '.join(tool_failures)}\n"
+            )
+
         reasoning_effort = None
         if thinking_mode == "standard":
             reasoning_effort = "low"
@@ -802,6 +906,7 @@ class AgentLoop:
                     f"Colleague's question: {task.query}\n\n"
                     f"Retrieved EC3 clauses:\n{clause_text}\n\n"
                     f"Tool results:\n{tool_text}\n\n"
+                    f"{failure_note}"
                     "Give a detailed engineering answer. Wrap ALL math in $...$ delimiters."
                 ),
                 temperature=0.15,

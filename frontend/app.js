@@ -634,10 +634,12 @@ function edgePath(fromNode, toNode, layout) {
 }
 
 function initFlowGraph(msgNode, prompt) {
-  const block = msgNode.querySelector(".thinking-block");
+  const diagramPanel = msgNode.querySelector(".diagram-panel");
+  const thinkingPanel = msgNode.querySelector(".thinking-panel");
   const graph = msgNode.querySelector(".flow-graph");
-  if (!block || !graph) return;
-  block.classList.remove("hidden");
+  if (!graph) return;
+  if (diagramPanel) diagramPanel.classList.remove("hidden");
+  if (thinkingPanel) thinkingPanel.classList.remove("hidden");
   setThinkingState(msgNode, true);
   graph.innerHTML = "";
 
@@ -963,9 +965,9 @@ function updateThinkingLabel(msgNode, text) {
 }
 
 function setThinkingState(msgNode, active) {
-  const block = msgNode.querySelector(".thinking-block");
-  if (!block) return;
-  block.classList.toggle("is-thinking", !!active);
+  const panel = msgNode.querySelector(".thinking-panel");
+  if (!panel) return;
+  panel.classList.toggle("is-thinking", !!active);
   if (active) {
     _startPhraseRotation(msgNode);
   } else {
@@ -1253,16 +1255,12 @@ function createMsg(role, content = "", opts = {}) {
     node.querySelector(".edit-btn")?.remove();
     if (opts.showThinking !== false) {
       initFlowGraph(node, opts.prompt || "");
-      const startCollapsed = opts.startCollapsed !== false;
-      if (startCollapsed) node.querySelector(".thinking-block")?.classList.add("collapsed");
     } else {
-      node.querySelector(".thinking-block")?.classList.add("hidden");
+      node.querySelector(".diagram-panel")?.classList.add("hidden");
+      node.querySelector(".thinking-panel")?.classList.add("hidden");
     }
     if (opts.responsePayload) {
       setTrace(node, opts.responsePayload);
-      if (node.querySelector(".thinking-block")) {
-        node.querySelector(".thinking-block").classList.add("collapsed");
-      }
     }
   } else {
     const attHtml = buildAttachmentHtml(opts.attachments);
@@ -1275,7 +1273,8 @@ function createMsg(role, content = "", opts = {}) {
     } else {
       contentEl.textContent = content;
     }
-    node.querySelector(".thinking-block")?.remove();
+    node.querySelector(".diagram-panel")?.remove();
+    node.querySelector(".thinking-panel")?.remove();
     node.querySelector(".trace")?.remove();
 
     // Store original prompt + attachments for edit & resubmit
@@ -1297,14 +1296,6 @@ function createMsg(role, content = "", opts = {}) {
   const editBtn = node.querySelector(".edit-btn");
   if (editBtn && role === "user") {
     editBtn.addEventListener("click", () => editAndResubmit(node));
-  }
-
-  const toggle = node.querySelector(".thinking-toggle");
-  if (toggle) {
-    toggle.addEventListener("click", () => {
-      const block = node.querySelector(".thinking-block");
-      if (block) block.classList.toggle("collapsed");
-    });
   }
 
   messagesEl.appendChild(node);
