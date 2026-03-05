@@ -18,6 +18,7 @@ from backend.config import Settings
 from backend.threads import create_threads_router
 from backend.llm.factory import get_orchestrator_provider, get_search_provider, get_tool_writer_provider
 from backend.logging_config import configure_logging
+from backend.orchestrator.agent_loop import AgentLoop
 from backend.orchestrator.engine import CentralIntelligenceOrchestrator
 from backend.registries.document_registry import load_all_clauses, load_document_registry
 from backend.registries.tool_registry import load_tool_registry
@@ -118,6 +119,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         clauses=clauses,
     )
 
+    agent_loop = AgentLoop(
+        orchestrator=orchestrator,
+        settings=active_settings,
+    )
+
     tool_writer_provider = get_tool_writer_provider(active_settings)
 
     tool_writer = ToolWriter(
@@ -129,6 +135,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app = FastAPI(title="Eurocodes Chatbot", version="0.3.0")
     app.state.orchestrator = orchestrator
+    app.state.agent_loop = agent_loop
     app.state.tool_writer = tool_writer
     app.state.settings = active_settings
 
@@ -189,7 +196,66 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.post("/api/chat/stream")
     async def chat_stream(request: ChatRequest) -> StreamingResponse:
-        async def event_generator():
+        use_agent = active_settings.agent_mode_enabled
+
+        async def _agent_generator():
+            """Agent-mode streaming: progressive task decomposition."""
+            request_id = uuid4().hex
+            all_events: list[dict] = []
+            final_response: ChatResponse | None = None
+            error_detail: str | None = None
+            try:
+                for event_type, payload in agent_loop.run_stream(
+                    request.message,
+                    history=request.history,
+                    thinking_mode=request.thinking_mode,
+                    attachments=request.attachments,
+                    is_edit=request.is_edit,
+                ):
+                    if event_type == "response":
+                        final_response = payload
+                        # Emit final event
+                        yield json.dumps({"type": "final", "response": payload.model_dump()}) + "\n"
+                    elif event_type == "machine":
+                        # Backward-compat pipeline events from direct-response paths
+                        all_events.append(payload)
+                        yield json.dumps({"type": "machine", **payload}) + "\n"
+                    elif isinstance(payload, dict):
+                        all_events.append({"event_type": event_type, **payload})
+                        yield json.dumps({"type": event_type, **payload}) + "\n"
+                    else:
+                        yield json.dumps({"type": event_type, "content": str(payload)}) + "\n"
+                    await asyncio.sleep(0.005)
+            except Exception as exc:
+                error_detail = str(exc)
+                logger.exception("agent_stream_failed")
+                yield json.dumps({"type": "error", "detail": str(exc)}) + "\n"
+            else:
+                if final_response is None:
+                    error_detail = "No response generated."
+                    yield json.dumps({"type": "error", "detail": "No response generated."}) + "\n"
+            finally:
+                _append_thread_log(
+                    active_settings,
+                    {
+                        "ts": datetime.now(timezone.utc).isoformat(),
+                        "request_id": request_id,
+                        "endpoint": "/api/chat/stream",
+                        "mode": "agent",
+                        "request": {
+                            "message": request.message,
+                            "history": _history_payload(request.history),
+                            "thinking_mode": request.thinking_mode,
+                            "is_edit": request.is_edit,
+                        },
+                        "events": all_events,
+                        "response": final_response.model_dump() if final_response else None,
+                        "error": error_detail,
+                    },
+                )
+
+        async def _pipeline_generator():
+            """Legacy pipeline streaming (original behavior)."""
             request_id = uuid4().hex
             machine_events: list[dict] = []
             final_response: ChatResponse | None = None
@@ -228,6 +294,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                         "ts": datetime.now(timezone.utc).isoformat(),
                         "request_id": request_id,
                         "endpoint": "/api/chat/stream",
+                        "mode": "pipeline",
                         "request": {
                             "message": request.message,
                             "history": _history_payload(request.history),
@@ -240,7 +307,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     },
                 )
 
-        return StreamingResponse(event_generator(), media_type="application/x-ndjson")
+        gen = _agent_generator() if use_agent else _pipeline_generator()
+        return StreamingResponse(gen, media_type="application/x-ndjson")
 
     @app.post("/api/tools/generate")
     async def generate_tool(request: ToolGenerateRequest):

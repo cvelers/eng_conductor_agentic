@@ -1257,3 +1257,187 @@ body.chat-started .attach-menu {
   .top-auth-btn { padding: 5px 10px; font-size: 0.74rem; }
   .flow-canvas { transform: scale(0.72); transform-origin: top left; }
 }
+
+/* ── Activity Feed (Agent Mode) ─────────────────────────────────── */
+
+.activity-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  max-height: 420px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+.activity-feed:empty { display: none; }
+
+.activity-card {
+  display: flex;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+.activity-card.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.card-icon {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--muted);
+  margin-bottom: 2px;
+  font-family: var(--font-mono);
+}
+
+.card-content {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-2);
+}
+
+.card-summary {
+  font-size: 12.5px;
+  color: var(--text-2);
+  line-height: 1.4;
+}
+
+/* Thinking card */
+.thinking-card .card-content {
+  font-style: italic;
+  color: var(--muted);
+}
+.thinking-card .card-icon { color: var(--accent); }
+
+/* Plan checklist */
+.plan-card .card-icon { color: var(--accent-2); }
+
+.plan-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.plan-step {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--text-2);
+  transition: color 0.2s;
+}
+.plan-step.done { color: var(--success); }
+.plan-step.done .step-text { text-decoration: line-through; opacity: 0.7; }
+.plan-step.in_progress { color: var(--text); font-weight: 500; }
+
+.step-icon {
+  width: 16px;
+  flex-shrink: 0;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* Tool cards */
+.tool-card .card-icon { color: var(--warning); }
+.tool-card.search-tool .card-icon,
+.search-card .card-icon { color: var(--accent); }
+
+.tool-args {
+  display: block;
+  font-size: 10.5px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  margin-top: 2px;
+}
+.tool-summary {
+  font-size: 11.5px;
+  color: var(--success);
+  margin-top: 3px;
+}
+
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: agent-spin 0.7s linear infinite;
+}
+
+.card-status {
+  flex-shrink: 0;
+  align-self: center;
+  font-size: 13px;
+  width: 20px;
+  text-align: center;
+}
+.card-status.running { color: var(--accent); }
+.card-status.ok { color: var(--success); }
+.card-status.error { color: var(--danger); }
+
+@keyframes agent-spin {
+  to { transform: rotate(360deg); }
+}
+.card-status.running svg {
+  animation: agent-spin 1s linear infinite;
+}
+
+.card-details {
+  margin-top: 4px;
+}
+.card-details summary {
+  font-size: 10.5px;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  user-select: none;
+}
+.card-details summary:hover { color: var(--accent); }
+
+.card-detail-pre {
+  font-size: 10.5px;
+  line-height: 1.35;
+  max-height: 180px;
+  overflow: auto;
+  padding: 8px 10px;
+  margin-top: 4px;
+  border-radius: 6px;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-2);
+}
+

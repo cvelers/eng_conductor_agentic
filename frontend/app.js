@@ -1130,6 +1130,116 @@ function setTrace(msgNode, payload) {
   trace.classList.remove("hidden");
 }
 
+// ---- Activity Feed (Agent Mode) ----
+
+const _ACTIVITY_ICONS = {
+  thinking: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>`,
+  plan: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>`,
+  search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`,
+  tool: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`,
+};
+
+const _STEP_ICONS = { pending: "\u25CB", in_progress: "\u25B6", done: "\u2713", error: "\u2717" };
+
+function _getActivityFeed(msgNode) {
+  return msgNode.querySelector(".activity-feed");
+}
+
+function _makeCard(type, label, body) {
+  const card = document.createElement("div");
+  card.className = `activity-card ${type}-card`;
+  card.innerHTML = `<div class="card-icon">${_ACTIVITY_ICONS[type] || _ACTIVITY_ICONS.thinking}</div>
+    <div class="card-body"><div class="card-label">${escHtml(label)}</div><div class="card-content">${body}</div></div>`;
+  requestAnimationFrame(() => requestAnimationFrame(() => card.classList.add("show")));
+  return card;
+}
+
+function appendThinkingCard(msgNode, content) {
+  const feed = _getActivityFeed(msgNode);
+  if (!feed) return;
+  const card = _makeCard("thinking", "Thinking", escHtml(content));
+  feed.appendChild(card);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function renderPlanCard(msgNode, steps) {
+  const feed = _getActivityFeed(msgNode);
+  if (!feed) return;
+  const items = steps.map(s =>
+    `<div class="plan-step pending" data-step-id="${s.id}"><span class="step-icon">${_STEP_ICONS.pending}</span><span>${escHtml(s.text)}</span></div>`
+  ).join("");
+  const card = _makeCard("plan", "Plan", `<div class="plan-checklist">${items}</div>`);
+  feed.appendChild(card);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function updatePlanStep(msgNode, stepId, status) {
+  const feed = _getActivityFeed(msgNode);
+  if (!feed) return;
+  const step = feed.querySelector(`.plan-step[data-step-id="${stepId}"]`);
+  if (!step) return;
+  step.className = `plan-step ${status}`;
+  step.querySelector(".step-icon").textContent = _STEP_ICONS[status] || _STEP_ICONS.pending;
+  // Update thinking label to reflect current task
+  if (status === "in_progress") {
+    const taskText = step.querySelector("span:last-child")?.textContent || "";
+    if (taskText) updateThinkingLabel(msgNode, taskText);
+  }
+}
+
+function appendToolCard(msgNode, toolName, args, status) {
+  const feed = _getActivityFeed(msgNode);
+  if (!feed) return;
+  const isSearch = toolName === "search" || toolName === "retrieval";
+  const type = isSearch ? "search" : "tool";
+  const displayName = isSearch ? "Searching standards" : toolName.replace(/_/g, " ");
+  const argsPreview = args ? previewPairs(args, 4) : "";
+  const statusClass = status || "running";
+  const statusIcon = statusClass === "running" ? `<span class="spinner"></span>` : "";
+  const body = `<span>${escHtml(displayName)}</span>${argsPreview ? `<span class="tool-args">${escHtml(argsPreview)}</span>` : ""}`;
+  const card = _makeCard(type, type === "search" ? "Retrieval" : "Tool", body);
+  card.dataset.toolName = toolName;
+  card.innerHTML += `<div class="card-status ${statusClass}">${statusIcon}</div>`;
+  feed.appendChild(card);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function updateToolCard(msgNode, toolName, result, status, summary) {
+  const feed = _getActivityFeed(msgNode);
+  if (!feed) return;
+  // Find last card matching this tool name
+  const cards = feed.querySelectorAll(`.activity-card[data-tool-name="${toolName}"]`);
+  const card = cards[cards.length - 1];
+  if (!card) return;
+  // Update status indicator
+  const statusEl = card.querySelector(".card-status");
+  if (statusEl) {
+    statusEl.className = `card-status ${status}`;
+    statusEl.innerHTML = status === "ok" ? _STEP_ICONS.done : _STEP_ICONS.error;
+  }
+  // Add summary/result detail
+  if (summary || result) {
+    const body = card.querySelector(".card-content");
+    if (body && summary) {
+      body.innerHTML += `<div class="tool-summary">${escHtml(summary)}</div>`;
+    }
+    if (result) {
+      const details = document.createElement("details");
+      details.className = "card-details";
+      details.innerHTML = `<summary>Details</summary><pre class="card-detail-pre">${escHtml(typeof result === "string" ? result : JSON.stringify(result, null, 2))}</pre>`;
+      card.querySelector(".card-body")?.appendChild(details);
+    }
+  }
+}
+
+function finalizeAgentThinking(msgNode, taskCount) {
+  setThinkingState(msgNode, false);
+  const elapsed = ((Date.now() - (msgNode.__thinkStart || Date.now())) / 1000).toFixed(1);
+  const meta = msgNode.querySelector(".thinking-meta");
+  if (meta) meta.textContent = `${taskCount} task${taskCount !== 1 ? "s" : ""} \u00B7 ${elapsed}s`;
+  updateThinkingLabel(msgNode, "Completed. Expand to review steps.");
+}
+
 // ---- Messages ----
 function createMsg(role, content = "", opts = {}) {
   const node = template.content.firstElementChild.cloneNode(true);
@@ -1429,6 +1539,8 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
   let buffer = "";
   let finalized = false;
   let lastPayload = null;
+  let isAgentMode = false;
+  let agentTaskCount = 0;
 
   while (true) {
     const { done, value } = await reader.read();
@@ -1442,10 +1554,34 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
       let event;
       try { event = JSON.parse(line); } catch { continue; }
 
+      // Legacy pipeline events
       if (event.type === "machine") updateFlow(assistantNode, event);
 
+      // Agent activity events
+      if (event.type === "thinking") {
+        appendThinkingCard(assistantNode, event.content);
+        agentTaskCount = (agentTaskCount || 0);
+        isAgentMode = true;
+      }
+      if (event.type === "plan") {
+        renderPlanCard(assistantNode, event.steps);
+        agentTaskCount = event.steps?.length || 0;
+        isAgentMode = true;
+      }
+      if (event.type === "plan_update") {
+        updatePlanStep(assistantNode, event.step_id, event.status);
+      }
+      if (event.type === "tool_start") {
+        appendToolCard(assistantNode, event.tool, event.args, "running");
+        appendLog(assistantNode, `Running ${event.tool}...`);
+      }
+      if (event.type === "tool_result") {
+        updateToolCard(assistantNode, event.tool, event.result, event.status, event.summary);
+        appendLog(assistantNode, `${event.tool}: ${event.status}${event.summary ? " — " + event.summary : ""}`);
+      }
+
       if (event.type === "delta") {
-        accumulated += event.delta;
+        accumulated += event.delta || event.content || "";
         scheduleRender();
       }
 
@@ -1455,7 +1591,11 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         lastPayload = payload;
         contentEl.innerHTML = renderMd(payload.answer);
         setTrace(assistantNode, payload);
-        finalizeThinking(assistantNode, payload);
+        if (isAgentMode) {
+          finalizeAgentThinking(assistantNode, agentTaskCount || 1);
+        } else {
+          finalizeThinking(assistantNode, payload);
+        }
         appendLog(assistantNode, "Response complete.");
 
         if (state.devMode && payload.tool_trace?.length) {

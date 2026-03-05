@@ -128,6 +128,65 @@ class OpenAICompatProvider(LLMProvider):
             reasoning_effort=reasoning_effort,
         )
 
+    def generate_messages(
+        self,
+        *,
+        messages: list[dict[str, Any]],
+        temperature: float = 0.0,
+        max_tokens: int = 8000,
+        reasoning_effort: str | None = None,
+    ) -> str:
+        """Generate from a full messages list (multi-turn)."""
+        return self._call_chat_completions(
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+            reasoning_effort=reasoning_effort,
+        )
+
+    def generate_stream(
+        self,
+        *,
+        messages: list[dict[str, Any]],
+        temperature: float = 0.0,
+        max_tokens: int = 8000,
+    ):
+        """Stream tokens as they arrive. Yields text strings."""
+        import json as _json
+
+        if not self.available:
+            raise RuntimeError(f"{self.provider_name} API key is not configured.")
+
+        payload: dict[str, Any] = {
+            "model": self.model,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "messages": messages,
+            "stream": True,
+        }
+        url = f"{self.base_url}/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+
+        with httpx.Client(timeout=self.timeout_s) as client:
+            with client.stream("POST", url, headers=headers, json=payload) as resp:
+                resp.raise_for_status()
+                for line in resp.iter_lines():
+                    if not line or not line.startswith("data: "):
+                        continue
+                    data_str = line[6:].strip()
+                    if data_str == "[DONE]":
+                        break
+                    try:
+                        chunk = _json.loads(data_str)
+                        delta = chunk.get("choices", [{}])[0].get("delta", {}).get("content", "")
+                        if delta:
+                            yield delta
+                    except Exception:
+                        continue
+
     def generate_multimodal(
         self,
         *,
