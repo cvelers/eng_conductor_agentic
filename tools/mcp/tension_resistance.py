@@ -1,0 +1,123 @@
+from __future__ import annotations
+
+from typing import Optional
+
+from pydantic import BaseModel, Field, PositiveFloat, model_validator
+
+from tools.mcp.cli import run_cli
+from tools.mcp.section_library import SECTION_LIBRARY, steel_grade_to_fy
+
+TOOL_NAME = "tension_resistance_ec3"
+
+# fu lookup per EC3 Table 3.1 (t ≤ 40 mm)
+STEEL_FU: dict[str, float] = {
+    "S235": 360.0,
+    "S275": 430.0,
+    "S355": 510.0,
+    "S420": 520.0,
+    "S450": 550.0,
+    "S460": 550.0,
+}
+
+
+class TensionResistanceInput(BaseModel):
+    section_name: Optional[str] = Field(default=None, description="Section name, e.g. IPE300")
+    steel_grade: str = Field(default="S355", description="Steel grade, e.g. S355")
+    area_cm2: Optional[PositiveFloat] = Field(default=None, description="Gross cross-section area in cm²")
+    A_net_cm2: Optional[PositiveFloat] = Field(default=None, description="Net cross-section area in cm² (after bolt holes)")
+    fy_mpa: Optional[PositiveFloat] = Field(default=None, description="Yield strength in MPa")
+    fu_mpa: Optional[PositiveFloat] = Field(default=None, description="Ultimate tensile strength in MPa")
+    gamma_M0: PositiveFloat = Field(default=1.0, description="Partial factor γ_M0")
+    gamma_M2: PositiveFloat = Field(default=1.25, description="Partial factor γ_M2")
+    connection_category: Optional[str] = Field(
+        default=None,
+        description="Connection category: 'A', 'B', or 'C' per EN 1993-1-8 3.4.1",
+    )
+
+    @model_validator(mode="after")
+    def fill_from_library(self) -> "TensionResistanceInput":
+        if self.section_name:
+            key = self.section_name.upper().replace(" ", "")
+            if key in SECTION_LIBRARY:
+                row = SECTION_LIBRARY[key]
+                if self.area_cm2 is None:
+                    self.area_cm2 = float(row["area_cm2"])
+        if self.fy_mpa is None:
+            self.fy_mpa = steel_grade_to_fy(self.steel_grade)
+        if self.fu_mpa is None:
+            grade = self.steel_grade.strip().upper()
+            self.fu_mpa = STEEL_FU.get(grade, self.fy_mpa * 1.35)
+        if self.area_cm2 is None:
+            raise ValueError("Provide section_name or area_cm2.")
+        return self
+
+
+def calculate(inp: TensionResistanceInput) -> dict:
+    fy = float(inp.fy_mpa)
+    fu = float(inp.fu_mpa)
+    A_mm2 = float(inp.area_cm2) * 100.0
+    gamma_M0 = float(inp.gamma_M0)
+    gamma_M2 = float(inp.gamma_M2)
+
+    # §6.2.3(2)a – Plastic resistance of gross section
+    N_pl_Rd = A_mm2 * fy / gamma_M0 / 1000.0  # kN
+
+    results: dict = {
+        "N_pl_Rd_kN": round(N_pl_Rd, 2),
+    }
+    governing = "N_pl_Rd"
+    N_t_Rd = N_pl_Rd
+
+    if inp.A_net_cm2 is not None:
+        A_net_mm2 = float(inp.A_net_cm2) * 100.0
+
+        # §6.2.3(2)b – Ultimate resistance of net section
+        N_u_Rd = 0.9 * A_net_mm2 * fu / gamma_M2 / 1000.0  # kN
+        results["N_u_Rd_kN"] = round(N_u_Rd, 2)
+
+        if inp.connection_category and inp.connection_category.upper() == "C":
+            # §6.2.3(4) – Category C: net section yielding
+            N_net_Rd = A_net_mm2 * fy / gamma_M0 / 1000.0
+            results["N_net_Rd_kN"] = round(N_net_Rd, 2)
+            N_t_Rd = min(N_pl_Rd, N_u_Rd, N_net_Rd)
+            governing = min(
+                [("N_pl_Rd", N_pl_Rd), ("N_u_Rd", N_u_Rd), ("N_net_Rd", N_net_Rd)],
+                key=lambda x: x[1],
+            )[0]
+        else:
+            N_t_Rd = min(N_pl_Rd, N_u_Rd)
+            governing = "N_pl_Rd" if N_pl_Rd <= N_u_Rd else "N_u_Rd"
+
+    results["N_t_Rd_kN"] = round(N_t_Rd, 2)
+    results["governing"] = governing
+
+    return {
+        "inputs_used": {
+            "section_name": inp.section_name,
+            "steel_grade": inp.steel_grade,
+            "fy_mpa": fy,
+            "fu_mpa": fu,
+            "area_cm2": float(inp.area_cm2),
+            "A_net_cm2": float(inp.A_net_cm2) if inp.A_net_cm2 else None,
+            "gamma_M0": gamma_M0,
+            "gamma_M2": gamma_M2,
+            "connection_category": inp.connection_category,
+        },
+        "outputs": results,
+        "clause_references": [
+            {
+                "doc_id": "ec3.en1993-1-1.2005",
+                "clause_id": "6.2.3(2)",
+                "title": "Tension resistance",
+                "pointer": "en_1993_1_1_2005_structured.json#6.2.3",
+            },
+        ],
+        "notes": [
+            f"N_pl,Rd = A·fy/γM0 = {A_mm2:.0f}×{fy:.0f}/{gamma_M0} = {N_pl_Rd:.2f} kN",
+            f"Governing resistance: {governing} = {N_t_Rd:.2f} kN",
+        ],
+    }
+
+
+if __name__ == "__main__":
+    run_cli(tool_name=TOOL_NAME, input_model=TensionResistanceInput, handler=calculate)
