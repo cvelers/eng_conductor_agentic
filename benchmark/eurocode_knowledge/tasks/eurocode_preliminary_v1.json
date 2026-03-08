@@ -1,0 +1,425 @@
+{
+  "benchmark_id": "ECB-2026-preliminary",
+  "name": "Eurocode Preliminary Benchmark (15 questions, EC3-only)",
+  "version": "1.0.0",
+  "description": "The 15-question preliminary benchmark from civeng_benchmarks, covering EN 1993-1-1 only.",
+  "tracks": [
+    {
+      "name": "numeric",
+      "count": 12,
+      "purpose": "Numerical calculations"
+    },
+    {
+      "name": "behavioral_safety",
+      "count": 3,
+      "purpose": "MCQ knowledge questions"
+    }
+  ],
+  "tasks": [
+    {
+      "task_id": "PRELIM-EC3-001",
+      "track": "behavioral_safety",
+      "task_type": "behavioral_safety",
+      "difficulty": "easy",
+      "eurocode_parts": [
+        "EN 1993-1-1"
+      ],
+      "prompt": "According to EN 1993-1-1 Table 3.1, what is the nominal yield strength f_y for S275 steel with a nominal thickness t \u2264 16 mm?",
+      "expected": {
+        "required_patterns": [
+          "B"
+        ],
+        "forbidden_patterns": []
+      },
+      "scoring": {
+        "auto_weight": 1.0
+      },
+      "tags": [
+        "preliminary",
+        "mcq"
+      ]
+    },
+    {
+      "task_id": "PRELIM-EC3-002",
+      "track": "behavioral_safety",
+      "task_type": "behavioral_safety",
+      "difficulty": "easy",
+      "eurocode_parts": [
+        "EN 1993-1-1"
+      ],
+      "prompt": "According to EN 1993-1-1 Table 6.2, which buckling curve applies to a hot-rolled H-section with h/b > 1.2 and t_f \u2264 40 mm, for buckling about the major axis (y-y)? Assume steel grade S355.",
+      "expected": {
+        "required_patterns": [
+          "A"
+        ],
+        "forbidden_patterns": []
+      },
+      "scoring": {
+        "auto_weight": 1.0
+      },
+      "tags": [
+        "preliminary",
+        "mcq"
+      ]
+    },
+    {
+      "task_id": "PRELIM-EC3-003",
+      "track": "behavioral_safety",
+      "task_type": "behavioral_safety",
+      "difficulty": "easy",
+      "eurocode_parts": [
+        "EN 1993-1-1"
+      ],
+      "prompt": "What is the imperfection factor \u03b1 for buckling curve 'b' according to EN 1993-1-1 Table 6.1?",
+      "expected": {
+        "required_patterns": [
+          "B"
+        ],
+        "forbidden_patterns": []
+      },
+      "scoring": {
+        "auto_weight": 1.0
+      },
+      "tags": [
+        "preliminary",
+        "mcq"
+      ]
+    },
+    {
+      "task_id": "PRELIM-EC3-004",
+      "track": "numeric",
+      "task_type": "numeric",
+      "difficulty": "medium",
+      "eurocode_parts": [
+        "EN 1993-1-1"
+      ],
+      "prompt": "Classify the cross-section of an IPE 400 beam in S355 steel for major-axis bending per EN 1993-1-1 Table 5.2, and calculate its design plastic moment resistance M_pl,Rd per clause 6.2.5. Express the answer in kNm.",
+      "expected": {
+        "targets": {
+          "answer": 464.0
+        },
+        "required_clause_ids": [],
+        "tolerance": {
+          "relative": 0.02,
+          "absolute": 0.5
+        }
+      },
+      "scoring": {
+        "auto_weight": 1.0,
+        "numeric_component": 1.0,
+        "citation_component": 0.0
+      },
+      "tags": [
+        "preliminary"
+      ]
+    },
+    {
+      "task_id": "PRELIM-EC3-005",
+      "track": "numeric",
+      "task_type": "numeric",
+      "difficulty": "medium",
+      "eurocode_parts": [
+        "EN 1993-1-1"
+      ],
+      "prompt": "Calculate the non-dimensional slenderness \u03bb\u0304 for a pin-ended HEA 200 column of length 4.5 m in S275 steel, for flexural buckling about the weak axis (z-z), per EN 1993-1-1 clause 6.3.1.3. Express the answer to two decimal places.",
+      "expected": {
+        "targets": {
+          "answer": 1.04
+        },
+        "required_clause_ids": [],
+        "tolerance": {
+          "relative": 0.02,
+          "absolute": 0.5
+        }
+      },
+      "scoring": {
+        "auto_weight": 1.0,
+        "numeric_component": 1.0,
+        "citation_component": 0.0
+      },
+      "tags": [
+        "preliminary"
+      ]
+    },
+    {
+      "task_id": "PRELIM-EC3-006",
+      "track": "numeric",
+      "task_type": "numeric",
+      "difficulty": "medium",
+      "eurocode_parts": [
+        "EN 1993-1-1"
+      ],
+      "prompt": "A pin-ended HEB 200 column of length 3.6 m in S275 steel is loaded in axial compression. Determine the flexural buckling reduction factor \u03c7 for buckling about the minor axis (z-z) per EN 1993-1-1 clause 6.3.1.2. You must identify the correct buckling curve from Table 6.2. Express \u03c7 to three decimal places.",
+      "expected": {
+        "targets": {
+          "answer": 0.65
+        },
+        "required_clause_ids": [],
+        "tolerance": {
+          "relative": 0.02,
+          "absolute": 0.5
+        }
+      },
+      "scoring": {
+        "auto_weight": 1.0,
+        "numeric_component": 1.0,
+        "citation_component": 0.0
+      },
+      "tags": [
+        "preliminary"
+      ]
+    },
+    {
+      "task_id": "PRELIM-EC3-007",
+      "track": "numeric",
+      "task_type": "numeric",
+      "difficulty": "medium",
+      "eurocode_parts": [
+        "EN 1993-1-1"
+      ],
+      "prompt": "Determine the design plastic shear resistance V_pl,Rd for an IPE 400 beam in S355 steel per EN 1993-1-1 clause 6.2.6. Express the answer in kN.",
+      "expected": {
+        "targets": {
+          "answer": 875.0
+        },
+        "required_clause_ids": [],
+        "tolerance": {
+          "relative": 0.02,
+          "absolute": 0.5
+        }
+      },
+      "scoring": {
+        "auto_weight": 1.0,
+        "numeric_component": 1.0,
+        "citation_component": 0.0
+      },
+      "tags": [
+        "preliminary"
+      ]
+    },
+    {
+      "task_id": "PRELIM-EC3-008",
+      "track": "numeric",
+      "task_type": "numeric",
+      "difficulty": "medium",
+      "eurocode_parts": [
+        "EN 1993-1-1"
+      ],
+      "prompt": "A S355 steel flat bar, 250 mm wide and 16 mm thick, has two M24 bolt holes (standard clearance) across its width. Calculate the design tension resistance N_t,Rd per EN 1993-1-1 clause 6.2.3. Express the answer in kN.",
+      "expected": {
+        "targets": {
+          "answer": 1163.3
+        },
+        "required_clause_ids": [],
+        "tolerance": {
+          "relative": 0.02,
+          "absolute": 0.5
+        }
+      },
+      "scoring": {
+        "auto_weight": 1.0,
+        "numeric_component": 1.0,
+        "citation_component": 0.0
+      },
+      "tags": [
+        "preliminary"
+      ]
+    },
+    {
+      "task_id": "PRELIM-EC3-009",
+      "track": "numeric",
+      "task_type": "numeric",
+      "difficulty": "medium",
+      "eurocode_parts": [
+        "EN 1993-1-1"
+      ],
+      "prompt": "Calculate the design flexural buckling resistance N_b,Rd for a pin-ended HEA 240 column of length 5.0 m in S355 steel, for buckling about the minor axis (z-z). You must identify the correct buckling curve from Table 6.2. Express the answer in kN.",
+      "expected": {
+        "targets": {
+          "answer": 1335.4
+        },
+        "required_clause_ids": [],
+        "tolerance": {
+          "relative": 0.02,
+          "absolute": 0.5
+        }
+      },
+      "scoring": {
+        "auto_weight": 1.0,
+        "numeric_component": 1.0,
+        "citation_component": 0.0
+      },
+      "tags": [
+        "preliminary"
+      ]
+    },
+    {
+      "task_id": "PRELIM-EC3-010",
+      "track": "numeric",
+      "task_type": "numeric",
+      "difficulty": "medium",
+      "eurocode_parts": [
+        "EN 1993-1-1"
+      ],
+      "prompt": "An IPE 500 beam in S355 steel is subject to a design shear force V_Ed = 800 kN and major-axis bending. Calculate the reduced design plastic moment resistance M_V,Rd accounting for shear interaction per EN 1993-1-1 clause 6.2.8. Express the answer in kNm.",
+      "expected": {
+        "targets": {
+          "answer": 760.5
+        },
+        "required_clause_ids": [],
+        "tolerance": {
+          "relative": 0.02,
+          "absolute": 0.5
+        }
+      },
+      "scoring": {
+        "auto_weight": 1.0,
+        "numeric_component": 1.0,
+        "citation_component": 0.0
+      },
+      "tags": [
+        "preliminary"
+      ]
+    },
+    {
+      "task_id": "PRELIM-EC3-011",
+      "track": "numeric",
+      "task_type": "numeric",
+      "difficulty": "medium",
+      "eurocode_parts": [
+        "EN 1993-1-1"
+      ],
+      "prompt": "Classify the cross-section of an IPE 330 beam in S355 steel for major-axis bending per EN 1993-1-1 Table 5.2 and calculate the design moment resistance M_Rd per clause 6.2.5. Express the answer in kNm.",
+      "expected": {
+        "targets": {
+          "answer": 285.5
+        },
+        "required_clause_ids": [],
+        "tolerance": {
+          "relative": 0.02,
+          "absolute": 0.5
+        }
+      },
+      "scoring": {
+        "auto_weight": 1.0,
+        "numeric_component": 1.0,
+        "citation_component": 0.0
+      },
+      "tags": [
+        "preliminary"
+      ]
+    },
+    {
+      "task_id": "PRELIM-EC3-012",
+      "track": "numeric",
+      "task_type": "numeric",
+      "difficulty": "medium",
+      "eurocode_parts": [
+        "EN 1993-1-1"
+      ],
+      "prompt": "Calculate the design lateral-torsional buckling moment resistance M_b,Rd for an HEB 300 beam in S355 steel using the method for rolled sections per EN 1993-1-1 clause 6.3.2.3. The elastic critical moment for LTB is M_cr = 520 kNm. You must identify the correct LTB curve from Table 6.4 and use the recommended values of \u03b2 = 0.75 and \u03bb\u0304_LT,0 = 0.4. Express the answer in kNm.",
+      "expected": {
+        "targets": {
+          "answer": 457.5
+        },
+        "required_clause_ids": [],
+        "tolerance": {
+          "relative": 0.02,
+          "absolute": 0.5
+        }
+      },
+      "scoring": {
+        "auto_weight": 1.0,
+        "numeric_component": 1.0,
+        "citation_component": 0.0
+      },
+      "tags": [
+        "preliminary"
+      ]
+    },
+    {
+      "task_id": "PRELIM-EC3-013",
+      "track": "numeric",
+      "task_type": "numeric",
+      "difficulty": "medium",
+      "eurocode_parts": [
+        "EN 1993-1-1"
+      ],
+      "prompt": "Calculate the design flexural buckling resistance N_b,Rd for a pin-ended IPE 360 column of length 6.0 m in S355 steel, for buckling about the minor axis (z-z). You must identify the correct buckling curve from Table 6.2. Express the answer in kN.",
+      "expected": {
+        "targets": {
+          "answer": 507.0
+        },
+        "required_clause_ids": [],
+        "tolerance": {
+          "relative": 0.02,
+          "absolute": 0.5
+        }
+      },
+      "scoring": {
+        "auto_weight": 1.0,
+        "numeric_component": 1.0,
+        "citation_component": 0.0
+      },
+      "tags": [
+        "preliminary"
+      ]
+    },
+    {
+      "task_id": "PRELIM-EC3-014",
+      "track": "numeric",
+      "task_type": "numeric",
+      "difficulty": "medium",
+      "eurocode_parts": [
+        "EN 1993-1-1"
+      ],
+      "prompt": "Calculate the design lateral-torsional buckling moment resistance M_b,Rd for an IPE 450 beam in S355 steel using the method for rolled sections per EN 1993-1-1 clause 6.3.2.3. The elastic critical moment is M_cr = 850 kNm. You must identify the correct LTB curve from Table 6.4 and use \u03b2 = 0.75, \u03bb\u0304_LT,0 = 0.4. Express the answer in kNm.",
+      "expected": {
+        "targets": {
+          "answer": 479.1
+        },
+        "required_clause_ids": [],
+        "tolerance": {
+          "relative": 0.02,
+          "absolute": 0.5
+        }
+      },
+      "scoring": {
+        "auto_weight": 1.0,
+        "numeric_component": 1.0,
+        "citation_component": 0.0
+      },
+      "tags": [
+        "preliminary"
+      ]
+    },
+    {
+      "task_id": "PRELIM-EC3-015",
+      "track": "numeric",
+      "task_type": "numeric",
+      "difficulty": "medium",
+      "eurocode_parts": [
+        "EN 1993-1-1"
+      ],
+      "prompt": "A steel plate 300 mm wide \u00d7 60 mm thick in S355 steel is used as an axially loaded compression member. Calculate the design compression resistance N_c,Rd of the cross-section per EN 1993-1-1 clause 6.2.4. Account for the yield strength appropriate to the plate thickness per Table 3.1. Express the answer in kN.",
+      "expected": {
+        "targets": {
+          "answer": 6030.0
+        },
+        "required_clause_ids": [],
+        "tolerance": {
+          "relative": 0.02,
+          "absolute": 0.5
+        }
+      },
+      "scoring": {
+        "auto_weight": 1.0,
+        "numeric_component": 1.0,
+        "citation_component": 0.0
+      },
+      "tags": [
+        "preliminary"
+      ]
+    }
+  ]
+}

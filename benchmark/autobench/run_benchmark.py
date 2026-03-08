@@ -44,6 +44,7 @@ from backend.tools.runner import MCPToolRunner
 logger = logging.getLogger(__name__)
 
 BENCHMARK_PATH = PROJECT_ROOT / "benchmark" / "eurocode_knowledge" / "tasks" / "eurocode_benchmark_v1.json"
+PRELIMINARY_PATH = PROJECT_ROOT / "benchmark" / "eurocode_knowledge" / "tasks" / "eurocode_preliminary_v1.json"
 RESULTS_DIR = PROJECT_ROOT / "benchmark" / "autobench" / "results"
 
 
@@ -225,13 +226,27 @@ def main() -> None:
     parser.add_argument("--track", help="Run only tasks from this track")
     parser.add_argument("--output", help="Output JSON path")
     parser.add_argument("--agent-id", default="eng_conductor")
+    parser.add_argument(
+        "--benchmark-file",
+        help="Path to benchmark JSON file (default: eurocode_benchmark_v1.json)",
+    )
+    parser.add_argument(
+        "--preliminary", action="store_true",
+        help="Use the 15-question preliminary benchmark instead of the full 64-task one",
+    )
     args = parser.parse_args()
 
     settings = Settings.load()
     configure_logging(settings.log_level)
 
     # Load benchmark tasks
-    benchmark = json.loads(BENCHMARK_PATH.read_text(encoding="utf-8"))
+    if args.benchmark_file:
+        bench_path = Path(args.benchmark_file)
+    elif args.preliminary:
+        bench_path = PRELIMINARY_PATH
+    else:
+        bench_path = BENCHMARK_PATH
+    benchmark = json.loads(bench_path.read_text(encoding="utf-8"))
     all_tasks = benchmark["tasks"]
 
     # Filter tasks
