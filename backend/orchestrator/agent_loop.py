@@ -176,6 +176,11 @@ class AgentLoop:
             yield from self.cio._handle_direct_response(query, attachments, intent)
             return
 
+        if intent == "fea":
+            # FEA analyst sub-agent — delegate entirely
+            yield from self._handle_fea(query, attachments, history or [], selected_mode)
+            return
+
         # ── Flow graph: intake ────────────────────────────────────────
         yield ("machine", {"node": "intake", "status": "active", "title": "Query Intake", "detail": "Analyzing your question..."})
         yield ("machine", {"node": "intake", "status": "done", "title": "Query Intake", "detail": "Planning tasks..."})
@@ -584,6 +589,53 @@ class AgentLoop:
 
         result = "\n".join(lines).strip()
         return self.cio.response_formatter.format_markdown(result) if result else ""
+
+    # ── FEA delegation ─────────────────────────────────────────────
+
+    def _handle_fea(
+        self,
+        query: str,
+        attachments: list[Attachment],
+        history: list,
+        thinking_mode: str,
+    ) -> Iterator[tuple[str, Any]]:
+        """Delegate to the FEA analyst sub-agent.
+
+        Yields all FEA events which the streaming endpoint forwards to the
+        frontend.  The fea_analyst module handles the agentic tool loop and
+        the solve/resume cycle is managed by the async streaming layer in
+        app.py.
+        """
+        from backend.llm.factory import get_fea_analyst_provider
+        from backend.orchestrator.fea_analyst import FEAAnalystLoop
+
+        # Flow graph: show FEA Analyst node activating
+        yield ("machine", {
+            "node": "intake", "status": "active",
+            "title": "Query Intake", "detail": "Routing to FEA Analyst...",
+        })
+        yield ("machine", {
+            "node": "intake", "status": "done",
+            "title": "Query Intake", "detail": "FEA analysis requested.",
+        })
+        yield ("machine", {
+            "node": "fea_analyst", "status": "active",
+            "title": "FEA Analyst", "detail": "Initializing FEA analyst...",
+        })
+
+        fea_llm = get_fea_analyst_provider(self.settings)
+        analyst = FEAAnalystLoop(llm=fea_llm, settings=self.settings)
+
+        # Store session for result callback
+        yield ("fea_session_created", {"session_id": analyst.session_id})
+
+        # The FEA analyst is an async generator. We yield a special marker
+        # so the streaming layer in app.py can switch to async iteration.
+        yield ("fea_delegate", {
+            "analyst": analyst,
+            "query": query,
+            "history": history,
+        })
 
     # ── Task decomposition ──────────────────────────────────────────
 

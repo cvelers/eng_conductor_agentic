@@ -2,17 +2,20 @@ const STORAGE_KEY = "ec3_chat_threads_v2";
 const THINKING_MODE_KEY = "ec3_thinking_mode";
 
 const GRAPH_NODES = [
-  { id: "user",         label: "User",          icon: "person", col: 0, row: 1 },
-  { id: "database",     label: "Database",      icon: "book",   col: 1, row: 0 },
-  { id: "orchestrator", label: "Orchestrator",  icon: "brain",  col: 1.5, row: 1 },
-  { id: "tools",        label: "Tools",         icon: "wrench", col: 2, row: 0 },
-  { id: "response",     label: "Response",      icon: "check",  col: 3, row: 1 },
+  { id: "user",         label: "User",          icon: "person",  col: 0, row: 1 },
+  { id: "database",     label: "Database",      icon: "book",    col: 0, row: 0 },
+  { id: "orchestrator", label: "Orchestrator",  icon: "brain",   col: 1, row: 1 },
+  { id: "tools",        label: "Tools",         icon: "wrench",  col: 2, row: 0 },
+  { id: "fea_analyst",  label: "FEA Analyst",   icon: "cube",    col: 1, row: 2 },
+  { id: "response",     label: "Response",      icon: "check",   col: 2, row: 1 },
 ];
 
 const GRAPH_EDGES = [
   { id: "u_o",  from: "user",         to: "orchestrator" },
   { id: "o_d",  from: "orchestrator", to: "database"     },
   { id: "o_t",  from: "orchestrator", to: "tools"        },
+  { id: "o_fa", from: "orchestrator", to: "fea_analyst"  },
+  { id: "fa_r", from: "fea_analyst",  to: "response"     },
   { id: "o_r",  from: "orchestrator", to: "response"     },
 ];
 
@@ -23,6 +26,7 @@ const NODE_ICONS = {
   wrench: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>`,
   citation: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
   check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
+  cube: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>`,
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -946,6 +950,15 @@ function processEvent(f, ev) {
       setNS(f, "tools", "done");
       for (const t of m.used_tools) pushToolBadge(f, t);
     }
+  } else if (node === "fea_analyst") {
+    setNS(f, "orchestrator", "done");
+    setNS(f, "fea_analyst", s === "error" ? "error" : (s === "done" ? "done" : "active"));
+    setES(f, "o_fa", s === "error" ? "error" : (s === "done" ? "done" : "active"));
+    if (s === "done") {
+      setNS(f, "response", "done");
+      setES(f, "fa_r", "done");
+      setNS(f, "user", "done");
+    }
   } else if (node === "output") {
     setNS(f, "orchestrator", "done");
     setNS(f, "response", s === "error" ? "error" : (s === "done" ? "done" : "active"));
@@ -1130,6 +1143,12 @@ function describeMachineStep(ev) {
     return "Could not fully ground the draft in available evidence.";
   }
 
+  if (ev.node === "fea_analyst") {
+    if (s === "active") return ev.detail || "FEA Analyst initializing...";
+    if (s === "done") return ev.detail || "FEA analysis complete.";
+    return ev.detail || "FEA Analyst error.";
+  }
+
   if (ev.node === "output") {
     if (s === "active") return "Streaming response to chat.";
     if (s === "done") return "Response delivered.";
@@ -1306,6 +1325,117 @@ function finalizeAgentThinking(msgNode, taskCount) {
   const meta = msgNode.querySelector(".thinking-meta");
   if (meta) meta.textContent = `${taskCount} task${taskCount !== 1 ? "s" : ""} \u00B7 ${elapsed}s`;
   updateThinkingLabel(msgNode, "Completed. Expand to review steps.");
+}
+
+// ---- FEA Panel Integration ----
+
+async function initFEAPanel(msgNode) {
+  const feaSection = msgNode.querySelector(".fea-panel");
+  if (!feaSection) return;
+
+  feaSection.classList.remove("hidden");
+
+  try {
+    const { FEAPanelController } = await import("/static/fea_panel.js");
+    const panel = new FEAPanelController(feaSection);
+    msgNode.__feaPanel = panel;
+  } catch (err) {
+    console.error("Failed to init FEA panel:", err);
+    feaSection.innerHTML = `<div class="fea-error">FEA panel failed to load: ${err.message}</div>`;
+  }
+}
+
+/**
+ * Show a popup for the FEA analyst to ask the user a clarifying question.
+ * Mirrors the Claude Code AskUserQuestion pattern — options as pill buttons,
+ * plus a free-text input.
+ */
+function showFEAQueryPopup(msgNode, sessionId, question, options, context) {
+  // Remove any existing popup
+  document.querySelector(".fea-query-overlay")?.remove();
+
+  const overlay = document.createElement("div");
+  overlay.className = "fea-query-overlay";
+
+  const optionButtons = options.length
+    ? `<div class="fea-query-options">${options.map(o =>
+        `<button class="fea-query-option" data-value="${escHtml(o)}">${escHtml(o)}</button>`
+      ).join("")}</div>
+      <div class="fea-query-divider">or type your answer</div>`
+    : "";
+
+  overlay.innerHTML = `
+    <div class="fea-query-modal">
+      <div class="fea-query-header">
+        <div class="fea-query-icon">&#128736;</div>
+        <div class="fea-query-title">FEA Analyst needs your input</div>
+      </div>
+      <div class="fea-query-body">
+        <div class="fea-query-question">${escHtml(question)}</div>
+        ${context ? `<div class="fea-query-context">${escHtml(context)}</div>` : ""}
+        ${optionButtons}
+        <div class="fea-query-input-row">
+          <input class="fea-query-input" type="text" placeholder="Type your answer..." autocomplete="off" />
+          <button class="fea-query-submit">Send</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  const input = overlay.querySelector(".fea-query-input");
+  const submitBtn = overlay.querySelector(".fea-query-submit");
+  let selectedOption = null;
+
+  async function sendAnswer(answer) {
+    if (!answer.trim()) return;
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Sending...";
+    try {
+      await fetch("/api/fea/answer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ session_id: sessionId, answer: answer.trim() }),
+      });
+    } catch (err) {
+      console.error("Failed to send FEA answer:", err);
+    }
+    // Log the answer as a thinking card
+    appendThinkingCard(msgNode, `You answered: ${answer.trim()}`);
+    overlay.remove();
+  }
+
+  // Option buttons
+  overlay.querySelectorAll(".fea-query-option").forEach(btn => {
+    btn.addEventListener("click", () => {
+      // Toggle selection
+      overlay.querySelectorAll(".fea-query-option").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      selectedOption = btn.dataset.value;
+      input.value = selectedOption;
+      input.focus();
+    });
+    // Double-click sends immediately
+    btn.addEventListener("dblclick", () => {
+      sendAnswer(btn.dataset.value);
+    });
+  });
+
+  // Submit
+  submitBtn.addEventListener("click", () => {
+    const val = input.value || selectedOption || "";
+    sendAnswer(val);
+  });
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const val = input.value || selectedOption || "";
+      sendAnswer(val);
+    }
+  });
+
+  // Focus the input
+  requestAnimationFrame(() => input.focus());
 }
 
 // ---- Messages ----
@@ -1656,6 +1786,104 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         accumulated += event.delta || event.content || "";
         scheduleRender();
       }
+
+      // ── FEA events ──────────────────────────────────
+      if (event.type === "fea_session_created") {
+        assistantNode.__feaSessionId = event.session_id;
+      }
+
+      if (event.type === "fea_thinking") {
+        appendThinkingCard(assistantNode, event.content);
+        isAgentMode = true;
+      }
+
+      if (event.type === "fea_tool_call") {
+        appendToolCard(assistantNode, event.tool, event.args, "running");
+        appendLog(assistantNode, `FEA: ${event.tool}(${JSON.stringify(event.args).slice(0, 80)}...)`);
+        isAgentMode = true;
+      }
+
+      if (event.type === "fea_command") {
+        // Initialize FEA panel lazily — must await before sending commands
+        if (!assistantNode.__feaPanelReady) {
+          assistantNode.__feaPanelReady = initFEAPanel(assistantNode);
+        }
+        if (event.commands) {
+          assistantNode.__feaPanelReady.then(() => {
+            if (assistantNode.__feaPanel) {
+              assistantNode.__feaPanel.handleCommands(event.commands).catch(e => console.error("FEA handleCommands error:", e));
+            }
+          }).catch(e => console.error("FEA panel init error:", e));
+        }
+      }
+
+      if (event.type === "fea_solve_request") {
+        appendThinkingCard(assistantNode, "Solving structural model...");
+        if (assistantNode.__feaPanelReady) {
+          assistantNode.__feaPanelReady.then(() => {
+            if (assistantNode.__feaPanel) {
+              assistantNode.__feaPanel.handleSolveRequest(event).catch(e => console.error("FEA solve error:", e));
+            }
+          }).catch(e => console.error("FEA panel init error on solve:", e));
+        } else {
+          console.warn("FEA solve: no __feaPanelReady");
+        }
+      }
+
+      if (event.type === "fea_view_command") {
+        if (assistantNode.__feaPanelReady) {
+          assistantNode.__feaPanelReady.then(() => {
+            if (assistantNode.__feaPanel) {
+              assistantNode.__feaPanel.handleViewCommand(event).catch(e => console.error("FEA view error:", e));
+            }
+          }).catch(e => console.error("FEA panel init error on view:", e));
+        }
+      }
+
+      if (event.type === "fea_user_query") {
+        showFEAQueryPopup(
+          assistantNode,
+          event.session_id,
+          event.question,
+          event.options || [],
+          event.context || "",
+        );
+      }
+
+      if (event.type === "fea_complete") {
+        // Clean up any lingering query popup
+        document.querySelector(".fea-query-overlay")?.remove();
+        // Show the summary in the response area
+        if (event.summary) {
+          accumulated += event.summary;
+          scheduleRender();
+        }
+        // Finalize thinking
+        setThinkingState(assistantNode, false);
+        const elapsed = ((Date.now() - (assistantNode.__thinkStart || Date.now())) / 1000).toFixed(1);
+        const steps = assistantNode.__stepCount || 0;
+        const meta = assistantNode.querySelector(".thinking-meta");
+        if (meta) meta.textContent = `${steps} steps \u00B7 ${elapsed}s`;
+        updateThinkingLabel(assistantNode, "FEA analysis complete. Expand to review steps.");
+
+        // Save to thread
+        if (!finalized) {
+          const feaContent = accumulated || event.summary || "FEA analysis complete.";
+          thread.messages.push({ id: uid(), role: "assistant", content: feaContent, responsePayload: null, createdAt: now() });
+          thread.updatedAt = now();
+          if (canUseStoredThreads()) {
+            if (auth.threadsSync) {
+              await addMessageToApi(thread.id, "assistant", feaContent, null);
+            } else {
+              save();
+            }
+          }
+          renderThreadList();
+          finalized = true;
+        }
+        contentEl.classList.remove("streaming");
+      }
+      // ── End FEA events ──────────────────────────────
 
       if (event.type === "final") {
         if (renderTimer) { clearTimeout(renderTimer); renderTimer = null; }

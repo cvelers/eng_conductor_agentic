@@ -499,6 +499,33 @@ class CentralIntelligenceOrchestrator:
         "structural", "civil engineer", "stress", "strain", "tension",
         "compression", "torsion", "fatigue", "seismic", "wind load",
         "snow load", "dead load", "live load", "imposed load",
+        # FEA-specific keywords
+        "finite element", "fea", "fem", "mesh", "structural model",
+        "structural analysis", "stress distribution", "deformed shape",
+        "internal forces", "analyze frame", "analyze beam", "analyze truss",
+        "plate analysis", "shell analysis", "node displacement",
+        "stiffness matrix", "element forces", "modal analysis",
+    ]
+
+    _FEA_KEYWORDS: list[str] = [
+        "finite element", "fea", "fem",
+        "structural model", "structural analysis",
+        "analyze frame", "analyze beam", "analyze truss",
+        "analyse frame", "analyse beam", "analyse truss",
+        "analyze this", "analyze the",
+        "analyse this", "analyse the",
+        "analyse a ", "analyze a ",
+        "stress distribution", "deformed shape",
+        "node displacement", "stiffness matrix",
+        "element forces", "modal analysis",
+        "plate analysis", "shell analysis",
+        "build a model", "create a model",
+        "run fea", "run analysis", "run fem",
+        "simply supported beam", "cantilever beam",
+        "portal frame", "continuous beam",
+        "multi-storey frame", "multi-story frame",
+        "multi-bay frame", "braced frame",
+        "storey frame", "story frame",
     ]
 
     _GREETINGS = frozenset({
@@ -526,6 +553,11 @@ class CentralIntelligenceOrchestrator:
         "Intents:\n"
         "  PIPELINE  – The user needs a calculation, code check, or detailed Eurocode "
         "lookup.  Requires the database and/or calculator tools.\n"
+        "  FEA       – The user wants a finite element analysis, structural modeling, "
+        "stress/deflection analysis of a structure, or visualization of structural "
+        "behavior.  Keywords: 'finite element', 'FEA', 'FEM', 'analyze frame', "
+        "'structural model', 'analyze beam', 'stress distribution', 'deformed shape'. "
+        "Requires the FEA analyst sub-agent.\n"
         "  ANSWER    – The query IS related to structural/civil engineering (or the "
         "attached image shows engineering content such as a structural drawing, beam "
         "diagram, steel section, construction plan, FEM model, Eurocode page, load "
@@ -539,7 +571,7 @@ class CentralIntelligenceOrchestrator:
         "IMPORTANT: Look at the ACTUAL IMAGE CONTENT when images are attached.  "
         "A photo of a beam, column, structural drawing, building, or construction site "
         "is engineering content → ANSWER or PIPELINE, never DECLINE.\n\n"
-        "Respond with ONLY the single word: PIPELINE, ANSWER, DECLINE, or GREETING."
+        "Respond with ONLY the single word: PIPELINE, FEA, ANSWER, DECLINE, or GREETING."
     )
 
     def _classify_intent(
@@ -559,6 +591,11 @@ class CentralIntelligenceOrchestrator:
         lowered = cleaned.lower()
         words = lowered.split()
         has_eng = any(kw in lowered for kw in self._ENG_KEYWORDS)
+
+        # FEA heuristic — check before general pipeline
+        has_fea = any(kw in lowered for kw in self._FEA_KEYWORDS)
+        if has_fea:
+            return {"intent": "fea"}
 
         calc_verbs = {"calculate", "check", "verify", "design", "determine", "compute", "find"}
         if has_eng and any(v in lowered for v in calc_verbs):
@@ -628,6 +665,7 @@ class CentralIntelligenceOrchestrator:
 
             mapping = {
                 "PIPELINE": "pipeline",
+                "FEA": "fea",
                 "ANSWER": "answer",
                 "DECLINE": "decline",
                 "GREETING": "greeting",
