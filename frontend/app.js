@@ -2,12 +2,12 @@ const STORAGE_KEY = "ec3_chat_threads_v2";
 const THINKING_MODE_KEY = "ec3_thinking_mode";
 
 const GRAPH_NODES = [
-  { id: "user",         label: "User",          icon: "person",  col: 0, row: 1 },
-  { id: "database",     label: "Database",      icon: "book",    col: 0, row: 0 },
-  { id: "orchestrator", label: "Orchestrator",  icon: "brain",   col: 1, row: 1 },
-  { id: "tools",        label: "Tools",         icon: "wrench",  col: 2, row: 0 },
-  { id: "fea_analyst",  label: "FEA Analyst",   icon: "cube",    col: 1, row: 2 },
-  { id: "response",     label: "Response",      icon: "check",   col: 2, row: 1 },
+  { id: "user",         label: "User",          icon: "person",  col: 0,   row: 1 },
+  { id: "database",     label: "Database",      icon: "book",    col: 1,   row: 0 },
+  { id: "tools",        label: "Tools",         icon: "wrench",  col: 2,   row: 0 },
+  { id: "orchestrator", label: "Orchestrator",  icon: "brain",   col: 1.5, row: 1 },
+  { id: "fea_analyst",  label: "FEA Analyst",   icon: "cube",    col: 0,   row: 2 },
+  { id: "response",     label: "Response",      icon: "check",   col: 3,   row: 1 },
 ];
 
 const GRAPH_EDGES = [
@@ -15,7 +15,7 @@ const GRAPH_EDGES = [
   { id: "o_d",  from: "orchestrator", to: "database"     },
   { id: "o_t",  from: "orchestrator", to: "tools"        },
   { id: "o_fa", from: "orchestrator", to: "fea_analyst"  },
-  { id: "fa_r", from: "fea_analyst",  to: "response"     },
+  { id: "fa_o", from: "fea_analyst",  to: "orchestrator" },
   { id: "o_r",  from: "orchestrator", to: "response"     },
 ];
 
@@ -567,11 +567,11 @@ function renderThreadList() {
 
 // ---- Flow graph ----
 const GRID = {
-  colW: 78,
+  colW: 66,
   rowH: 56,
-  padX: 12,
+  padX: 8,
   padY: 20,
-  nodeW: 70,
+  nodeW: 60,
   nodeH: 34,
   popupGap: 5,
   popupMaxRows: 2,
@@ -955,8 +955,10 @@ function processEvent(f, ev) {
     setNS(f, "fea_analyst", s === "error" ? "error" : (s === "done" ? "done" : "active"));
     setES(f, "o_fa", s === "error" ? "error" : (s === "done" ? "done" : "active"));
     if (s === "done") {
+      setES(f, "fa_o", "done");
+      setNS(f, "orchestrator", "done");
+      setES(f, "o_r", "done");
       setNS(f, "response", "done");
-      setES(f, "fa_r", "done");
       setNS(f, "user", "done");
     }
   } else if (node === "output") {
