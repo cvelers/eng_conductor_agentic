@@ -4,9 +4,9 @@ const THINKING_MODE_KEY = "ec3_thinking_mode";
 const GRAPH_NODES = [
   { id: "user",         label: "User",          icon: "person", col: 0, row: 1 },
   { id: "database",     label: "Database",      icon: "book",   col: 1, row: 0 },
-  { id: "orchestrator", label: "Orchestrator",  icon: "brain",  col: 1, row: 1 },
-  { id: "tools",        label: "Tools",         icon: "wrench", col: 1, row: 2 },
-  { id: "response",     label: "Response",      icon: "check",  col: 2, row: 1 },
+  { id: "orchestrator", label: "Orchestrator",  icon: "brain",  col: 1.5, row: 1 },
+  { id: "tools",        label: "Tools",         icon: "wrench", col: 2, row: 0 },
+  { id: "response",     label: "Response",      icon: "check",  col: 3, row: 1 },
 ];
 
 const GRAPH_EDGES = [
@@ -563,11 +563,11 @@ function renderThreadList() {
 
 // ---- Flow graph ----
 const GRID = {
-  colW: 90,
+  colW: 78,
   rowH: 56,
   padX: 12,
   padY: 20,
-  nodeW: 74,
+  nodeW: 70,
   nodeH: 34,
   popupGap: 5,
   popupMaxRows: 2,
@@ -600,7 +600,7 @@ function getGraphLayout() {
     originX,
     originY,
     totalW: originX + spanCols * GRID.colW + GRID.nodeW + GRID.padX,
-    totalH: originY + spanRows * GRID.rowH + GRID.nodeH + GRID.padY + popupReserveY,
+    totalH: originY + spanRows * GRID.rowH + GRID.nodeH + GRID.padY,
   };
 }
 
@@ -617,13 +617,21 @@ function edgePath(fromNode, toNode, layout) {
   const f = getNodePos(fromNode, layout);
   const t = getNodePos(toNode, layout);
 
-  if (fromNode.col === toNode.col) {
-    const midX = f.cx;
-    const startY = fromNode.row < toNode.row ? f.y + GRID.nodeH : f.y;
-    const endY = fromNode.row < toNode.row ? t.y : t.y + GRID.nodeH;
-    return `M ${midX} ${startY} L ${midX} ${endY}`;
+  if (fromNode.row !== toNode.row) {
+    // Different rows: connect through top/bottom (horizontal) sides
+    const downward = fromNode.row < toNode.row;
+    const startX = f.cx;
+    const endX = t.cx;
+    const startY = downward ? f.y + GRID.nodeH : f.y;
+    const endY = downward ? t.y : t.y + GRID.nodeH;
+    if (fromNode.col === toNode.col) {
+      return `M ${startX} ${startY} L ${endX} ${endY}`;
+    }
+    const dy = endY - startY;
+    return `M ${startX} ${startY} C ${startX} ${startY + dy * 0.5} ${endX} ${endY - dy * 0.5} ${endX} ${endY}`;
   }
 
+  // Same row: connect through left/right (vertical) sides
   const rightward = fromNode.col < toNode.col;
   const startX = rightward ? f.x + GRID.nodeW : f.x;
   const endX = rightward ? t.x : t.x + GRID.nodeW;
@@ -766,9 +774,9 @@ function initFlowGraph(msgNode, prompt) {
   canvas.appendChild(docPopups);
 
   const toolPopups = document.createElement("div");
-  toolPopups.className = "flow-popups below";
+  toolPopups.className = "flow-popups above";
   toolPopups.style.left = toolPos.cx + "px";
-  toolPopups.style.top = (toolPos.y + GRID.nodeH + GRID.popupGap) + "px";
+  toolPopups.style.top = (toolPos.y - GRID.popupGap) + "px";
   canvas.appendChild(toolPopups);
 
   graph.appendChild(canvas);
