@@ -9,15 +9,14 @@ from tools.mcp.section_library import SECTION_LIBRARY, steel_grade_to_fy
 
 TOOL_NAME = "tension_resistance_ec3"
 
-# fu lookup per EC3 Table 3.1 (t ≤ 40 mm)
-STEEL_FU: dict[str, float] = {
-    "S235": 360.0,
-    "S275": 430.0,
-    "S355": 510.0,
-    "S420": 520.0,
-    "S450": 550.0,
-    "S460": 550.0,
-}
+def _get_fu(grade: str) -> float:
+    """Get fu from the authoritative EC3 Table 3.1 data."""
+    from tools.mcp.steel_grade_properties import EC3_TABLE_3_1
+
+    key = grade.strip().upper()
+    if key in EC3_TABLE_3_1:
+        return float(EC3_TABLE_3_1[key]["fu"])
+    raise ValueError(f"No fu value for grade '{grade}'. Available: {sorted(EC3_TABLE_3_1.keys())}")
 
 
 class TensionResistanceInput(BaseModel):
@@ -45,8 +44,10 @@ class TensionResistanceInput(BaseModel):
         if self.fy_mpa is None:
             self.fy_mpa = steel_grade_to_fy(self.steel_grade)
         if self.fu_mpa is None:
-            grade = self.steel_grade.strip().upper()
-            self.fu_mpa = STEEL_FU.get(grade, self.fy_mpa * 1.35)
+            try:
+                self.fu_mpa = _get_fu(self.steel_grade)
+            except ValueError:
+                self.fu_mpa = self.fy_mpa * 1.35
         if self.area_cm2 is None:
             raise ValueError("Provide section_name or area_cm2.")
         return self

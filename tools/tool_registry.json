@@ -1,7 +1,7 @@
 [
   {
     "tool_name": "section_classification_ec3",
-    "description": "Classifies an I/H steel cross-section (Classes 1-4) using simplified EC3-style slenderness checks.",
+    "description": "Classifies an I/H steel cross-section (Classes 1-4) per EC3 Table 5.2 width-to-thickness limits, with correct bending vs compression web limits.",
     "tags": [
       "EC3",
       "EN 1993-1-1",
@@ -20,6 +20,12 @@
           "type": "string",
           "description": "e.g. IPE300"
         },
+        "stress_type": {
+          "type": "string",
+          "enum": ["bending", "compression"],
+          "default": "bending",
+          "description": "Dominant stress: 'bending' for beams (web limits 72/83/124 epsilon), 'compression' for columns (33/38/42 epsilon)."
+        },
         "h_mm": {
           "type": "number"
         },
@@ -32,12 +38,20 @@
         "tf_mm": {
           "type": "number"
         },
+        "r_mm": {
+          "type": "number",
+          "description": "Root fillet radius in mm (for rolled sections, deducted from c)"
+        },
         "steel_grade": {
           "type": "string",
           "description": "e.g. S355"
         },
         "fy_mpa": {
           "type": "number"
+        },
+        "thickness_mm": {
+          "type": "number",
+          "description": "Governing element thickness for fy lookup when t > 40 mm"
         }
       }
     },
@@ -668,11 +682,12 @@
   },
   {
     "tool_name": "column_buckling_ec3",
-    "description": "Computes flexural buckling resistance Nb,Rd of a compression member per EC3 6.3.1, including reduction factor \u03c7 and relative slenderness.",
+    "description": "Computes flexural buckling resistance Nb,Rd of a compression member per EC3 6.3.1, with axis-aware I selection and Table 6.2 buckling curve auto-selection.",
     "tags": [
       "EC3",
       "EN 1993-1-1",
       "6.3.1",
+      "Table 6.2",
       "buckling",
       "column",
       "compression"
@@ -691,6 +706,14 @@
           "type": "string",
           "default": "S355"
         },
+        "fy_mpa": {
+          "type": "number",
+          "description": "Override yield strength in MPa"
+        },
+        "thickness_mm": {
+          "type": "number",
+          "description": "Governing element thickness for fy lookup when t > 40 mm"
+        },
         "system_length_m": {
           "type": "number",
           "exclusiveMinimum": 0
@@ -698,6 +721,12 @@
         "k_factor": {
           "type": "number",
           "default": 1.0
+        },
+        "buckling_axis": {
+          "type": "string",
+          "enum": ["y", "z"],
+          "default": "y",
+          "description": "Buckling axis: 'y' for strong-axis, 'z' for weak-axis. Controls which I is used from library."
         },
         "buckling_curve": {
           "type": "string",
@@ -708,7 +737,13 @@
             "c",
             "d"
           ],
-          "default": "b"
+          "description": "EC3 buckling curve. If omitted, auto-selected from Table 6.2 based on section geometry and axis."
+        },
+        "fabrication": {
+          "type": "string",
+          "enum": ["rolled", "welded"],
+          "default": "rolled",
+          "description": "Fabrication method for Table 6.2 buckling curve selection."
         },
         "gamma_M1": {
           "type": "number",

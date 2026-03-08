@@ -31,12 +31,17 @@ from backend.schemas import (
     ToolTraceStep,
 )
 from backend.utils.citations import build_citation_address
+from backend.orchestrator.sanity_checker import SanityChecker
+from backend.orchestrator.tool_validator import ToolOutputValidator
 from backend.utils.json_utils import parse_json_loose
 
 logger = logging.getLogger(__name__)
 
 
 MAX_TOOL_RETRIES = 2
+
+_tool_validator = ToolOutputValidator()
+_sanity_checker = SanityChecker()
 
 
 @dataclass
@@ -307,6 +312,18 @@ class AgentLoop:
                             result = payload.get("result", {})
                             task_tool_outputs[tool_name] = result
                             all_tool_outputs[tool_name] = result
+
+                            # Validate tool output for physical reasonableness
+                            val_warnings = _tool_validator.validate(tool_name, result, inputs)
+                            if val_warnings:
+                                result.setdefault("notes", []).extend(
+                                    f"\u26a0 {w}" for w in val_warnings
+                                )
+                                logger.warning(
+                                    "tool_validation_warnings",
+                                    extra={"tool": tool_name, "warnings": val_warnings},
+                                )
+
                             step = ToolTraceStep(
                                 tool_name=tool_name,
                                 status="ok",
@@ -406,6 +423,15 @@ class AgentLoop:
 
             yield ("machine", {"node": "compose", "status": "done", "title": "Composing Answer", "detail": "Composition complete."})
             yield ("plan_update", {"step_id": i, "status": "done"})
+
+        # ── End-to-end sanity check across all tools ──────────────
+        sanity_warnings = _sanity_checker.check(all_tool_outputs, all_tool_trace)
+        if sanity_warnings:
+            all_assumptions.extend(f"\u26a0 {w}" for w in sanity_warnings)
+            logger.warning(
+                "sanity_check_warnings",
+                extra={"warnings": sanity_warnings},
+            )
 
         # ── Phase 3: Finalize ───────────────────────────────────────
         yield ("machine", {"node": "output", "status": "active", "title": "Streaming", "detail": "Building final response..."})
