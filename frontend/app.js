@@ -6,7 +6,7 @@ const GRAPH_NODES = [
   { id: "database",     label: "Database",      icon: "book",    col: 1,   row: 0 },
   { id: "tools",        label: "Tools",         icon: "wrench",  col: 2,   row: 0 },
   { id: "orchestrator", label: "Orchestrator",  icon: "brain",   col: 1.5, row: 1 },
-  { id: "fea_analyst",  label: "FEA Analyst",   icon: "cube",    col: 0,   row: 2 },
+  { id: "fea_analyst",  label: "FEA Analyst",   icon: "cube",    col: 1.5, row: 2 },
   { id: "response",     label: "Response",      icon: "check",   col: 3,   row: 1 },
 ];
 
