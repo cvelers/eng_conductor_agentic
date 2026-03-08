@@ -1656,9 +1656,8 @@ body.chat-started .attach-menu {
   background: var(--panel-2);
 }
 .fea-label {
-  font-weight: 600;
-  font-size: 13px;
-  color: var(--text);
+  font-weight: 700;
+  color: var(--muted);
 }
 .fea-toolbar {
   display: flex;

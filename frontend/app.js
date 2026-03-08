@@ -2417,6 +2417,11 @@ async function initialize() {
   syncAuthControls();
   loadThinkingModePreference();
 
+  fetch("/api/tools").then(r => r.json()).then(tools => {
+    const el = document.getElementById("tool-count");
+    if (el) el.textContent = `${tools.length} tools available`;
+  }).catch(() => {});
+
   thinkingModeSelect?.addEventListener("change", (e) => {
     setThinkingMode(e.target.value);
   });

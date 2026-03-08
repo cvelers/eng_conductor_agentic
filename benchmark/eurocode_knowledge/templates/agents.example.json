@@ -1,0 +1,22 @@
+[
+  {
+    "agent_id": "claude_sonnet_4_6",
+    "model_name": "claude-sonnet-4-6",
+    "thinking_mode": "max"
+  },
+  {
+    "agent_id": "chatgpt_5_3_requested",
+    "model_name": "gpt-5.2-chat-latest",
+    "thinking_mode": "xhigh"
+  },
+  {
+    "agent_id": "gemini_3_1_pro",
+    "model_name": "gemini-3.1-pro",
+    "thinking_mode": "high"
+  },
+  {
+    "agent_id": "eng_conductor_orchestrator",
+    "model_name": "orchestrator",
+    "thinking_mode": "thinking"
+  }
+]
