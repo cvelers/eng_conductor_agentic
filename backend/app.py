@@ -16,14 +16,15 @@ from pydantic import BaseModel
 from backend.auth import create_auth_router, require_auth
 from backend.config import Settings
 from backend.threads import create_threads_router
-from backend.llm.factory import get_orchestrator_provider, get_search_provider, get_tool_writer_provider
+from backend.llm.factory import get_fea_analyst_provider, get_orchestrator_provider, get_search_provider, get_tool_writer_provider
 from backend.logging_config import configure_logging
 from backend.orchestrator.agent_loop import AgentLoop
 from backend.orchestrator.core import CentralIntelligenceOrchestrator
 from backend.registries.document_registry import load_all_clauses, load_document_registry
 from backend.registries.tool_registry import load_tool_registry
 from backend.retrieval.agentic_search import AgenticRetriever
-from backend.schemas import ChatRequest, ChatResponse
+from backend.orchestrator.fea_analyst import FEAAnalystLoop
+from backend.schemas import ChatRequest, ChatResponse, FEAAnswerRequest, FEAResultsRequest
 from backend.tools.runner import MCPToolRunner
 from backend.tools.writer import ToolWriter
 
@@ -127,17 +128,23 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         project_root=active_settings.project_root,
     )
 
+    # FEA session storage (in-memory, keyed by session_id)
+    fea_sessions: dict[str, FEAAnalystLoop] = {}
+
     app = FastAPI(title="Eurocodes Chatbot", version="0.3.0")
     app.state.orchestrator = orchestrator
     app.state.agent_loop = agent_loop
     app.state.tool_writer = tool_writer
     app.state.settings = active_settings
+    app.state.fea_sessions = fea_sessions
 
     app.include_router(create_auth_router(active_settings))
     app.include_router(create_threads_router(active_settings))
     auth_dep = require_auth(active_settings)
 
     frontend_dir = active_settings.project_root / "frontend"
+    data_dir = active_settings.project_root / "data"
+    app.mount("/data", StaticFiles(directory=data_dir), name="data")
     app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
 
     @app.get("/")
@@ -204,6 +211,37 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     attachments=request.attachments,
                     is_edit=request.is_edit,
                 ):
+                    # ── FEA delegation: switch to async iteration ──
+                    if event_type == "fea_session_created":
+                        session_id = payload["session_id"]
+                        yield json.dumps({"type": "fea_session_created", "session_id": session_id}) + "\n"
+                        await asyncio.sleep(0.005)
+                        continue
+
+                    if event_type == "fea_delegate":
+                        analyst: FEAAnalystLoop = payload["analyst"]
+                        fea_query: str = payload["query"]
+                        fea_history: list = payload["history"]
+
+                        # Register session for result callbacks
+                        fea_sessions[analyst.session_id] = analyst
+
+                        try:
+                            async for fea_event_type, fea_payload in analyst.run_stream(
+                                fea_query, history=fea_history,
+                            ):
+                                yield json.dumps({"type": fea_event_type, **fea_payload}) + "\n"
+                                all_events.append({"event_type": fea_event_type, **fea_payload})
+                                await asyncio.sleep(0.005)
+                        finally:
+                            fea_sessions.pop(analyst.session_id, None)
+
+                        # FEA path does not produce a ChatResponse — emit a
+                        # synthetic final event so the frontend knows we're done.
+                        yield json.dumps({"type": "machine", "node": "fea_analyst", "status": "done", "title": "FEA Analyst", "detail": "Analysis complete."}) + "\n"
+                        continue
+                    # ── End FEA delegation ──
+
                     if event_type == "response":
                         final_response = payload
                         yield json.dumps({"type": "final", "response": payload.model_dump()}) + "\n"
@@ -221,7 +259,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 logger.exception("chat_stream_failed")
                 yield json.dumps({"type": "error", "detail": str(exc)}) + "\n"
             else:
-                if final_response is None:
+                if final_response is None and not any(
+                    e.get("event_type") == "fea_complete" for e in all_events
+                ):
                     error_detail = "No response generated."
                     yield json.dumps({"type": "error", "detail": "No response generated."}) + "\n"
             finally:
@@ -244,6 +284,24 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 )
 
         return StreamingResponse(_stream_generator(), media_type="application/x-ndjson")
+
+    @app.post("/api/fea/results")
+    async def fea_results(request: FEAResultsRequest):
+        """Receive solver results from the frontend and feed them back to the FEA analyst."""
+        analyst = fea_sessions.get(request.session_id)
+        if analyst is None:
+            raise HTTPException(status_code=404, detail=f"FEA session '{request.session_id}' not found.")
+        analyst.provide_results(request.results)
+        return {"status": "ok"}
+
+    @app.post("/api/fea/answer")
+    async def fea_answer(request: FEAAnswerRequest):
+        """Receive a user answer from the frontend query popup and feed it back to the FEA analyst."""
+        analyst = fea_sessions.get(request.session_id)
+        if analyst is None:
+            raise HTTPException(status_code=404, detail=f"FEA session '{request.session_id}' not found.")
+        analyst.provide_answer(request.answer)
+        return {"status": "ok"}
 
     @app.post("/api/tools/generate")
     async def generate_tool(request: ToolGenerateRequest):

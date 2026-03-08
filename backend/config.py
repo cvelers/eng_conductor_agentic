@@ -44,6 +44,12 @@ class Settings:
     tool_writer_base_url: str = ""
     tool_writer_reasoning_effort: str = ""  # Gemini only: low, medium, high
 
+    fea_analyst_provider: str = ""
+    fea_analyst_model: str = ""
+    fea_analyst_api_key: str = ""
+    fea_analyst_base_url: str = ""
+    fea_analyst_reasoning_effort: str = ""  # Gemini only: low, medium, high
+
     agentic_search_enabled: bool = True
     recursive_retrieval_enabled: bool = False
     embeddings_enabled: bool = False
@@ -119,6 +125,13 @@ class Settings:
             tool_writer_base_url=os.getenv("TOOL_WRITER_BASE_URL", ""),
             tool_writer_reasoning_effort=(
                 os.getenv("TOOL_WRITER_REASONING_EFFORT", "").strip() or ""
+            ),
+            fea_analyst_provider=os.getenv("FEA_ANALYST_PROVIDER", ""),
+            fea_analyst_model=os.getenv("FEA_ANALYST_MODEL", ""),
+            fea_analyst_api_key=os.getenv("FEA_ANALYST_API_KEY", ""),
+            fea_analyst_base_url=os.getenv("FEA_ANALYST_BASE_URL", ""),
+            fea_analyst_reasoning_effort=(
+                os.getenv("FEA_ANALYST_REASONING_EFFORT", "").strip() or ""
             ),
             agentic_search_enabled=_to_bool(os.getenv("AGENTIC_SEARCH_ENABLED"), True),
             recursive_retrieval_enabled=_to_bool(

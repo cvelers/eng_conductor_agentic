@@ -48,6 +48,16 @@ class RetrievalTraceStep(BaseModel):
     top_clause_ids: list[str]
 
 
+class FEAResultsRequest(BaseModel):
+    session_id: str
+    results: dict[str, Any]
+
+
+class FEAAnswerRequest(BaseModel):
+    session_id: str
+    answer: str
+
+
 class ChatResponse(BaseModel):
     answer: str
     supported: bool = True

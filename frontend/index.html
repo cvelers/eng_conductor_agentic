@@ -4,7 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Eurocodes Chatbot (EC3)</title>
-    <link rel="stylesheet" href="/static/styles.css?v=16" />
+    <link rel="stylesheet" href="/static/styles.css?v=24" />
+    <script type="importmap">
+      { "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }}
+    </script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
@@ -302,6 +308,41 @@
             <ul class="machine-log"></ul>
           </div>
         </section>
+        <section class="msg-panel fea-panel hidden">
+          <div class="panel-header">
+            <span class="fea-label">FEA Analysis</span>
+            <div class="fea-toolbar">
+              <button data-view="3d" class="fea-view-btn active">3D Model</button>
+              <button data-view="results" class="fea-view-btn">Results</button>
+            </div>
+            <button class="panel-collapse-btn" type="button" aria-label="Collapse">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 15 12 9 18 15"/></svg>
+            </button>
+          </div>
+          <div class="fea-viewer-container">
+            <canvas class="fea-canvas"></canvas>
+            <div class="fea-viewer-controls">
+              <button data-action="fit" title="Fit to view">Fit</button>
+              <button data-action="front" title="Front view">Front</button>
+              <button data-action="top" title="Top view">Top</button>
+              <button data-action="iso" title="Isometric view">Iso</button>
+              <select class="fea-result-select">
+                <option value="none">Model</option>
+                <option value="deformed">Deformed</option>
+                <option value="moment">Moment (M)</option>
+                <option value="shear">Shear (V)</option>
+                <option value="axial">Axial (N)</option>
+              </select>
+              <label class="fea-deformed-label"><input type="checkbox" class="fea-deformed-toggle"> Deformed</label>
+            </div>
+            <div class="fea-color-bar hidden"></div>
+            <div class="fea-progress hidden">
+              <div class="fea-progress-bar"><div class="fea-progress-fill"></div></div>
+              <span class="fea-progress-text"></span>
+            </div>
+          </div>
+          <div class="fea-results-table hidden"></div>
+        </section>
         <div class="msg-panel response-panel content"></div>
         <details class="trace hidden">
           <summary>
@@ -313,6 +354,6 @@
       </article>
     </template>
 
-    <script src="/static/app.js?v=16" defer></script>
+    <script src="/static/app.js?v=24" defer></script>
   </body>
 </html>
