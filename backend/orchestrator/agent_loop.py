@@ -640,13 +640,11 @@ class AgentLoop:
     # ── Task decomposition ──────────────────────────────────────────
 
     def _decompose(self, query: str, thinking_mode: str) -> list[_TaskSpec]:
-        """Break query into focused sub-tasks."""
+        """Break query into focused sub-tasks.
 
-        # Standard mode: never decompose
-        if thinking_mode == "standard":
-            return [self._single_task(query)]
-
-        # Try LLM decomposition
+        All thinking modes use LLM-based decomposition for tool selection.
+        Standard mode instructs the LLM to return a single task.
+        """
         if self.cio.orchestrator_llm.available:
             try:
                 return self._llm_decompose(query, thinking_mode)
@@ -656,8 +654,8 @@ class AgentLoop:
                     extra={"error": str(exc)},
                 )
 
-        # Heuristic fallback
-        return [self._single_task(query)]
+        # Fallback when LLM is unavailable — no tool selection
+        return [self._single_task_fallback(query)]
 
     def _llm_decompose(self, query: str, thinking_mode: str) -> list[_TaskSpec]:
         valid_tools = list(self.cio.tool_registry.keys())
@@ -675,7 +673,9 @@ class AgentLoop:
             doc_list = "(no documents loaded)"
 
         mode_hint = ""
-        if thinking_mode == "extended":
+        if thinking_mode == "standard":
+            mode_hint = "\nStandard mode: return exactly ONE task. Do not decompose into multiple sub-tasks."
+        elif thinking_mode == "extended":
             mode_hint = "\nExtended mode: be thorough. Include separate search and calculation tasks where appropriate."
 
         raw = self.cio.orchestrator_llm.generate(
@@ -717,20 +717,15 @@ class AgentLoop:
             )
 
         if not tasks:
-            return [self._single_task(query)]
+            return [self._single_task_fallback(query)]
 
         return tasks
 
-    def _single_task(self, query: str) -> _TaskSpec:
-        """Build a single task from heuristic analysis (no decomposition)."""
-        valid_tools = list(self.cio.tool_registry.keys())
-        matched_tools = self.cio._match_tools_for_query(
-            query=query, valid_tools=valid_tools
-        )
+    def _single_task_fallback(self, query: str) -> _TaskSpec:
+        """Build a single task without tool selection (LLM unavailable fallback)."""
         intent = self.cio._query_intent(query)
 
         needs_search = not intent.get("pure_calculation", False)
-        tools = matched_tools if intent.get("has_calc_intent") or intent.get("has_specific_values") else []
 
         # Extract concrete values from query for tool inputs
         inputs = self._extract_inputs_from_query(query)
@@ -740,7 +735,7 @@ class AgentLoop:
             query=query,
             search_query=query,
             needs_search=needs_search,
-            tools=tools,
+            tools=[],
             inputs=inputs,
         )
 

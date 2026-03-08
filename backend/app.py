@@ -8,6 +8,8 @@ from pathlib import Path
 from uuid import uuid4
 
 from dotenv import load_dotenv
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -131,12 +133,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     # FEA session storage (in-memory, keyed by session_id)
     fea_sessions: dict[str, FEAAnalystLoop] = {}
 
-    app = FastAPI(title="Eurocodes Chatbot", version="0.3.0")
+    @asynccontextmanager
+    async def lifespan(application: FastAPI):  # noqa: ARG001
+        yield
+        tool_runner.shutdown()
+
+    app = FastAPI(title="Eurocodes Chatbot", version="0.3.0", lifespan=lifespan)
     app.state.orchestrator = orchestrator
     app.state.agent_loop = agent_loop
     app.state.tool_writer = tool_writer
     app.state.settings = active_settings
     app.state.fea_sessions = fea_sessions
+    app.state.tool_runner = tool_runner
 
     app.include_router(create_auth_router(active_settings))
     app.include_router(create_threads_router(active_settings))
