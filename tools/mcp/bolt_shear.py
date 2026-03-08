@@ -32,6 +32,18 @@ BOLT_AREAS = {
     36: {"A": 1017.9, "As": 817.0},
 }
 
+# Standard clearances per EN 1090-2 Table 11
+STANDARD_CLEARANCE_MM: dict[int, int] = {
+    12: 1, 14: 1, 16: 2, 18: 2, 20: 2, 22: 2, 24: 2,
+    27: 3, 30: 3, 33: 3, 36: 3,
+}
+
+
+def bolt_hole_diameter(bolt_diameter_mm: int) -> float:
+    """Return standard clearance hole diameter d₀ per EN 1090-2 Table 11."""
+    clearance = STANDARD_CLEARANCE_MM.get(bolt_diameter_mm, 2 if bolt_diameter_mm <= 24 else 3)
+    return float(bolt_diameter_mm + clearance)
+
 
 class BoltShearInput(BaseModel):
     bolt_class: Literal["4.6", "4.8", "5.6", "5.8", "6.8", "8.8", "10.9"] = Field(
