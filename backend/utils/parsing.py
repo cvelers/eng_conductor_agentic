@@ -102,13 +102,10 @@ def extract_inputs(
         f"User query: {query}\n\n"
         f"Planned tools (in execution order): {json.dumps(planned_tools)}\n\n"
         f"Tool schemas:\n{json.dumps(tool_schemas, indent=2)}\n\n"
-        f"Default values when user does not specify:\n"
-        f"- steel_grade: {settings.default_steel_grade}\n"
-        f"- section_name: {settings.default_section_name}\n"
-        f"- gamma_M0: {settings.default_gamma_m0}\n"
-        f"- MEd_kNm: {settings.default_med_knm}\n"
-        f"- NEd_kN: {settings.default_ned_kn}\n\n"
-        "Extract all inputs from the query and fill defaults. Return JSON only."
+        "Extract all inputs explicitly stated in the user query.\n"
+        "Do NOT assume or fill in default values for parameters the user did not specify.\n"
+        "Only return parameters that are explicitly mentioned or clearly implied by the query.\n"
+        "Return JSON only."
     )
 
     try:
@@ -150,9 +147,9 @@ def _fallback_extraction(
     parsed_section = (
         section_match.group(1).replace(" ", "").upper()
         if section_match
-        else settings.default_section_name
+        else None
     )
-    parsed_steel = steel_match.group(1).upper() if steel_match else settings.default_steel_grade
+    parsed_steel = steel_match.group(1).upper() if steel_match else None
 
     user_inputs: dict[str, Any] = {}
     assumed: dict[str, Any] = {}
@@ -181,11 +178,11 @@ def _fallback_extraction(
             assumed[key] = value
             assumptions.append(note)
 
-    ec3_base = {
-        "section_name": parsed_section,
-        "steel_grade": parsed_steel,
-        "gamma_M0": settings.default_gamma_m0,
-    }
+    ec3_base: dict[str, Any] = {}
+    if parsed_section:
+        ec3_base["section_name"] = parsed_section
+    if parsed_steel:
+        ec3_base["steel_grade"] = parsed_steel
     tool_inputs: dict[str, dict[str, Any]] = {}
     for name in planned_tools:
         if name in {"simple_beam_calculator", "cantilever_beam_calculator"}:
@@ -245,25 +242,8 @@ def _fallback_extraction(
 
         if section_match:
             mark_user("section_name", parsed_section)
-        else:
-            mark_assumed(
-                "section_name",
-                settings.default_section_name,
-                f"Section assumed as {settings.default_section_name} (LLM extraction unavailable).",
-            )
         if steel_match:
             mark_user("steel_grade", parsed_steel)
-        else:
-            mark_assumed(
-                "steel_grade",
-                settings.default_steel_grade,
-                f"Steel grade assumed as {settings.default_steel_grade} (LLM extraction unavailable).",
-            )
-        mark_assumed(
-            "gamma_M0",
-            settings.default_gamma_m0,
-            f"γ_M0 = {settings.default_gamma_m0:.2f} (LLM extraction unavailable).",
-        )
         tool_inputs[name] = dict(ec3_base)
 
     return ExtractionResult(

@@ -46,11 +46,6 @@ def _flatten_tool_outputs(tool_outputs: dict[str, dict[str, Any]]) -> dict[str, 
     return flat
 
 
-_FOLLOWUP_VALUE_RE = re.compile(
-    r"\b(?:IPE\s*\d+|HEA\s*\d+|HEB\s*\d+|S(?:235|275|355|420|460)|M\d+|\d+(?:\.\d+)?)\b",
-    re.IGNORECASE,
-)
-
 _THINKING_MODES = {"standard", "thinking", "extended"}
 
 
@@ -103,6 +98,7 @@ class CentralIntelligenceOrchestrator:
     # ── Query analysis ─────────────────────────────────────────────
 
     def _query_intent(self, query: str) -> dict[str, bool]:
+        """Heuristic query intent — fallback only when LLM decomposition is unavailable."""
         lowered = query.lower()
         has_numeric = bool(re.search(r"\d", lowered))
         has_calc_intent = any(
@@ -586,18 +582,23 @@ class CentralIntelligenceOrchestrator:
     ) -> dict[str, str]:
         """Single entry-point for intent classification.
 
-        Returns ``{"intent": "pipeline"|"answer"|"decline"|"greeting"}``.
-        Uses heuristics first, falls back to a (multimodal) LLM call for
-        ambiguous cases.
+        Returns ``{"intent": "pipeline"|"fea"|"answer"|"decline"|"greeting"}``.
+        LLM is the primary classifier; heuristics are the fallback when LLM
+        is unavailable or returns an unrecognised token.
         """
         has_images = any(a.is_image and a.data_url for a in attachments)
-
         cleaned = self._ATTACHMENT_MARKER_RE.sub("", query).strip()
+
+        # ── Primary: LLM classification ──
+        llm_intent = self._llm_classify(cleaned, attachments, has_images)
+        if llm_intent:
+            return {"intent": llm_intent}
+
+        # ── Fallback: heuristic classification ──
         lowered = cleaned.lower()
         words = lowered.split()
         has_eng = any(kw in lowered for kw in self._ENG_KEYWORDS)
 
-        # FEA heuristic — check before general pipeline
         has_fea = any(kw in lowered for kw in self._FEA_KEYWORDS)
         if has_fea:
             return {"intent": "fea"}
@@ -611,10 +612,6 @@ class CentralIntelligenceOrchestrator:
 
         if has_eng and not has_images:
             return {"intent": "pipeline"}
-
-        llm_intent = self._llm_classify(cleaned, attachments, has_images)
-        if llm_intent:
-            return {"intent": llm_intent}
 
         if has_images:
             return {"intent": "answer"}
@@ -885,10 +882,6 @@ class CentralIntelligenceOrchestrator:
         if not anchor_msg:
             return query
 
-        followup_values = {
-            m.lower().replace(" ", "") for m in _FOLLOWUP_VALUE_RE.findall(query)
-        }
-
         if self.orchestrator_llm.available:
             try:
                 raw = self.orchestrator_llm.generate(
@@ -896,6 +889,8 @@ class CentralIntelligenceOrchestrator:
                         "You expand short follow-up messages into self-contained engineering queries. "
                         "Keep the ORIGINAL intent and all technical parameters from the first question. "
                         "Override only what the follow-up explicitly changes. "
+                        "Preserve ALL numeric values, section names, steel grades, and bolt sizes "
+                        "from both the original question and the follow-up. "
                         "Return ONLY the expanded query as a single sentence. No explanation."
                     ),
                     user_prompt=(
@@ -909,16 +904,12 @@ class CentralIntelligenceOrchestrator:
                 )
                 resolved = raw.strip()
                 if resolved and len(resolved) > len(query):
-                    if not followup_values or all(
-                        v in resolved.lower().replace(" ", "")
-                        for v in followup_values
-                    ):
-                        logger.info("followup_resolved", extra={"original": query, "resolved": resolved})
-                        return resolved
-                    logger.info("followup_llm_drift", extra={"resolved": resolved})
+                    logger.info("followup_resolved", extra={"original": query, "resolved": resolved})
+                    return resolved
             except Exception as exc:
                 logger.warning("followup_resolution_failed", extra={"error": str(exc)})
 
+        # Fallback: simple concatenation
         logger.info("followup_heuristic", extra={"original": query, "context": anchor_msg[:120]})
         return f"{query}. {anchor_msg[:200]}"
 

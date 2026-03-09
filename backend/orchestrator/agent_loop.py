@@ -31,17 +31,12 @@ from backend.schemas import (
     ToolTraceStep,
 )
 from backend.utils.citations import build_citation_address
-from backend.orchestrator.sanity_checker import SanityChecker
-from backend.orchestrator.tool_validator import ToolOutputValidator
 from backend.utils.json_utils import parse_json_loose
 
 logger = logging.getLogger(__name__)
 
 
 MAX_TOOL_RETRIES = 2
-
-_tool_validator = ToolOutputValidator()
-_sanity_checker = SanityChecker()
 
 
 @dataclass
@@ -299,6 +294,8 @@ class AgentLoop:
                     )
                     success = False
                     last_error = ""
+                    error_log: list[str] = []
+
                     for attempt in range(1 + MAX_TOOL_RETRIES):
                         yield (
                             "tool_start",
@@ -312,17 +309,6 @@ class AgentLoop:
                             result = payload.get("result", {})
                             task_tool_outputs[tool_name] = result
                             all_tool_outputs[tool_name] = result
-
-                            # Validate tool output for physical reasonableness
-                            val_warnings = _tool_validator.validate(tool_name, result, inputs)
-                            if val_warnings:
-                                result.setdefault("notes", []).extend(
-                                    f"\u26a0 {w}" for w in val_warnings
-                                )
-                                logger.warning(
-                                    "tool_validation_warnings",
-                                    extra={"tool": tool_name, "warnings": val_warnings},
-                                )
 
                             step = ToolTraceStep(
                                 tool_name=tool_name,
@@ -356,6 +342,7 @@ class AgentLoop:
                             break
                         except Exception as exc:
                             last_error = str(exc)
+                            error_log.append(f"Attempt {attempt + 1}: inputs={json.dumps(inputs, default=str)}, error={last_error}")
                             yield (
                                 "tool_result",
                                 {
@@ -365,8 +352,8 @@ class AgentLoop:
                                     "result": {},
                                 },
                             )
-                            if attempt < MAX_TOOL_RETRIES:
-                                # Ask LLM to fix inputs
+                            if attempt == 0:
+                                # Attempt 1 retry: local fix — ask LLM to fix inputs
                                 fixed = self._fix_tool_inputs(
                                     tool_name, inputs, last_error, task
                                 )
@@ -375,6 +362,18 @@ class AgentLoop:
                                     yield ("machine", {"node": "tools", "status": "active", "title": "Tools", "detail": f"Retrying {tool_name} with corrected inputs..."})
                                 else:
                                     break  # LLM couldn't fix — stop retrying
+                            elif attempt == 1:
+                                # Attempt 2 retry: UPSTREAM — re-resolve all
+                                # params from full context + error log
+                                upstream = self._upstream_resolve_inputs(
+                                    tool_name, task, all_tool_outputs,
+                                    error_log,
+                                )
+                                if upstream and upstream != inputs:
+                                    inputs = upstream
+                                    yield ("machine", {"node": "tools", "status": "active", "title": "Tools", "detail": f"Upstream re-resolve for {tool_name}..."})
+                                else:
+                                    break
 
                     if not success:
                         step = ToolTraceStep(
@@ -423,15 +422,6 @@ class AgentLoop:
 
             yield ("machine", {"node": "compose", "status": "done", "title": "Composing Answer", "detail": "Composition complete."})
             yield ("plan_update", {"step_id": i, "status": "done"})
-
-        # ── End-to-end sanity check across all tools ──────────────
-        sanity_warnings = _sanity_checker.check(all_tool_outputs, all_tool_trace)
-        if sanity_warnings:
-            all_assumptions.extend(f"\u26a0 {w}" for w in sanity_warnings)
-            logger.warning(
-                "sanity_check_warnings",
-                extra={"warnings": sanity_warnings},
-            )
 
         # ── Phase 3: Finalize ───────────────────────────────────────
         yield ("machine", {"node": "output", "status": "active", "title": "Streaming", "detail": "Building final response..."})
@@ -833,14 +823,6 @@ class AgentLoop:
         # Start with task-level extracted inputs
         base = dict(task.inputs)
 
-        # Add defaults from settings
-        if "section_name" not in base:
-            base["section_name"] = self.settings.default_section_name
-        if "steel_grade" not in base:
-            base["steel_grade"] = self.settings.default_steel_grade
-        if "gamma_m0" not in base:
-            base["gamma_m0"] = self.settings.default_gamma_m0
-
         entry = self.cio.tool_registry.get(tool_name)
         if entry:
             props = entry.input_schema.get("properties", {})
@@ -946,6 +928,76 @@ class AgentLoop:
                 return merged
         except Exception as exc:
             logger.warning("fix_tool_inputs_failed", extra={"error": str(exc)})
+
+        return None
+
+    def _upstream_resolve_inputs(
+        self,
+        tool_name: str,
+        task: _TaskSpec,
+        all_tool_outputs: dict[str, dict[str, Any]],
+        error_log: list[str],
+    ) -> dict[str, Any] | None:
+        """Re-resolve ALL tool inputs from complete context including error history.
+
+        Called after the local _fix_tool_inputs approach has already failed once.
+        Goes upstream: gives the LLM the full picture (tool schema, all prior
+        outputs, the original query, AND the accumulated error log) so it can
+        rethink the inputs from scratch rather than just patching the last attempt.
+        """
+        if not self.cio.orchestrator_llm.available:
+            return None
+
+        entry = self.cio.tool_registry.get(tool_name)
+        if not entry:
+            return None
+
+        props = entry.input_schema.get("properties", {})
+        required = entry.input_schema.get("required", [])
+
+        # Build context of all prior tool outputs
+        context_lines: list[str] = []
+        for src_tool, result in all_tool_outputs.items():
+            outputs = result.get("outputs", {})
+            if outputs:
+                context_lines.append(f"  {src_tool}: {json.dumps(outputs)}")
+
+        error_history = "\n".join(error_log)
+
+        try:
+            raw = self.cio.orchestrator_llm.generate(
+                system_prompt=(
+                    "You are a tool-input resolution agent. A calculator tool has failed "
+                    "multiple times with different inputs. You must resolve the correct "
+                    "inputs from scratch using the full context: the user's query, all "
+                    "prior tool outputs, and the error history showing what was tried and "
+                    "why it failed. Return ONLY a JSON object with ALL required parameters."
+                ),
+                user_prompt=(
+                    f"Tool: {tool_name}\n"
+                    f"Description: {entry.description}\n"
+                    f"User query: {task.query}\n\n"
+                    f"Input schema:\n{json.dumps({'properties': props, 'required': required}, indent=2)}\n\n"
+                    f"Prior tool outputs:\n" + ("\n".join(context_lines) or "(none)") + "\n\n"
+                    f"Error history (all failed attempts):\n{error_history}\n\n"
+                    "Resolve ALL inputs from scratch. Return ONLY a JSON object."
+                ),
+                temperature=0,
+                max_tokens=2000,
+            )
+            result = parse_json_loose(raw)
+            if isinstance(result, dict):
+                # Normalize enum values
+                for k, v in list(result.items()):
+                    if isinstance(v, str) and k in props:
+                        allowed = props[k].get("enum")
+                        if allowed and v not in allowed:
+                            lower = v.lower()
+                            if lower in allowed:
+                                result[k] = lower
+                return result
+        except Exception as exc:
+            logger.warning("upstream_resolve_failed", extra={"error": str(exc)})
 
         return None
 

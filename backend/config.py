@@ -56,12 +56,6 @@ class Settings:
     max_retrieval_iters: int = 3
     top_k_clauses: int = 20
 
-    default_steel_grade: str = "S355"
-    default_section_name: str = "IPE300"
-    default_gamma_m0: float = 1.0
-    default_med_knm: float = 120.0
-    default_ned_kn: float = 200.0
-
     document_registry_path: Path | None = None
     tool_registry_path: Path | None = None
     orchestrator_thread_log_path: Path | None = None
@@ -140,11 +134,6 @@ class Settings:
             embeddings_enabled=_to_bool(os.getenv("EMBEDDINGS_ENABLED"), False),
             max_retrieval_iters=_to_int(os.getenv("MAX_RETRIEVAL_ITERS"), 3),
             top_k_clauses=_to_int(os.getenv("TOP_K_CLAUSES"), 6),
-            default_steel_grade=os.getenv("DEFAULT_STEEL_GRADE", "S355"),
-            default_section_name=os.getenv("DEFAULT_SECTION_NAME", "IPE300"),
-            default_gamma_m0=float(os.getenv("DEFAULT_GAMMA_M0", "1.0")),
-            default_med_knm=float(os.getenv("DEFAULT_MED_KNM", "120.0")),
-            default_ned_kn=float(os.getenv("DEFAULT_NED_KN", "200.0")),
             document_registry_path=(
                 Path(os.environ["DOCUMENT_REGISTRY_PATH"])
                 if os.getenv("DOCUMENT_REGISTRY_PATH")

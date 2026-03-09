@@ -54,7 +54,8 @@ def test_fallback_extracts_simple_beam_inputs_without_llm() -> None:
     assert result.user_inputs["load_kn_per_m"] == 15.0
 
 
-def test_fallback_keeps_ec3_defaults_for_member_tools() -> None:
+def test_fallback_no_defaults_for_member_tools() -> None:
+    """Without explicit values, fallback should not inject assumed defaults."""
     root = Path(__file__).resolve().parents[1]
     settings = Settings.load().with_overrides(project_root=root)
     registry = _tool_map(root)
@@ -68,6 +69,25 @@ def test_fallback_keeps_ec3_defaults_for_member_tools() -> None:
     )
 
     tool_payload = result.tool_inputs["member_resistance_ec3"]
-    assert tool_payload["section_name"] == settings.default_section_name
-    assert tool_payload["steel_grade"] == settings.default_steel_grade
-    assert tool_payload["gamma_M0"] == settings.default_gamma_m0
+    # No defaults should be injected — only explicit user values
+    assert "section_name" not in tool_payload
+    assert "steel_grade" not in tool_payload
+
+
+def test_fallback_extracts_explicit_values_for_member_tools() -> None:
+    """When user specifies values, fallback should extract them."""
+    root = Path(__file__).resolve().parents[1]
+    settings = Settings.load().with_overrides(project_root=root)
+    registry = _tool_map(root)
+
+    result = extract_inputs(
+        query="check moment resistance of IPE300 S355",
+        planned_tools=["member_resistance_ec3"],
+        tool_registry=registry,
+        llm=UnavailableLLM(),
+        settings=settings,
+    )
+
+    tool_payload = result.tool_inputs["member_resistance_ec3"]
+    assert tool_payload["section_name"] == "IPE300"
+    assert tool_payload["steel_grade"] == "S355"
