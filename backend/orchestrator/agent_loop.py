@@ -810,6 +810,15 @@ class AgentLoop:
         if m and "point" in lowered:
             inputs["point_load_kn"] = float(m.group(1))
 
+        # Elastic critical moment for LTB
+        m = re.search(r"m_?cr\s*=\s*(\d+(?:\.\d+)?)\s*kn", lowered, re.IGNORECASE)
+        if m:
+            inputs["M_cr_kNm"] = float(m.group(1))
+
+        # LTB method per §6.3.2.3 (rolled/welded)
+        if "6.3.2.3" in query or ("rolled" in lowered and ("ltb" in lowered or "lateral" in lowered)):
+            inputs["method"] = "rolled_welded"
+
         return inputs
 
     # ── Task-level tool input building ──────────────────────────────

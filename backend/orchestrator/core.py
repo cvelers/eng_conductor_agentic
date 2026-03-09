@@ -227,6 +227,11 @@ class CentralIntelligenceOrchestrator:
             if tools:
                 return tools
 
+        if any(token in lowered for token in ("lateral-torsional", "lateral torsional", "m_b,rd", "m_b_rd", "ltb")):
+            tools = pick(["ltb_resistance_ec3"])
+            if tools:
+                return tools
+
         if "moment resistance" in lowered and "ipe" in lowered:
             tools = pick(["ipe_moment_resistance_ec3"])
             if tools:
