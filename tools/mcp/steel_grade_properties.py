@@ -11,7 +11,7 @@ TOOL_NAME = "steel_grade_properties"
 EC3_TABLE_3_1 = {
     "S235": {"fy_t_le_40": 235, "fy_40_lt_t_le_80": 215, "fu": 360},
     "S275": {"fy_t_le_40": 275, "fy_40_lt_t_le_80": 255, "fu": 430},
-    "S355": {"fy_t_le_40": 355, "fy_40_lt_t_le_80": 335, "fu": 490},
+    "S355": {"fy_t_le_40": 355, "fy_40_lt_t_le_80": 335, "fu": 510},
     "S420": {"fy_t_le_40": 420, "fy_40_lt_t_le_80": 390, "fu": 520},
     "S460": {"fy_t_le_40": 460, "fy_40_lt_t_le_80": 430, "fu": 540},
 }
