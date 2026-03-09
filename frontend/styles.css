@@ -492,10 +492,18 @@ body {
   position: absolute;
   display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
   gap: 4px;
-  width: min(280px, calc(100vw - 60px));
+  width: min(200px, calc(100vw - 60px));
   pointer-events: none;
 }
 .flow-popups.above { transform: translate(-50%, -100%); }
+.flow-popups.above-left {
+  transform: translate(-100%, -100%);
+  justify-content: flex-end;
+}
+.flow-popups.above-right {
+  transform: translate(0, -100%);
+  justify-content: flex-start;
+}
 .flow-popups.below { transform: translate(-50%, 0); }
 
 .flow-popup-chip {
@@ -515,7 +523,9 @@ body {
   transform: translateY(4px) scale(0.98);
   transition: opacity 180ms ease, transform 180ms ease;
 }
-.flow-popups.above .flow-popup-chip {
+.flow-popups.above .flow-popup-chip,
+.flow-popups.above-left .flow-popup-chip,
+.flow-popups.above-right .flow-popup-chip {
   border-color: rgba(111, 179, 255, 0.38);
   background: rgba(111, 179, 255, 0.16);
 }

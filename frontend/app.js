@@ -567,7 +567,7 @@ function renderThreadList() {
 
 // ---- Flow graph ----
 const GRID = {
-  colW: 66,
+  colW: 82,
   rowH: 56,
   padX: 8,
   padY: 20,
@@ -772,14 +772,14 @@ function initFlowGraph(msgNode, prompt) {
   const toolPos = getNodePos(nodeMap.tools, layout);
 
   const docPopups = document.createElement("div");
-  docPopups.className = "flow-popups above";
-  docPopups.style.left = docPos.cx + "px";
+  docPopups.className = "flow-popups above-left";
+  docPopups.style.left = (docPos.x + GRID.nodeW) + "px";
   docPopups.style.top = (docPos.y - GRID.popupGap) + "px";
   canvas.appendChild(docPopups);
 
   const toolPopups = document.createElement("div");
-  toolPopups.className = "flow-popups above";
-  toolPopups.style.left = toolPos.cx + "px";
+  toolPopups.className = "flow-popups above-right";
+  toolPopups.style.left = toolPos.x + "px";
   toolPopups.style.top = (toolPos.y - GRID.popupGap) + "px";
   canvas.appendChild(toolPopups);
 
@@ -837,7 +837,7 @@ function addPopupChip(f, lane, key, label) {
 
   const chip = document.createElement("div");
   chip.className = "flow-popup-chip";
-  chip.textContent = clamp(label, 48);
+  chip.textContent = clamp(label, 28);
   laneEl.appendChild(chip);
   refs.set(key, chip);
   requestAnimationFrame(() => chip.classList.add("show"));
@@ -856,11 +856,14 @@ function addPopupChip(f, lane, key, label) {
 function formatDocBadge(entry) {
   if (!entry || typeof entry !== "object") return "";
   const rawDoc = String(entry.doc_id || "").trim();
-  const file = rawDoc ? `${rawDoc.replace(/\.json$/i, "")}.json` : "document.json";
+  // Shorten: "ec3.en1993-1-1.2005.json" → "EN1993-1-1"
+  let short = rawDoc.replace(/\.json$/i, "").replace(/^ec3\./i, "");
+  short = short.replace(/\.\d{4}$/, "").replace(/^en/i, "EN");
+  if (!short) short = "doc";
   const clause = String(entry.clause_id || "").trim();
-  if (!clause) return file;
-  const prefix = /^\d/.test(clause) ? "Cl. " : "";
-  return `${file} · ${prefix}${clause}`;
+  if (!clause) return short;
+  const prefix = /^\d/.test(clause) ? "Cl." : "";
+  return `${short} ${prefix}${clause}`;
 }
 
 function pushDocBadges(f, entries) {
