@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, PositiveFloat, model_validator
 
 from tools.mcp.cli import run_cli
 from tools.mcp.section_library import SECTION_LIBRARY, steel_grade_to_fy
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "tension_resistance_ec3"
 
@@ -106,12 +107,7 @@ def calculate(inp: TensionResistanceInput) -> dict:
         },
         "outputs": results,
         "clause_references": [
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "6.2.3(2)",
-                "title": "Tension resistance",
-                "pointer": "en_1993_1_1_2005_structured.json#6.2.3",
-            },
+            clause_ref("ec3.en1993-1-1.2005", "6.2.3(2)", "Tension resistance"),
         ],
         "notes": [
             f"N_pl,Rd = A·fy/γM0 = {A_mm2:.0f}×{fy:.0f}/{gamma_M0} = {N_pl_Rd:.2f} kN",

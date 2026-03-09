@@ -5,6 +5,7 @@ from typing import Literal
 from pydantic import BaseModel, Field, PositiveFloat
 
 from tools.mcp.cli import run_cli
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "effective_length_ec3"
 
@@ -41,12 +42,7 @@ def calculate(inp: EffectiveLengthInput) -> dict:
             "support_description": cond["description"],
         },
         "clause_references": [
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "BB.1",
-                "title": "Effective buckling length for members in compression",
-                "pointer": "en_1993_1_1_2005_ocr.json#annex_BB",
-            },
+            clause_ref("ec3.en1993-1-1.2005", "BB.1", "Effective buckling length for members in compression"),
         ],
         "notes": [
             f"Buckling length factor k = {k} for {cond['description']}.",

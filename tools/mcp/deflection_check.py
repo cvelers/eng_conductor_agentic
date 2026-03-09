@@ -5,6 +5,7 @@ from typing import Literal
 from pydantic import BaseModel, Field, PositiveFloat
 
 from tools.mcp.cli import run_cli
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "deflection_check"
 
@@ -46,12 +47,7 @@ def check(inp: DeflectionCheckInput) -> dict:
             "status": "OK" if passes else "FAIL",
         },
         "clause_references": [
-            {
-                "doc_id": "ec0.en1990.2002",
-                "clause_id": "A1.4.3",
-                "title": "Vertical deflections (Annex A1, Table A1.4)",
-                "pointer": "en_1990#annex_a1_table_a1.4",
-            },
+            clause_ref("ec0.en1990.2002", "A1.4.3", "Vertical deflections (Annex A1, Table A1.4)", pointer="en_1990#annex_a1_table_a1.4"),
         ],
         "notes": [
             f"Allowable = L/{denominator} = {inp.span_m * 1000:.0f}/{denominator} = {allowable_mm:.2f} mm",

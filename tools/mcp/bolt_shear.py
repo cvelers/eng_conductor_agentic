@@ -6,6 +6,7 @@ from typing import Literal
 from pydantic import BaseModel, Field, PositiveFloat, PositiveInt
 
 from tools.mcp.cli import run_cli
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "bolt_shear_ec3"
 
@@ -95,12 +96,7 @@ def calculate(inp: BoltShearInput) -> dict:
             "Fv_Rd_single_plane_kN": round(Fv_Rd_single, 2),
         },
         "clause_references": [
-            {
-                "doc_id": "ec3.en1993-1-8.2005",
-                "clause_id": "Table 3.4",
-                "title": "Design resistance for bolts in shear",
-                "pointer": "en_1993_1_8#table_3.4",
-            },
+            clause_ref("ec3.en1993-1-8.2005", "Table 3.4", "Design resistance for bolts in shear"),
         ],
         "notes": [
             f"Fv,Rd = αv × fub × A / γM2 = {alpha_v} × {fub} × {A:.1f} / {inp.gamma_M2} = {Fv_Rd_single:.2f} kN per plane",

@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, PositiveFloat
 
 from tools.mcp.cli import run_cli
 from tools.mcp.section_library import steel_grade_to_fy
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "bending_shear_axial_ec3"
 
@@ -75,12 +76,7 @@ def calculate(inp: BendingShearAxialInput) -> dict:
             "pass": utilization <= 1.0,
         },
         "clause_references": [
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "6.2.10",
-                "title": "Bending, shear and axial force",
-                "pointer": "en_1993_1_1_2005_structured.json#6.2.10",
-            },
+            clause_ref("ec3.en1993-1-1.2005", "6.2.10", "Bending, shear and axial force"),
         ],
         "notes": notes,
     }

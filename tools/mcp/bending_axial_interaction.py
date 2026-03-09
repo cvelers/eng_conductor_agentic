@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field, PositiveFloat, model_validator
 
 from tools.mcp.cli import run_cli
 from tools.mcp.section_library import SECTION_LIBRARY, steel_grade_to_fy
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "bending_axial_interaction_ec3"
 
@@ -176,12 +177,7 @@ def calculate(inp: BendingAxialInput) -> dict:
         },
         "outputs": results,
         "clause_references": [
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "6.2.9.1",
-                "title": "Bending and axial force – Class 1 and 2 cross-sections",
-                "pointer": "en_1993_1_1_2005_structured.json#6.2.9.1",
-            },
+            clause_ref("ec3.en1993-1-1.2005", "6.2.9.1", "Bending and axial force – Class 1 and 2 cross-sections"),
         ],
         "notes": notes,
     }

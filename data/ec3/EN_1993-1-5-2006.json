@@ -1,0 +1,3770 @@
+{
+  "metadata": {
+    "standard_number": "EN 1993-1-5:2006",
+    "title": "Eurocode 3 - Design of steel structures",
+    "subtitle": "Part 1-5: Plated structural elements",
+    "language": "English",
+    "publication_year": "2006",
+    "committee": "Technical Committee CEN/TC250 « Structural Eurocodes »",
+    "ics_codes": [
+      "91.010.30",
+      "91.080.10"
+    ],
+    "supersedes": "ENV 1993-1-5:1997",
+    "total_pages": 55
+  },
+  "foreword": "This European Standard EN 1993-1-5, Eurocode 3: Design of steel structures Part 1.5: Plated structural elements, has been prepared by Technical Committee CEN/TC250 « Structural Eurocodes », the Secretariat of which is held by BSI. CEN/TC250 is responsible for all Structural Eurocodes. This European Standard shall be given the status of a National Standard, either by publication of an identical text or by endorsement, at the latest by April 2007 and conflicting National Standards shall be withdrawn at latest by March 2010. This Eurocode supersedes ENV 1993-1-5. According to the CEN-CENELEC Internal Regulations, the National Standard Organizations of the following countries are bound to implement this European Standard: Austria, Belgium, Cyprus, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hungary, Iceland, Ireland, Italy, Latvia, Lithuania, Luxembourg, Malta, Netherlands, Norway, Poland, Portugal, Romania, Slovakia, Slovenia, Spain, Sweden, Switzerland and United Kingdom. National annex for EN 1993-1-5 This standard gives alternative procedures, values and recommendations with notes indicating where national choices may have to be made. The National Standard implementing EN 1993-1-5 should have a National Annex containing all Nationally Determined Parameters to be used for the design of steel structures to be constructed in the relevant country. National choice is allowed in EN 1993-1-5 through: - 2.2(5) - 3.3(1) - 4.3(6) - 5.1(2) - 6.4(2) - 8(2) - 9.1(1) - 9.2.1(9) - 10(1) - 10(5) - C.2(1) - C.5(2) - C.8(1) - C.9(3) - D.2.2(2)",
+  "normative_references": [
+    {
+      "id": "EN 1993-1-1",
+      "title": "Eurocode 3 :Design of steel structures: Part 1-1: General rules and rules for buildings"
+    }
+  ],
+  "terms_and_definitions": [
+    {
+      "term": "elastic critical stress",
+      "definition": "stress in a component at which the component becomes unstable when using small deflection elastic theory of a perfect structure",
+      "clause": "1.3.1"
+    },
+    {
+      "term": "membrane stress",
+      "definition": "stress at mid-plane of the plate",
+      "clause": "1.3.2"
+    },
+    {
+      "term": "gross cross-section",
+      "definition": "the total cross-sectional area of a member but excluding discontinuous longitudinal stiffeners",
+      "clause": "1.3.3"
+    },
+    {
+      "term": "effective cross-section and effective width",
+      "definition": "the gross cross-section or width reduced for the effects of plate buckling or shear lag or both; to distinguish between their effects the word \"effective\" is clarified as follows: \"effective^p\" denotes effects of plate buckling \"effective^s\" denotes effects of shear lag \"effective\" denotes effects of plate buckling and shear lag",
+      "clause": "1.3.4"
+    },
+    {
+      "term": "plated structure",
+      "definition": "a structure built up from nominally flat plates which are connected together; the plates may be stiffened or unstiffened",
+      "clause": "1.3.5"
+    },
+    {
+      "term": "stiffener",
+      "definition": "a plate or section attached to a plate to resist buckling or to strengthen the plate; a stiffener is denoted: - longitudinal if its direction is parallel to the member; - transverse if its direction is perpendicular to the member.",
+      "clause": "1.3.6"
+    },
+    {
+      "term": "stiffened plate",
+      "definition": "plate with transverse or longitudinal stiffeners or both",
+      "clause": "1.3.7"
+    },
+    {
+      "term": "subpanel",
+      "definition": "unstiffened plate portion surrounded by flanges and/or stiffeners",
+      "clause": "1.3.8"
+    },
+    {
+      "term": "hybrid girder",
+      "definition": "girder with flanges and web made of different steel grades; this standard assumes higher steel grade in flanges compared to webs",
+      "clause": "1.3.9"
+    },
+    {
+      "term": "sign convention",
+      "definition": "unless otherwise stated compression is taken as positive",
+      "clause": "1.3.10"
+    }
+  ],
+  "symbols": [
+    {
+      "symbol": "A_sl",
+      "description": "total area of all the longitudinal stiffeners of a stiffened plate;"
+    },
+    {
+      "symbol": "A_st",
+      "description": "gross cross sectional area of one transverse stiffener;"
+    },
+    {
+      "symbol": "A_eff",
+      "description": "effective cross sectional area;"
+    },
+    {
+      "symbol": "A_c,eff",
+      "description": "effective^p cross sectional area;"
+    },
+    {
+      "symbol": "A_c,eff,loc",
+      "description": "effective^p cross sectional area for local buckling;"
+    },
+    {
+      "symbol": "a",
+      "description": "length of a stiffened or unstiffened plate;"
+    },
+    {
+      "symbol": "b",
+      "description": "width of a stiffened or unstiffened plate;"
+    },
+    {
+      "symbol": "b_w",
+      "description": "clear width between welds for welded sections or between ends of radii for rolled sections;"
+    },
+    {
+      "symbol": "b_eff",
+      "description": "effective^s width for elastic shear lag;"
+    },
+    {
+      "symbol": "F_Ed",
+      "description": "design transverse force;"
+    },
+    {
+      "symbol": "h_w",
+      "description": "clear web depth between flanges;"
+    },
+    {
+      "symbol": "L_eff",
+      "description": "effective length for resistance to transverse forces, see 6;"
+    },
+    {
+      "symbol": "M_f,Rd",
+      "description": "design plastic moment of resistance of a cross-section consisting of the flanges only;"
+    },
+    {
+      "symbol": "M_pl,Rd",
+      "description": "design plastic moment of resistance of the cross-section (irrespective of cross-section class);"
+    },
+    {
+      "symbol": "M_Ed",
+      "description": "design bending moment;"
+    },
+    {
+      "symbol": "N_Ed",
+      "description": "design axial force;"
+    },
+    {
+      "symbol": "t",
+      "description": "thickness of the plate;"
+    },
+    {
+      "symbol": "V_Ed",
+      "description": "design shear force including shear from torque;"
+    },
+    {
+      "symbol": "W_eff",
+      "description": "effective elastic section modulus;"
+    },
+    {
+      "symbol": "β",
+      "description": "effective^s width factor for elastic shear lag;"
+    }
+  ],
+  "sections": [
+    {
+      "clause_number": "Foreword",
+      "title": "Foreword",
+      "text": "This European Standard EN 1993-1-5, Eurocode 3: Design of steel structures Part 1.5: Plated structural elements, has been prepared by Technical Committee CEN/TC250 « Structural Eurocodes », the Secretariat of which is held by BSI. CEN/TC250 is responsible for all Structural Eurocodes.\nThis European Standard shall be given the status of a National Standard, either by publication of an identical text or by endorsement, at the latest by April 2007 and conflicting National Standards shall be withdrawn at latest by March 2010.\nThis Eurocode supersedes ENV 1993-1-5.\nAccording to the CEN-CENELEC Internal Regulations, the National Standard Organizations of the following countries are bound to implement this European Standard: Austria, Belgium, Cyprus, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hungary, Iceland, Ireland, Italy, Latvia, Lithuania, Luxembourg, Malta, Netherlands, Norway, Poland, Portugal, Romania, Slovakia, Slovenia, Spain, Sweden, Switzerland and United Kingdom.",
+      "page": 6
+    },
+    {
+      "clause_number": "National annex for EN 1993-1-5",
+      "title": "National annex for EN 1993-1-5",
+      "text": "This standard gives alternative procedures, values and recommendations with notes indicating where national choices may have to be made. The National Standard implementing EN 1993-1-5 should have a National Annex containing all Nationally Determined Parameters to be used for the design of steel structures to be constructed in the relevant country.\nNational choice is allowed in EN 1993-1-5 through:\n- 2.2(5)\n- 3.3(1)\n- 4.3(6)\n- 5.1(2)\n- 6.4(2)\n- 8(2)\n- 9.1(1)\n- 9.2.1(9)\n- 10(1)\n- 10(5)\n- C.2(1)\n- C.5(2)\n- C.8(1)\n- C.9(3)\n- D.2.2(2)",
+      "page": 6
+    },
+    {
+      "clause_number": "1",
+      "title": "Introduction",
+      "text": "",
+      "page": 7
+    },
+    {
+      "clause_number": "1.1",
+      "title": "Scope",
+      "text": "(1) EN 1993-1-5 gives design requirements of stiffened and unstiffened plates which are subject to in-plane forces.\n(2) Effects due to shear lag, in-plane load introduction and plate buckling for I-section girders and box girders are covered. Also covered are plated structural components subject to in-plane loads as in tanks and silos. The effects of out-of-plane loading are outside the scope of this document.\nNOTE 1: The rules in this part complement the rules for class 1, 2, 3 and 4 sections, see EN 1993-1-1.\nNOTE 2: For the design of slender plates which are subject to repeated direct stress and/or shear and also fatigue due to out-of-plane bending of plate elements (breathing) see EN 1993-2 and EN 1993-6.\nNOTE 3: For the effects of out-of-plane loading and for the combination of in-plane effects and out-of-plane loading effects see EN 1993-2 and EN 1993-1-7.\nNOTE 4: Single plate elements may be considered as flat where the curvature radius r satisfies:\nr ≥ a² / t (1.1)\nwhere a is the panel width\nt is the plate thickness",
+      "page": 7
+    },
+    {
+      "clause_number": "1.2",
+      "title": "Normative references",
+      "text": "(1) This European Standard incorporates, by dated or undated reference, provisions from other publications. These normative references are cited at the appropriate places in the text and the publications are listed hereafter. For dated references, subsequent amendments to or revisions of any of these publications apply to this European Standard only when incorporated in it by amendment or revision. For undated references the latest edition of the publication referred to applies.\nEN 1993-1-1 Eurocode 3: Design of steel structures: Part 1-1: General rules and rules for buildings",
+      "page": 7
+    },
+    {
+      "clause_number": "1.3",
+      "title": "Terms and definitions",
+      "text": "For the purpose of this standard, the following terms and definitions apply:",
+      "page": 7
+    },
+    {
+      "clause_number": "1.3.1",
+      "title": "elastic critical stress",
+      "text": "stress in a component at which the component becomes unstable when using small deflection elastic theory of a perfect structure",
+      "page": 7
+    },
+    {
+      "clause_number": "1.3.2",
+      "title": "membrane stress",
+      "text": "stress at mid-plane of the plate",
+      "page": 7
+    },
+    {
+      "clause_number": "1.3.3",
+      "title": "gross cross-section",
+      "text": "the total cross-sectional area of a member but excluding discontinuous longitudinal stiffeners",
+      "page": 7
+    },
+    {
+      "clause_number": "1.3.4",
+      "title": "effective cross-section and effective width",
+      "text": "the gross cross-section or width reduced for the effects of plate buckling or shear lag or both; to distinguish between their effects the word “effective” is clarified as follows:\n“effectiveᵖ” denotes effects of plate buckling\n“effectiveˢ” denotes effects of shear lag\n“effective” denotes effects of plate buckling and shear lag",
+      "page": 7
+    },
+    {
+      "clause_number": "1.3.5",
+      "title": "plated structure",
+      "text": "a structure built up from nominally flat plates which are connected together; the plates may be stiffened or unstiffened",
+      "page": 8
+    },
+    {
+      "clause_number": "1.3.6",
+      "title": "stiffener",
+      "text": "a plate or section attached to a plate to resist buckling or to strengthen the plate; a stiffener is denoted:\n- longitudinal if its direction is parallel to the member;\n- transverse if its direction is perpendicular to the member.",
+      "page": 8
+    },
+    {
+      "clause_number": "1.3.7",
+      "title": "stiffened plate",
+      "text": "plate with transverse or longitudinal stiffeners or both",
+      "page": 8
+    },
+    {
+      "clause_number": "1.3.8",
+      "title": "subpanel",
+      "text": "unstiffened plate portion surrounded by flanges and/or stiffeners",
+      "page": 8
+    },
+    {
+      "clause_number": "1.3.9",
+      "title": "hybrid girder",
+      "text": "girder with flanges and web made of different steel grades; this standard assumes higher steel grade in flanges compared to webs",
+      "page": 8
+    },
+    {
+      "clause_number": "1.3.10",
+      "title": "sign convention",
+      "text": "unless otherwise stated compression is taken as positive",
+      "page": 8
+    },
+    {
+      "clause_number": "1.4",
+      "title": "Symbols",
+      "text": "(1) In addition to those given in EN 1990 and EN 1993-1-1, the following symbols are used:\nA_sl total area of all the longitudinal stiffeners of a stiffened plate;\nA_st gross cross sectional area of one transverse stiffener;\nA_eff effective cross sectional area;\nA_c,eff effectiveᵖ cross sectional area;\nA_c,eff,loc effectiveᵖ cross sectional area for local buckling;\na length of a stiffened or unstiffened plate;\nb width of a stiffened or unstiffened plate;\nb_w clear width between welds for welded sections or between ends of radii for rolled sections;\nb_eff effectiveˢ width for elastic shear lag;\nF_Ed design transverse force;\nh_w clear web depth between flanges;\nL_eff effective length for resistance to transverse forces, see 6;\nM_f,Rd design plastic moment of resistance of a cross-section consisting of the flanges only;\nM_pl,Rd design plastic moment of resistance of the cross-section (irrespective of cross-section class);\nM_Ed design bending moment;\nN_Ed design axial force;\nt thickness of the plate;\nV_Ed design shear force including shear from torque;\nW_eff effective elastic section modulus;\nβ effectiveˢ width factor for elastic shear lag;\n(2) Additional symbols are defined where they first occur.",
+      "page": 8
+    },
+    {
+      "clause_number": "2",
+      "title": "Basis of design and modelling",
+      "text": "",
+      "page": 9
+    },
+    {
+      "clause_number": "2.1",
+      "title": "General",
+      "text": "(1)P The effects of shear lag and plate buckling shall be taken into account at the ultimate, serviceability or fatigue limit states.\nNOTE: Partial factors γ_M0 and γ_M1 used in this part are defined for different applications in the National Annexes of EN 1993-1 to EN 1993-6.",
+      "page": 9
+    },
+    {
+      "clause_number": "2.2",
+      "title": "Effective width models for global analysis",
+      "text": "(1)P The effects of shear lag and of plate buckling on the stiffness of members and joints shall be taken into account in the global analysis.\n(2) The effects of shear lag of flanges in global analysis may be taken into account by the use of an effectiveˢ width. For simplicity this effectiveˢ width may be assumed to be uniform over the length of the span.\n(3) For each span of a member the effectiveˢ width of flanges should be taken as the lesser of the full width and L/8 per side of the web, where L is the span or twice the distance from the support to the end of a cantilever.\n(4) The effects of plate buckling in elastic global analysis may be taken into account by effectiveᵖ cross sectional areas of the elements in compression, see 4.3.\n(5) For global analysis the effect of plate buckling on the stiffness may be ignored when the effectiveᵖ cross-sectional area of an element in compression is larger than ρ_lim times the gross cross-sectional area of the same element.\nNOTE 1: The parameter ρ_lim may be given in the National Annex. The value ρ_lim = 0,5 is recommended.\nNOTE 2: For determining the stiffness when (5) is not fulfilled, see Annex E.",
+      "page": 9
+    },
+    {
+      "clause_number": "2.3",
+      "title": "Plate buckling effects on uniform members",
+      "text": "(1) Effectiveᵖ width models for direct stresses, resistance models for shear buckling and buckling due to transverse loads as well as interactions between these models for determining the resistance of uniform members at the ultimate limit state may be used when the following conditions apply:\n- panels are rectangular and flanges are parallel;\n- the diameter of any unstiffened open hole or cut out does not exceed 0,05b, where b is the width of the panel.\nNOTE: The rules may apply to non rectangular panels provided the angle α_limit (see Figure 2.1) is not greater than 10 degrees. If α_limit exceeds 10, panels may be assessed assuming it to be a rectangular panel based on the larger of b_1 and b_2 of the panel.\n(2) For the calculation of stresses at the serviceability and fatigue limit state the effectiveˢ area may be used if the condition in 2.2(5) is fulfilled. For ultimate limit states the effective area according to 3.3 should be used with β replaced by β_ult.",
+      "page": 9
+    },
+    {
+      "clause_number": "2.4",
+      "title": "Reduced stress method",
+      "text": "(1) As an alternative to the use of the effectiveᵖ width models for direct stresses given in sections 4 to 7, the cross sections may be assumed to be class 3 sections provided that the stresses in each panel do not exceed the limits specified in section 10.\nNOTE: The reduced stress method is analogous to the effectiveᵖ width method (see 2.3) for single plated elements. However, in verifying the stress limitations no load shedding has been assumed between the plated elements of the cross section.",
+      "page": 10
+    },
+    {
+      "clause_number": "2.5",
+      "title": "Non uniform members",
+      "text": "(1) Non uniform members (e.g. haunched members, non rectangular panels) or members with regular or irregular large openings may be analysed using Finite Element (FE) methods.\nNOTE 1: See Annex B for non uniform members.\nNOTE 2: For FE-calculations see Annex C.",
+      "page": 10
+    },
+    {
+      "clause_number": "2.6",
+      "title": "Members with corrugated webs",
+      "text": "(1) For members with corrugated webs, the bending stiffness should be based on the flanges only and webs should be considered to transfer shear and transverse loads.\nNOTE: For buckling resistance of flanges in compression and the shear resistance of webs see Annex D.",
+      "page": 10
+    },
+    {
+      "clause_number": "3",
+      "title": "Shear lag in member design",
+      "text": "",
+      "page": 11
+    },
+    {
+      "clause_number": "3.1",
+      "title": "General",
+      "text": "(1) Shear lag in flanges may be neglected if b_0 < L_e/50 where b_0 is taken as the flange outstand or half the width of an internal element and L_e is the length between points of zero bending moment, see 3.2.1(2).\n(2) Where the above limit for b_0 is exceeded the effects due to shear lag in flanges should be considered at serviceability and fatigue limit state verifications by the use of an effectiveˢ width according to 3.2.1 and a stress distribution according to 3.2.2. For the ultimate limit state verification an effective area according to 3.3 may be used.\n(3) Stresses due to patch loading in the web applied at the flange level should be determined from 3.2.3.",
+      "page": 11
+    },
+    {
+      "clause_number": "3.2",
+      "title": "Effectiveˢ width for elastic shear lag",
+      "text": "",
+      "page": 11
+    },
+    {
+      "clause_number": "3.2.1",
+      "title": "Effectiveˢ width",
+      "text": "(1) The effectiveˢ width b_eff for shear lag under elastic conditions should be determined from:\nb_eff = β b_0 (3.1)\nwhere the effectiveˢ factor β is given in Table 3.1.\nThis effectiveˢ width may be relevant for serviceability and fatigue limit states.\n(2) Provided adjacent spans do not differ more than 50% and any cantilever span is not larger than half the adjacent span the effective lengths L_e may be determined from Figure 3.1. For all other cases L_e should be taken as the distance between adjacent points of zero bending moment.",
+      "page": 11
+    },
+    {
+      "clause_number": "3.2.2",
+      "title": "Stress distribution due to shear lag",
+      "text": "(1) The distribution of longitudinal stresses across the flange plate due to shear lag should be obtained from Figure 3.3.\nβ > 0,20:\nσ_2 = 1,25 (β - 0,20) σ_1\nσ(y) = σ_2 + (σ_1 - σ_2)(1 - y/b_0)⁴\nβ ≤ 0,20:\nσ_2 = 0\nσ(y) = σ_1(1 - y/b_1)⁴\nσ_1 is calculated with the effectiveˢ width of the flange b_eff",
+      "page": 13
+    },
+    {
+      "clause_number": "3.2.3",
+      "title": "In-plane load effects",
+      "text": "(1) The elastic stress distribution in a stiffened or unstiffened plate due to the local introduction of in-plane forces (patch loads), see Figure 3.4, should be determined from:\nσ_z,Ed = F_Ed / (b_eff (t_w + a_st,1)) (3.2)\nwith: b_eff = s_e √(1 + (z / (s_e n))²)\nn = 0,636 √(1 + (0,878 a_st,1) / t_w)\ns_e = s_s + 2 t_f\nwhere a_st,1 is the gross cross-sectional area of the directly loaded stiffeners divided over the length s_e. This may be taken as the area of a stiffener smeared over the length of the spacing s_st;\nt_w is the web thickness;\nz is the distance to flange.\ns_e is the length of the stiff bearing;\ns_st is the spacing of stiffeners;\nNOTE: The equation (3.2) is valid when s_st/s_e ≤ 0,5; otherwise the contribution of stiffeners should be neglected.",
+      "page": 13
+    },
+    {
+      "clause_number": "3.3",
+      "title": "Shear lag at the ultimate limit state",
+      "text": "(1) At the ultimate limit state shear lag effects may be determined as follows:\na) elastic shear lag effects as determined for serviceability and fatigue limit states,\nb) combined effects of shear lag and of plate buckling,\nc) elastic-plastic shear lag effects allowing for limited plastic strains.\nNOTE 1: The National Annex may choose the method to be applied. Unless specified otherwise in EN 1993-2 to EN 1993-6, the method in NOTE 3 is recommended.\nNOTE 2: The combined effects of plate buckling and shear lag may be taken into account by using A_eff as given by:\nA_eff = A_c,eff β_ult (3.3)\nwhere A_c,eff is the effectiveᵖ area of the compression flange due to plate buckling (see 4.4 and 4.5);\nβ_ult is the effectiveˢ width factor for the effect of shear lag at the ultimate limit state, which may be taken as β determined from Table 3.1 with α_0 replaced by\nα_0^* = √(A_c,eff / (b_0 t_f)) (3.4)\nt_f is the flange thickness.\nNOTE 3: Elastic-plastic shear lag effects allowing for limited plastic strains may be taken into account using A_eff as follows:\nA_eff = A_c,eff β^κ ≥ A_c,eff β (3.5)\nwhere β and κ are taken from Table 3.1.\nThe expressions in NOTE 2 and NOTE 3 may also be applied for flanges in tension in which case A_c,eff should be replaced by the gross area of the tension flange.",
+      "page": 14
+    },
+    {
+      "clause_number": "4",
+      "title": "Plate buckling effects due to direct stresses at the ultimate limit state",
+      "text": "",
+      "page": 15
+    },
+    {
+      "clause_number": "4.1",
+      "title": "General",
+      "text": "(1) This section gives rules to account for plate buckling effects from direct stresses at the ultimate limit state when the following criteria are met:\na) The panels are rectangular and flanges are parallel or nearly parallel (see 2.3);\nb) Stiffeners, if any, are provided in the longitudinal or transverse direction or both;\nc) Open holes and cut outs are small (see 2.3);\nd) Members are of uniform cross section;\ne) No flange induced web buckling occurs.\nNOTE 1: For compression flange buckling in the plane of the web see section 8.\nNOTE 2: For stiffeners and detailing of plated members subject to plate buckling see section 9.",
+      "page": 15
+    },
+    {
+      "clause_number": "4.2",
+      "title": "Resistance to direct stresses",
+      "text": "(1) The resistance of plated members may be determined using the effectiveᵖ areas of plate elements in compression for class 4 sections using cross sectional data (A_eff, I_eff, W_eff) for cross sectional verifications and member verifications for column buckling and lateral torsional buckling according to EN 1993-1-1.\n(2) Effectiveᵖ areas should be determined on the basis of the linear strain distributions with the attainment of yield strain in the mid plane of the compression plate.",
+      "page": 15
+    },
+    {
+      "clause_number": "4.3",
+      "title": "Effective cross section",
+      "text": "(1) In calculating longitudinal stresses, account should be taken of the combined effect of shear lag and plate buckling using the effective areas given in 3.3.\n(2) The effective cross sectional properties of members should be based on the effective areas of the compression elements and on the effective area of the tension elements due to shear lag.\n(3) The effective area Aeff should be determined assuming that the cross section is subject only to stresses due to uniform axial compression. For non-symmetrical cross sections the possible shift eN of the centroid of the effective area Aeff relative to the centre of gravity of the gross cross-section, see Figure 4.1, gives an additional moment which should be taken into account in the cross section verification using 4.6.\n(4) The effective section modulus Weff should be determined assuming the cross section is subject only to bending stresses, see Figure 4.2. For biaxial bending effective section moduli should be determined about both main axes.\nNOTE: As an alternative to 4.3(3) and (4) a single effective section may be determined from NEd and MEd acting simultaneously. The effects of eN should be taken into account as in 4.3(3). This requires an iterative procedure.\n(5) The stress in a flange should be calculated using the elastic section modulus with reference to the mid-plane of the flange.\n(6) Hybrid girders may have flange material with yield strength fyf up to ϕh × fyw provided that:\na) the increase of flange stresses caused by yielding of the web is taken into account by limiting the stresses in the web to fyw;\nb) fyf is used in determining the effective area of the web.\nNOTE: The National Annex may specify the value ϕh. A value of ϕh = 2,0 is recommended.\n(7) The increase of deformations and of stresses at serviceability and fatigue limit states may be ignored for hybrid girders complying with 4.3(6) including the NOTE.\n(8) For hybrid girders complying with 4.3(6) the stress range limit in EN 1993-1-9 may be taken as 1,5fyf.",
+      "page": 15
+    },
+    {
+      "clause_number": "4.4",
+      "title": "Plate elements without longitudinal stiffeners",
+      "text": "(1) The effective areas of flat compression elements should be obtained using Table 4.1 for internal elements and Table 4.2 for outstand elements. The effective area of the compression zone of a plate with the gross cross-sectional area Ac should be obtained from:\n(2) The reduction factor ρ may be taken as follows:\n- internal compression elements:\nρ = 1,0 for λp ≤ 0,5 + √(0,085 - 0,055ψ)\nρ = (λp - 0,055(3 + ψ)) / λp² ≤ 1,0 for λp > 0,5 + √(0,085 - 0,055ψ)\n- outstand compression elements:\nρ = 1,0 for λp ≤ 0,748\nρ = (λp - 0,188) / λp² ≤ 1,0 for λp > 0,748\nwhere λp = √(fy / σcr) = (b/t) / (28,4 ε √kσ)\nψ is the stress ratio determined in accordance with 4.4(3) and 4.4(4)\nb is the appropriate width to be taken as follows (for definitions, see Table 5.2 of EN 1993-1-1)\nbw for webs;\nb for internal flange elements (except RHS);\nb - 3t for flanges of RHS;\nc for outstand flanges;\nh for equal-leg angles;\nh for unequal-leg angles;\nkσ is the buckling factor corresponding to the stress ratio ψ and boundary conditions. For long plates kσ is given in Table 4.1 or Table 4.2 as appropriate;\nt is the thickness;\nσcr is the elastic critical plate buckling stress see equation (A.1) in Annex A.1(2) and Table 4.1 and Table 4.2;\nε = √(235 / fy [N/mm²])\n(3) For flange elements of I-sections and box girders the stress ratio ψ used in Table 4.1 and Table 4.2 should be based on the properties of the gross cross-sectional area, due allowance being made for shear lag in the flanges if relevant. For web elements the stress ratio ψ used in Table 4.1 should be obtained using a stress distribution based on the effective area of the compression flange and the gross area of the web.\nNOTE: If the stress distribution results from different stages of construction (as e.g. in a composite bridge) the stresses from the various stages may first be calculated with a cross section consisting of effective flanges and gross web and these stresses are added together. This resulting stress distribution determines an effective web section that can be used for all stages to calculate the final stress distribution for stress analysis.\n(4) Except as given in 4.4(5), the plate slenderness λp of an element may be replaced by:\nNOTE 1: The above procedure is conservative and requires an iterative calculation in which the stress ratio ψ (see Table 4.1 and Table 4.2) is determined at each step from the stresses calculated on the effective cross-section defined at the end of the previous step.\nNOTE 2: See also alternative procedure in Annex E.\n(5) For the verification of the design buckling resistance of a class 4 member using 6.3.1, 6.3.2 or 6.3.4 of EN 1993-1-1, either the plate slenderness λp or λp,red with σcom,Ed based on second order analysis with global imperfections should be used.\n(6) For aspect ratios a/b < 1 a column type of buckling may occur and the check should be performed according to 4.5.4 using the reduction factor ρc.\nNOTE: This applies e.g. for flat elements between transverse stiffeners where plate buckling could be column-like and require a reduction factor ρc close to χc as for column buckling, see Figure 4.3 a) and b). For plates with longitudinal stiffeners column type buckling may also occur for a/b ≥ 1, see Figure 4.3 c).",
+      "page": 17
+    },
+    {
+      "clause_number": "4.5",
+      "title": "Stiffened plate elements with longitudinal stiffeners",
+      "text": "",
+      "page": 20
+    },
+    {
+      "clause_number": "4.5.1",
+      "title": "General",
+      "text": "(1) For plates with longitudinal stiffeners the effective areas from local buckling of the various subpanels between the stiffeners and the effective areas from the global buckling of the stiffened panel should be accounted for.\n(2) The effective section area of each subpanel should be determined by a reduction factor in accordance with 4.4 to account for local plate buckling. The stiffened plate with effective section areas for the stiffeners should be checked for global plate buckling (by modelling it as an equivalent orthotropic plate) and a reduction factor ρc should be determined for overall plate buckling.\n(3) The effective area of the compression zone of the stiffened plate should be taken as:\n(4) The area Ac,eff,loc should be obtained from:\n(5) In determining the reduction factor ρc for overall buckling, the reduction factor for column-type buckling, which is more severe than the reduction factor than for plate buckling, should be considered.\n(6) Interpolation should be carried out in accordance with 4.5.4(1) between the reduction factor ρ for plate buckling and the reduction factor χc for column buckling to determine ρc see 4.5.4.\n(7) The reduction of the compressed area Ac,eff,loc through ρc may be taken as a uniform reduction across the whole cross section.\n(8) If shear lag is relevant (see 3.3), the effective cross-sectional area Ac,eff of the compression zone of the stiffened plate should then be taken as Ac,eff accounting not only for local plate buckling effects but also for shear lag effects.\n(9) The effective cross-sectional area of the tension zone of the stiffened plate should be taken as the gross area of the tension zone reduced for shear lag if relevant, see 3.3.\n(10) The effective section modulus Weff should be taken as the second moment of area of the effective cross section divided by the distance from its centroid to the mid depth of the flange plate.",
+      "page": 20
+    },
+    {
+      "clause_number": "4.5.2",
+      "title": "Plate type behaviour",
+      "text": "(1) The relative plate slenderness λp of the equivalent plate is defined as:\n(2) The reduction factor ρ for the equivalent orthotropic plate is obtained from 4.4(2) provided λp is calculated from equation (4.7).\nNOTE: For calculation of σcr,p see Annex A.",
+      "page": 21
+    },
+    {
+      "clause_number": "4.5.3",
+      "title": "Column type buckling behaviour",
+      "text": "(1) The elastic critical column buckling stress σcr,c of an unstiffened (see 4.4) or stiffened (see 4.5) plate should be taken as the buckling stress with the supports along the longitudinal edges removed.\n(2) For an unstiffened plate the elastic critical column buckling stress σcr,c may be obtained from\n(3) For a stiffened plate σcr,c may be determined from the elastic critical column buckling stress σcr,sl of the stiffener closest to the panel edge with the highest compressive stress as follows:\nNOTE: σcr,c may be obtained from σcr,c = σcr,sl (bc / bsl,1), where σcr,c is related to the compressed edge of the plate, and bsl,1 and bc are geometric values from the stress distribution used for the extrapolation, see Figure A.1.\n(4) The relative column slenderness λc is defined as follows:\n(5) The reduction factor χc should be obtained from 6.3.1.2 of EN 1993-1-1. For unstiffened plates α = 0,21 corresponding to buckling curve a should be used. For stiffened plates its value should be increased to:",
+      "page": 21
+    },
+    {
+      "clause_number": "4.5.4",
+      "title": "Interaction between plate and column buckling",
+      "text": "(1) The final reduction factor ρc should be obtained by interpolation between χc and ρ as follows:",
+      "page": 22
+    },
+    {
+      "clause_number": "4.6",
+      "title": "Verification",
+      "text": "(1) Member verification for compression and uniaxial bending should be performed as follows:\nNOTE: For members subject to compression and biaxial bending the above equation (4.14) may be modified as follows:\n(2) Action effects MEd and NEd should include global second order effects where relevant.\n(3) The plate buckling verification of the panel should be carried out for the stress resultants at a distance 0,4a or 0,5b, whichever is the smallest, from the panel end where the stresses are the greater. In this case the gross sectional resistance needs to be checked at the end of the panel.",
+      "page": 23
+    },
+    {
+      "clause_number": "5",
+      "title": "Resistance to shear",
+      "text": "",
+      "page": 23
+    },
+    {
+      "clause_number": "5.1",
+      "title": "Basis",
+      "text": "(1) This section gives rules for shear resistance of plates considering shear buckling at the ultimate limit state where the following criteria are met:\na) the panels are rectangular within the angle limit stated in 2.3;\nb) stiffeners, if any, are provided in the longitudinal or transverse direction or both;\nc) all holes and cut outs are small (see 2.3);\nd) members are of uniform cross section.\n(2) Plates with hw/t greater than 72/η ε for an unstiffened web, or 31/η ε √kτ for a stiffened web, should be checked for resistance to shear buckling and should be provided with transverse stiffeners at the supports, where ε = √(235 / fy [N/mm²]).\nNOTE 1: hw see Figure 5.1 and for kτ see 5.3(3).\nNOTE 2: The National Annex will define η. The value η = 1,20 is recommended for steel grades up to and including S460. For higher steel grades η = 1,00 is recommended.",
+      "page": 23
+    },
+    {
+      "clause_number": "5.2",
+      "title": "Design resistance",
+      "text": "(1) For unstiffened or stiffened webs the design resistance for shear should be taken as:\nin which the contribution from the web is given by:\nand the contribution from the flanges Vbf,Rd is according to 5.4.\n(2) Stiffeners should comply with the requirements in 9.3 and welds should fulfil the requirement given in 9.3.5.",
+      "page": 24
+    },
+    {
+      "clause_number": "5.3",
+      "title": "Contribution from the web",
+      "text": "(1) For webs with transverse stiffeners at supports only and for webs with either intermediate transverse stiffeners or longitudinal stiffeners or both, the factor χw for the contribution of the web to the shear buckling resistance should be obtained from Table 5.1 or Figure 5.2.\n(2) Figure 5.1 shows various end supports for girders:\na) No end post, see 6.1 (2), type c);\nb) Rigid end posts, see 9.3.1; this case is also applicable for panels at an intermediate support of a continuous girder;\nc) Non rigid end posts see 9.3.2.\n(3) The modified slenderness λw in Table 5.1 and Figure 5.2 should be taken as:\nNOTE 1: Values for σE and kτ may be taken from Annex A.\nNOTE 2: The modified slenderness λw may be taken as follows:\na) transverse stiffeners at supports only:\nb) transverse stiffeners at supports and intermediate transverse or longitudinal stiffeners or both:\nin which kτ is the minimum shear buckling coefficient for the web panel.\nNOTE 3: Where non-rigid transverse stiffeners are also used in addition to rigid transverse stiffeners, kτ is taken as the minimum of the values from the web panels between any two transverse stiffeners (e.g. a2 × hw and a3 × hw) and that between two rigid stiffeners containing non-rigid transverse stiffeners (e.g. a4 × hw).\nNOTE 4: Rigid boundaries may be assumed for panels bordered by flanges and rigid transverse stiffeners. The web buckling analysis can then be based on the panels between two adjacent transverse stiffeners (e.g. a1 × hw in Figure 5.3).\nNOTE 5: For non-rigid transverse stiffeners the minimum value kτ may be obtained from the buckling analysis of the following:\n1. a combination of two adjacent web panels with one flexible transverse stiffener\n2. a combination of three adjacent web panels with two flexible transverse stiffeners\nFor procedure to determine kτ see Annex A.3.\n(4) The second moment of area of a longitudinal stiffener should be reduced to 1/3 of its actual value when calculating kτ. Formulae for kτ taking this reduction into account in A.3 may be used.\n(5) For webs with longitudinal stiffeners the modified slenderness λw in (3) should not be taken as less than\nNOTE: To calculate kτi the expression given in A.3 may be used with kτsl = 0.",
+      "page": 24
+    },
+    {
+      "clause_number": "5.4",
+      "title": "Contribution from flanges",
+      "text": "(1) When the flange resistance is not completely utilized in resisting the bending moment (MEd < Mf,Rd) the contribution from the flanges should be obtained as follows: Vbf,Rd = (bf tf^2 fyf) / (c γM1) [ 1 - (MEd / Mf,Rd)^2 ] (5.8) bf and tf are taken for the flange which provides the least axial resistance, bf being taken as not larger than 15εtf on each side of the web, Mf,Rd = Mf,k / γM0 is the moment of resistance of the cross section consisting of the effective area of the flanges only, c = a ( 0,25 + (1,6 bf tf^2 fyf) / (t hw^2 fyw) ) (2) When an axial force NEd is present, the value of Mf,Rd should be reduced by multiplying it by the following factor: [ 1 - NEd / ( (Af1 + Af2) fyf / γM0 ) ] (5.9) where Af1 and Af2 are the areas of the top and bottom flanges respectively.",
+      "page": 27
+    },
+    {
+      "clause_number": "5.5",
+      "title": "Verification",
+      "text": "(1) The verification should be performed as follows: η3 = VEd / Vb,Rd ≤ 1,0 (5.10) where VEd is the design shear force including shear from torque.",
+      "page": 27
+    },
+    {
+      "clause_number": "6",
+      "title": "Resistance to transverse forces",
+      "text": "",
+      "page": 27
+    },
+    {
+      "clause_number": "6.1",
+      "title": "Basis",
+      "text": "(1) The design resistance of the webs of rolled beams and welded girders should be determined in accordance with 6.2, provided that the compression flange is adequately restrained in the lateral direction.\n(2) The load is applied as follows:\na) through the flange and resisted by shear forces in the web, see Figure 6.1 (a);\nb) through one flange and transferred through the web directly to the other flange, see Figure 6.1 (b).\nc) through one flange adjacent to an unstiffened end, see Figure 6.1 (c)\n(3) For box girders with inclined webs the resistance of both the web and flange should be checked. The internal forces to be taken into account are the components of the external load in the plane of the web and flange respectively.\n(4) The interaction of the transverse force, bending moment and axial force should be verified using 7.2.",
+      "page": 27
+    },
+    {
+      "clause_number": "6.2",
+      "title": "Design resistance",
+      "text": "(1) For unstiffened or stiffened webs the design resistance to local buckling under transverse forces should be taken as FRd = (fyw Leff tw) / γM1 (6.1) where tw is the thickness of the web; fyw is the yield strength of the web; Leff is the effective length for resistance to transverse forces, which should be determined from Leff = χF ℓy (6.2) where ℓy is the effective loaded length, see 6.5, appropriate to the length of stiff bearing ss, see 6.3; χF is the reduction factor due to local buckling, see 6.4(1).",
+      "page": 28
+    },
+    {
+      "clause_number": "6.3",
+      "title": "Length of stiff bearing",
+      "text": "(1) The length of stiff bearing ss on the flange should be taken as the distance over which the applied load is effectively distributed at a slope of 1:1, see Figure 6.2. However, ss should not be taken as larger than hw. (2) If several concentrated forces are closely spaced, the resistance should be checked for each individual force as well as for the total load with ss as the centre-to-centre distance between the outer loads. (3) If the bearing surface of the applied load rests at an angle to the flange surface, see Figure 6.2, ss should be taken as zero.",
+      "page": 28
+    },
+    {
+      "clause_number": "6.4",
+      "title": "Reduction factor χF for effective length for resistance",
+      "text": "(1) The reduction factor χF should be obtained from: χF = 0,5 / λF ≤ 1,0 (6.3) where λF = √ (ℓy tw fyw / Fcr) (6.4) Fcr = 0,9 kF E tw^3 / hw (6.5) (2) For webs without longitudinal stiffeners kF should be obtained from Figure 6.1. NOTE: For webs with longitudinal stiffeners information may be given in the National Annex. The following rules are recommended: For webs with longitudinal stiffeners kF may be taken as kF = 6 + 2 [hw / a]^2 + [5,44 b1 / a - 0,21] √γs (6.6) where b1 is the depth of the loaded subpanel taken as the clear distance between the loaded flange and the stiffener γs = 10,9 Isl,1 / (hw tw^3) ≤ 13 [a / hw]^3 + 210 [0,3 - b1 / a] (6.7) where Isl,1 is the second moment of area of the stiffener closest to the loaded flange including contributing parts of the web according to Figure 9.1. Equation (6.6) is valid for 0,05 ≤ b1 / a ≤ 0,3 and b1 / hw ≤ 0,3 and loading according to type a) in Figure 6.1. (3) ℓy should be obtained from 6.5.",
+      "page": 29
+    },
+    {
+      "clause_number": "6.5",
+      "title": "Effective loaded length",
+      "text": "(1) The effective loaded length ℓy should be calculated as follows: m1 = (fyf bf) / (fyw tw) (6.8) m2 = 0,02 (hw / tf)^2 if λF > 0,5 (6.9) m2 = 0 if λF ≤ 0,5 For box girders, bf in equation (6.8) should be limited to 15εtf on each side of the web. (2) For types a) and b) in Figure 6.1, ℓy should be obtained using: ℓy = ss + 2 tf (1 + √(m1 + m2)) , but ℓy ≤ distance between adjacent transverse stiffeners (6.10) (3) For type c) ℓy should be taken as the smallest value obtained from the [AC1] equations (6.11) and (6.12). [AC1] ℓy = ℓe + tf √(m1 / 2 + (ℓe / tf)^2 + m2) (6.11) ℓy = ℓe + tf √(m1 + m2) (6.12) [AC1] where [AC1] ℓe = (kF E tw^2) / (2 fyw hw) ≤ ss + c (6.13)",
+      "page": 29
+    },
+    {
+      "clause_number": "6.6",
+      "title": "Verification",
+      "text": "(1) The verification should be performed as follows: η2 = FEd / (fyw Leff tw / γM1) ≤ 1,0 (6.14) where FEd is the design transverse force; Leff is the effective length for resistance to transverse forces, see [AC1] 6.2(1); [AC1] tw is the thickness of the plate.",
+      "page": 30
+    },
+    {
+      "clause_number": "7",
+      "title": "Interaction",
+      "text": "",
+      "page": 30
+    },
+    {
+      "clause_number": "7.1",
+      "title": "Interaction between shear force, bending moment and axial force",
+      "text": "(1) Provided that η3 (see below) does not exceed 0,5 , the design resistance to bending moment and axial force need not be reduced to allow for the shear force. If η3 is more than 0,5 the combined effects of bending and shear in the web of an I or box girder should satisfy: η1 + (1 - Mf,Rd / Mpl,Rd) (2 η3 - 1)^2 ≤ 1,0 for η1 ≥ Mf,Rd / Mpl,Rd (7.1) where Mf,Rd is the design plastic moment of resistance of the section consisting of the effective area of the flanges; Mpl,Rd is the design plastic resistance of the cross section consisting of the effective area of the flanges and the fully effective web irrespective of its section class. η1 = MEd / Mpl,Rd η3 = VEd / Vbw,Rd [AC1] for Vbw,Rd see expression (5.2). [AC1] In addition the requirements in sections 4.6 and 5.5 should be met. Action effects should include global second order effects of members where relevant. (2) The criterion given in (1) should be verified at all sections other than those located at a distance less than hw/2 from a support with vertical stiffeners. (3) The plastic moment of resistance Mf,Rd may be taken as the product of the yield strength, the effective area of the flange with the smallest value of Af fy / γM0 and the distance between the centroids of the flanges. (4) If an axial force NEd is present, Mpl,Rd and Mf,Rd should be reduced in accordance with 6.2.9 of EN 1993-1-1 and 5.4(2) respectively. When the axial force is so large that the whole web is in compression 7.1(5) should be applied. (5) A flange in a box girder should be verified using 7.1(1) taking Mf,Rd = 0 and τEd taken as the average shear stress in the flange which should not be less than half the maximum shear stress in the flange and η1 is taken as η1 according to 4.6(1). In addition the subpanels should be checked using the average shear stress within the subpanel and χw determined for shear buckling of the subpanel according to 5.3, assuming the longitudinal stiffeners to be rigid.",
+      "page": 30
+    },
+    {
+      "clause_number": "7.2",
+      "title": "Interaction between transverse force, bending moment and axial force",
+      "text": "(1) If the girder is subjected to a concentrated transverse force acting on the compression flange in conjunction with bending and axial force, the resistance should be verified using 4.6, 6.6 and the following interaction expression: η2 + 0,8 η1 ≤ 1,4 (7.2) (2) If the concentrated load is acting on the tension flange the resistance should be verified according to section 6. Additionally 6.2.1(5) of EN 1993-1-1 should be met.",
+      "page": 31
+    },
+    {
+      "clause_number": "8",
+      "title": "Flange induced buckling",
+      "text": "(1) To prevent the compression flange buckling in the plane of the web, the following criterion should be met: hw / tw ≤ k (E / fyf) √(Aw / Afc) (8.1) where Aw is the cross section area of the web; Afc is the effective cross section area of the compression flange; hw is the depth of the web; tw is the thickness of the web. The value of the factor k should be taken as follows: - plastic rotation utilized k = 0,3 - plastic moment resistance utilized k = 0,4 - elastic moment resistance utilized k = 0,55 (2) When the girder is curved in elevation, with the compression flange on the concave face, the following criterion should be met: hw / tw ≤ (k (E / fyf) √(Aw / Afc)) / √(1 + (hw E) / (3 r fyf)) (8.2) r is the radius of curvature of the compression flange. NOTE: The National Annex may give further information on flange induced buckling.",
+      "page": 31
+    },
+    {
+      "clause_number": "9",
+      "title": "Stiffeners and detailing",
+      "text": "",
+      "page": 32
+    },
+    {
+      "clause_number": "9.1",
+      "title": "General",
+      "text": "(1) This section gives design rules for stiffeners in plated structures which supplement the plate buckling rules specified in sections 4 to 7. NOTE: The National Annex may give further requirements on stiffeners for specific applications. (2) When checking the buckling resistance, the section of a stiffener may be taken as the gross area comprising the stiffener plus a width of plate equal to 15εt but not more than the actual dimension available, on each side of the stiffener avoiding any overlap of contributing parts to adjacent stiffeners, see Figure 9.1. (3) The axial force in a transverse stiffener should be taken as the sum of the force resulting from shear (see 9.3.3(3)) and any external loads.",
+      "page": 32
+    },
+    {
+      "clause_number": "9.2",
+      "title": "Direct stresses",
+      "text": "",
+      "page": 32
+    },
+    {
+      "clause_number": "9.2.1",
+      "title": "Minimum requirements for transverse stiffeners",
+      "text": "(1) In order to provide a rigid support for a plate with or without longitudinal stiffeners, intermediate transverse stiffeners should satisfy the criteria given below. (2) The transverse stiffener should be treated as a simply supported member subject to lateral loading with an initial sinusoidal imperfection w0 equal to s/300, where s is the smallest of a1, a2 or b, see Figure 9.2 , where a1 and a2 are the lengths of the panels adjacent to the transverse stiffener under consideration and b is the height between the centroids of the flanges or span of the transverse stiffener. Eccentricities should be accounted for. (3) The transverse stiffener should carry the deviation forces from the adjacent compressed panels under the assumption that both adjacent transverse stiffeners are rigid and straight together with any external load and axial force according to the NOTE to 9.3.3(3). The compressed panels and the longitudinal stiffeners are considered to be simply supported at the transverse stiffeners. (4) It should be verified that using a second order elastic method analysis both the following criteria are satisfied at the ultimate limit state: - that the maximum stress in the stiffener should not exceed fy/γM1. - that the additional deflection should not exceed b/300. (5) In the absence of an axial force in the transverse stiffener both the criteria in (4) above may be assumed to be satisfied provided that the second moment of area Ist of the transverse stiffeners is not less than: Ist = (σm / E) (b / π)^4 (1 + w0 (300 / b) u) (9.1) where σm = (σcr,c / σcr,p) (NEd / b) (1 / a1 + 1 / a2) u = (π^2 E emax) / (fy 300 b) ≥ 1,0 / γM1 emax is the maximum distance from the extreme fibre of the stiffener to the centroid of the stiffener; NEd is the maximum compressive force of the adjacent panels but not less than the maximum compressive stress times half the effective^p compression area of the panel including stiffeners; σcr,c , σcr,p are defined in 4.5.3 and Annex A. NOTE: Where out of plane loading is applied to the transverse stiffeners reference should be made to EN 1993-2 and EN 1993-1-7. (6) If the stiffener carries axial compression this should be increased by ΔNst = σm b^2 / π^2 in order to account for deviation forces. The criteria in (4) apply but ΔNst need not be considered when calculating the uniform stresses from axial load in the stiffener. (7) As a simplification the requirement of (4) may, in the absence of axial forces, be verified using a first order elastic analysis taking account of the following additional equivalent uniformly distributed lateral load q acting on the length b: q = (π / 4) σm (w0 + wel) (9.2) where σm is defined in (5) above; w0 is defined in Figure 9.2; wel is the elastic deformation, that may be either determined iteratively or be taken as the maximum additional deflection b/300. (8) Unless a more advanced method of analysis is carried out in order to prevent torsional buckling of stiffeners with open cross-sections, the following criterion should be satisfied: IT / Ip ≥ 5,3 fy / E (9.3) where Ip is the polar second moment of area of the stiffener alone around the edge fixed to the plate; IT is the St. Venant torsional constant for the stiffener alone. (9) Where warping stiffness is considered stiffeners should either fulfil (8) or the criterion σcr ≥ θ fy (9.4) where σcr is the elastic critical stress for torsional buckling not considering rotational restraint from the plate; θ is a parameter to ensure class 3 behaviour. NOTE: The parameter θ may be given in the National Annex. The value θ = 6 is recommended.",
+      "page": 32
+    },
+    {
+      "clause_number": "9.2.2",
+      "title": "Minimum requirements for longitudinal stiffeners",
+      "text": "(1) The requirements concerning torsional buckling in 9.2.1(8) and (9) also apply to longitudinal stiffeners. (2) Discontinuous longitudinal stiffeners that do not pass through openings made in the transverse stiffeners or are not connected to either side of the transverse stiffeners should be: - used only for webs (i.e. not allowed in flanges); - neglected in global analysis; - neglected in the calculation of stresses; - considered in the calculation of the effective^p widths of web sub-panels; - considered in the calculation of the elastic critical stresses. (3) Strength assessments for stiffeners should be performed according to 4.5.3 and 4.6.",
+      "page": 34
+    },
+    {
+      "clause_number": "9.2.3",
+      "title": "Welded plates",
+      "text": "(1) Plates with changes in plate thickness should be welded adjacent to the transverse stiffener, see Figure 9.3. The effects of eccentricity need not be taken into account unless the distance to the stiffener from the welded junction exceeds b0/2 or 200 mm whichever is the smallest, where b0 is the width of the plate between longitudinal stiffeners.",
+      "page": 34
+    },
+    {
+      "clause_number": "9.2.4",
+      "title": "Cut outs in stiffeners",
+      "text": "(1) The dimensions of cut outs in longitudinal stiffeners should be as shown in Figure 9.4. (2) The length ℓ should not exceed: ℓ ≤ 6 tmin for flat stiffeners in compression ℓ ≤ 8 tmin for other stiffeners in compression ℓ ≤ 15 tmin for stiffeners without compression where tmin is the lesser of the plate thicknesses (3) The limiting values ℓ in (2) for stiffeners in compression may be increased by √(σx,Rd / σx,Ed) when σx,Ed ≤ σx,Rd and ℓ ≤ 15 tmin . σx,Ed is the compression stress at the location of the cut-out (4) The dimensions of cut outs in transverse stiffeners should be as shown in Figure 9.5. (5) The gross web adjacent to the cut out should resist a shear force VEd, where VEd = (Inet / e) (fyk / γM0) (π / bG) (9.5) Inet is the second moment of area for the net section of the transverse stiffener; e is the maximum distance from the underside of the flange plate to the neutral axis of net section, see Figure 9.5; bG is the length of the transverse stiffener between the flanges.",
+      "page": 35
+    },
+    {
+      "clause_number": "9.3",
+      "title": "Shear",
+      "text": "",
+      "page": 36
+    },
+    {
+      "clause_number": "9.3.1",
+      "title": "Rigid end post",
+      "text": "(1) The rigid end post (see Figure 5.1) should act as a bearing stiffener resisting the reaction from the support (see 9.4), and should be designed as a short beam resisting the longitudinal membrane stresses in the plane of the web. NOTE: For the effects of eccentricity due to movements of bearings, see EN 1993-2. (2) A rigid end post should comprise of two double-sided transverse stiffeners that form the flanges of a short beam of length hw, see Figure 5.1 (b). The strip of web plate between the stiffeners forms the web of the short beam. Alternatively, a rigid end post may be in the form of a rolled section, connected to the end of the web plate as shown in Figure 9.6. (3) Each double sided stiffener consisting of flats should have a cross sectional area of at least 4 hw t^2 / e, where e is the centre to centre distance between the stiffeners and e > 0,1 hw, see Figure 5.1 (b). Where a rolled section other than flats is used for the end-post its section modulus should be not less than 4 hw t^2 for bending around a horizontal axis perpendicular to the web. (4) As an alternative the girder end may be provided with a single double-sided stiffener and a vertical stiffener adjacent to the support so that the subpanel resists the maximum shear when designed with a non-rigid end post.",
+      "page": 36
+    },
+    {
+      "clause_number": "9.3.2",
+      "title": "Stiffeners acting as non-rigid end post",
+      "text": "(1) A non-rigid end post may be a single double sided stiffener as shown in Figure 5.1 (c). It may act as a bearing stiffener resisting the reaction at the girder support (see 9.4).",
+      "page": 36
+    },
+    {
+      "clause_number": "9.3.3",
+      "title": "Intermediate transverse stiffeners",
+      "text": "(1) Intermediate stiffeners that act as rigid supports to interior panels of the web should be designed for strength and stiffness. (2) When flexible intermediate transverse stiffeners are used, their stiffness should be considered in the calculation of kτ in 5.3(5). (3) The effective section of intermediate stiffeners acting as rigid supports for web panels should have a minimum second moment of area Ist: if a / hw < √2 : Ist ≥ 1,5 hw^3 t^3 / a^2 if a / hw ≥ √2 : Ist ≥ 0,75 hw t^3 (9.6) NOTE: Intermediate rigid stiffeners may be designed for an axial force equal to (VEd - 1 / λw^2 fyw hw t / (√3 γM1)) according to 9.2.1(3). In the case of variable shear forces the check is performed for the shear force at the distance 0,5hw from the edge of the panel with the largest shear force.",
+      "page": 36
+    },
+    {
+      "clause_number": "9.3.4",
+      "title": "Longitudinal stiffeners",
+      "text": "(1) If longitudinal stiffeners are taken into account in the stress analysis they should be checked for direct stresses for the cross sectional resistance.",
+      "page": 37
+    },
+    {
+      "clause_number": "9.3.5",
+      "title": "Welds",
+      "text": "(1) The web to flange welds may be designed for the nominal shear flow VEd / hw if VEd does not exceed χw fyw hw t / (√3 γM1). For larger values VEd the weld between flanges and webs should be designed for the shear flow η fyw t / (√3 γM1). (2) In all other cases welds should be designed to transfer forces along and across welds making up sections taking into account analysis method (elastic/plastic) and second order effects.",
+      "page": 37
+    },
+    {
+      "clause_number": "9.4",
+      "title": "Transverse loads",
+      "text": "(1) If the design resistance of an unstiffened web is insufficient, transverse stiffeners should be provided. (2) The out-of-plane buckling resistance of the transverse stiffener under transverse loads and shear force (see 9.3.3(3)) should be determined from 6.3.3 or 6.3.4 of EN 1993-1-1, using buckling curve c. When both ends are assumed to be fixed laterally a buckling length ℓ of not less than 0,75hw should be used. A larger value of ℓ should be used for conditions that provide less end restraint. If the stiffeners have cut outs at the loaded end, the cross sectional resistance should be checked at this end. (3) Where single sided or other asymmetric stiffeners are used, the resulting eccentricity should be allowed for using 6.3.3 or 6.3.4 of EN 1993-1-1. If the stiffeners are assumed to provide lateral restraint to the compression flange they should comply with the stiffness and strength criteria in the design for lateral torsional buckling.",
+      "page": 37
+    },
+    {
+      "clause_number": "10",
+      "title": "Reduced stress method",
+      "text": "(1) The reduced stress method may be used to determine the stress limits for stiffened or unstiffened plates. NOTE 1: This method is an alternative to the effective width method specified in section 4 to 7 in respect of the following: - σx,Ed, σz,Ed and τEd are considered as acting together - the stress limits of the weakest part of the cross section may govern the resistance of the full cross section. NOTE 2: The stress limits may also be used to determine equivalent effective areas. The National Annex may give limits of application for the methods. (2) For unstiffened or stiffened panels subjected to combined stresses σx,Ed , σz,Ed and τEd class 3 section properties may be assumed, where ρ αult,k / γM1 ≥ 1 (10.1) where αult,k is the minimum load amplifier for the design loads to reach the characteristic value of resistance of the most critical point of the plate, see (4); ρ is the reduction factor depending on the plate slenderness λp to take account of plate buckling, see (5); γM1 is the partial factor applied to this method. (3) The [AC1] modified plate slenderness [AC1] λp should be taken from λp = √(αult,k / αcr) (10.2) where αcr is the minimum load amplifier for the design loads to reach the elastic critical load of the plate under the complete stress field, see (6) NOTE 1: For calculating αcr for the complete stress field, the stiffened plate may be modelled using the rules in section 4 and 5 without reduction of the second moment of area of longitudinal stiffeners as specified in 5.3(4). NOTE 2: When αcr cannot be determined for the panel and its subpanels as a whole, separate checks for the subpanel and the full panel may be applied. (4) In determining αult,k the yield criterion may be used for resistance: 1 / αult,k^2 = (σx,Ed / fy)^2 + (σz,Ed / fy)^2 - (σx,Ed / fy) (σz,Ed / fy) + 3 (τEd / fy)^2 (10.3) where σx,Ed, σz,Ed and τEd are the components of the stress field in the ultimate limit state. NOTE: By using the equation (10.3) it is assumed that the resistance is reached when yielding occurs without plate buckling. (5) The reduction factor ρ may be determined using either of the following methods: a) the minimum value of the following reduction factors: ρx for longitudinal stresses from 4.5.4(1) taking into account column-like behaviour where relevant; ρz for transverse stresses from 4.5.4(1) taking into account column-like behaviour where relevant; χw for shear stresses from [AC1] 5.3(1) [AC1]; each calculated for the [AC1] modified plate slenderness [AC1] λp according to equation (10.2). NOTE: This method leads to the verification formula: (σx,Ed / (fy / γM1))^2 + (σz,Ed / (fy / γM1))^2 - (σx,Ed / (fy / γM1)) (σz,Ed / (fy / γM1)) + 3 (τEd / (fy / γM1))^2 ≤ ρ^2 (10.4) NOTE: For determining ρz for transverse stresses the rules in section 4 for direct stresses σx should be applied to σz in the z-direction. For consistency section 6 should not be applied. b) a value interpolated between the values of ρx, ρz and χw as determined in a) by using the formula for αult,k as interpolation function NOTE: This method leads to the verification format: (σx,Ed / (ρx fy / γM1))^2 + (σz,Ed / (ρz fy / γM1))^2 - (σx,Ed / (ρx fy / γM1)) (σz,Ed / (ρz fy / γM1)) + 3 (τEd / (χw fy / γM1))^2 ≤ 1 (10.5) NOTE 1: Since verification formulae (10.3), (10.4) and (10.5) include an interaction between shear force, bending moment, axial force and transverse force, section 7 should not be applied. NOTE 2: The National Annex may give further information on the use of equations (10.4) and (10.5). In case of panels with tension and compression it is recommended to apply equations (10.4) and (10.5) only for the compressive parts. (6) Where αcr values for the complete stress field are not available and only αcr,i values for the various components of the stress field σx,Ed , σz,Ed and τEd can be used, the αcr value may be determined from: 1 / αcr = (1 + ψx) / (4 αcr,x) + (1 + ψz) / (4 αcr,z) + [ ( (1 + ψx) / (4 αcr,x) + (1 + ψz) / (4 αcr,z) )^2 + (1 - ψx) / (2 αcr,x^2) + (1 - ψz) / (2 αcr,z^2) + 1 / αcr,τ^2 ]^(1/2) (10.6) where αcr,x = σcr,x / σx,Ed αcr,z = σcr,z / σz,Ed [AC1] αcr,τ = τcr / τEd [AC1] and σcr,x, σcr,z, τcr, ψx and ψz are determined from sections 4 to 6. (7) Stiffeners and detailing of plate panels should be designed according to section 9.",
+      "page": 38
+    },
+    {
+      "clause_number": "A.1",
+      "title": "Equivalent orthotropic plate",
+      "text": "(1) Plates with at least three longitudinal stiffeners may be treated as equivalent orthotropic plates.\n(2) The elastic critical plate buckling stress of the equivalent orthotropic plate may be taken as:\nσ_{cr,p} = k_{σ,p} σ_E (A.1)\nwhere σ_E = (π^2 E t^2) / (12(1 - ν^2)b^2) = 190000 (t/b)^2 in [MPa]\nk_{σ,p} is the buckling coefficient according to orthotropic plate theory with the stiffeners smeared over the plate;\nb is defined in Figure A.1;\nt is the thickness of the plate.\nNOTE 1: The buckling coefficient k_{σ,p} is obtained either from appropriate charts for smeared stiffeners or relevant computer simulations; alternatively charts for discretely located stiffeners may be used provided local buckling in the subpanels can be ignored and treated separately.\nNOTE 2: σ_{cr,p} is the elastic critical plate buckling stress at the edge of the panel where the maximum compression stress occurs, see Figure A.1.\nNOTE 3: Where a web is of concern, [AC1] the width b in [AC1] equations (A.1) and (A.2) should be replaced by h_w.\nNOTE 4: For stiffened plates with at least three equally spaced longitudinal stiffeners the plate buckling coefficient k_{σ,p} (global buckling of the stiffened panel) may be approximated by:\nk_{σ,p} = (2((1 + α^2)^2 + γ - 1)) / (α^2(ψ + 1)(1 + δ)) if α ≤ ∜γ\nk_{σ,p} = (4(1 + √γ)) / ((ψ + 1)(1 + δ)) if α > ∜γ\n(A.2)\nwith: ψ = σ_2 / σ_1 ≥ 0,5\nγ = I_{sl} / I_p\n[AC1] δ = A_{sl} / A_p [AC1]\nα = a / b ≥ 0,5\nwhere: I_{sl} is the second moment of area of the whole stiffened plate;\nI_p is the second moment of area for bending of the plate [AC1] = (b t^3) / (12(1 - ν^2)) = (b t^3) / 10,92 [AC1];\n[AC1] A_{sl} [AC1] is the sum of the gross areas of the individual longitudinal stiffeners;\nA_p is the gross area of the plate = bt;\nσ_1 is the larger edge stress;\nσ_2 is the smaller edge stress;",
+      "page": 40
+    },
+    {
+      "clause_number": "A.2",
+      "title": "Critical plate buckling stress for plates with one or two stiffeners in the compression zone",
+      "text": "A.2 Critical plate buckling stress for plates with one or two stiffeners in the compression zone",
+      "page": 42
+    },
+    {
+      "clause_number": "A.2.1",
+      "title": "General procedure",
+      "text": "(1) If the stiffened plate has only one longitudinal stiffener in the compression zone the procedure in A.1 may be simplified by a fictitious isolated strut supported on an elastic foundation reflecting the plate effect in the direction perpendicular to this strut. The elastic critical stress of the strut may be obtained from A.2.2.\n(2) For calculation of A_{sl,1} and I_{sl,1} the gross cross-section of the column should be taken as the gross area of the stiffener and adjacent parts of the plate described as follows. If the subpanel is fully in compression, a portion (3 - ψ)/(5 - ψ) of its width b_1 should be taken at the edge of the panel and 2/(5 - ψ) at the edge with the highest stress. If the stress changes from compression to tension within the subpanel, a portion 0,4 of the width b_c of the compressed part of this subpanel should be taken as part of the column, see Figure A.2 and also Table 4.1. ψ is the stress ratio relative to the subpanel in consideration.\n(3) The effective^p cross-sectional area A_{sl,eff} of the column should be taken as the effective^p cross-section of the stiffener and the adjacent effective^p parts of the plate, see Figure A.1. The slenderness of the plate elements in the column may be determined according to 4.4(4), with σ_{com,Ed} calculated for the gross cross-section of the plate.\n(4) If ρ_c f_y / γ_{M1}, with ρ_c determined according to 4.5.4(1), is greater than the average stress in the column σ_{com,Ed} no further reduction of the effective^p area of the column should be made. Otherwise the effective area in (4.6) should be modified as follows:\nA_{c,eff,loc} = (ρ_c f_y A_{sl,1}) / (σ_{com,Ed} γ_{M1}) (A.3)\n(5) The reduction mentioned in A.2.1(4) should be applied only to the area of the column. No reduction need be applied to other compressed parts of the plate, except for checking buckling of subpanels.\n(6) As an alternative to using an effective^p area according to A.2.1(4), the resistance of the column may be determined from A.2.1(5) to (7) and checked to ensure that it exceeds the average stress σ_{com,Ed}.\nNOTE: The method outlined in (6) may be used in the case of multiple stiffeners in which the restraining effect from the plate is neglected, that is the fictitious column is considered free to buckle out of the plane of the web.\n(7) If the stiffened plate has two longitudinal stiffeners in the compression zone, the one stiffener procedure described in A.2.1(1) may be applied, see Figure A.3. First, it is assumed that one of the stiffeners buckles while the other one acts as a rigid support. Buckling of both the stiffeners simultaneously is accounted for by considering a single lumped stiffener that is substituted for both individual ones such that:\na) its cross-sectional area and its second moment of area [AC1] I_{sl} [AC1] are respectively the sum of that for the individual stiffeners\nb) it is positioned at the location of the resultant of the respective forces in the individual stiffeners\nFor each of these situations illustrated in Figure A.3 a relevant value of σ_{cr,p} is computed, see A.2.2(1), with b_1 = b_1^* and b_2 = b_2^* and B^* = b_1^* + b_2^*, see Figure A.3.",
+      "page": 42
+    },
+    {
+      "clause_number": "A.2.2",
+      "title": "Simplified model using a column restrained by the plate",
+      "text": "(1) In the case of a stiffened plate with one longitudinal stiffener located in the compression zone, the elastic critical buckling stress of the stiffener can be calculated as follows ignoring stiffeners in the tension zone:\nσ_{cr,sl} = (1,05 E √(I_{sl,1} t^3 b)) / (A_{sl,1} b_1 b_2) if a ≥ a_c\nσ_{cr,sl} = (π^2 E I_{sl,1}) / (A_{sl,1} a^2) + (E t^3 b a^2) / (4 π^2 (1 - ν^2) A_{sl,1} b_1^2 b_2^2) if [AC1] a < a_c [AC1]\n(A.4)\nwith a_c = 4,33 ∜((I_{sl,1} b_1^2 b_2^2) / (t^3 b))\nwhere A_{sl,1} is the gross area of the column obtained from A.2.1(2)\nI_{sl,1} is the second moment of area of the gross cross-section of the column defined in A.2.1(2) about an axis through its centroid and parallel to the plane of the plate;\nb_1, b_2 are the distances from the longitudinal edges of the web to the stiffener (b_1 + b_2 = b).\n[AC1] note deleted [AC1]\n(2) In the case of a stiffened plate with two longitudinal stiffeners located in the compression zone the elastic critical plate buckling stress should be taken as the lowest of those computed for the three cases using equation (A.4) with b_1 = b_1^*, b_2 = b_2^* and b = B^*. The stiffeners in the tension zone should be ignored in the calculation.",
+      "page": 43
+    },
+    {
+      "clause_number": "A.3",
+      "title": "Shear buckling coefficients",
+      "text": "(1) For plates with rigid transverse stiffeners and without longitudinal stiffeners or with more than two longitudinal stiffeners, the shear buckling coefficient k_τ can be obtained as follows:\nk_τ = 5,34 + 4,00 (h_w / a)^2 + k_{τst} when a / h_w ≥ 1\nk_τ = 4,00 + 5,34 (h_w / a)^2 + k_{τst} when a / h_w < 1\n(A.5)\nwhere k_{τst} = 9 (h_w / a)^2 ∜((I_{st} / (t^3 h_w))^3) but not less than (2,1 / t) ∛(I_{st} / h_w)\na is the distance between transverse stiffeners (see Figure 5.3);\nI_{st} is the second moment of area of the longitudinal stiffener about the z-z axis, see Figure 5.3 (b).\n[AC1] For webs with [AC1] longitudinal stiffeners, not necessarily equally spaced, I_{st} is the sum of the stiffness of the individual stiffeners.\nNOTE: No intermediate non-rigid transverse stiffeners are allowed for in equation (A.5).\n(2) The equation (A.5) also applies to plates with one or two longitudinal stiffeners, if the aspect ratio α = a / h_w satisfies α ≥ 3. For plates with one or two longitudinal stiffeners and an aspect ratio α < 3 the shear buckling coefficient should be taken from:\nk_τ = 4,1 + (6,3 + 0,18 (I_{st} / (t^3 h_w))) / α^2 + 2,2 ∛(I_{st} / (t^3 h_w))\n(A.6)",
+      "page": 44
+    },
+    {
+      "clause_number": "B.1",
+      "title": "General",
+      "text": "(1) The rules in section 10 are applicable to webs of members with non parallel flanges as in haunched beams and to webs with regular or irregular openings and non orthogonal stiffeners.\n(2) α_{ult} and α_{crit} may be obtained from FE-methods, see Annex C.\n(3) The reduction factors ρ_x, ρ_z and χ_w for λ_p may be obtained from the appropriate plate buckling curves, see sections 4 and 5.\nNOTE: The reduction factor ρ may be obtained as follows:\nρ = 1 / (φ_p + √(φ_p^2 - λ_p))\n(B.1)\nwhere φ_p = 1/2 (1 + α_p (λ_p - λ_{p0}) + λ_p)\nand λ_p = √(α_{ult,k} / α_{cr})\nThis procedure applies to ρ_x, ρ_z and χ_w. The values of λ_{p0} and α_p are given in Table B.1. These values have been calibrated against the plate buckling curves in sections 4 and 5 and give a direct correlation to the equivalent geometric imperfection, by:\ne_0 = α_p (λ_p - λ_{p0}) (t / 6) (1 - (ρ λ_p / γ_{M1})) / (1 - ρ λ_p)\n(B.2)",
+      "page": 45
+    },
+    {
+      "clause_number": "B.2",
+      "title": "Interaction of plate buckling and lateral torsional buckling",
+      "text": "(1) The method given in B.1 may be extended to the verification of combined plate buckling and lateral torsional buckling of members by calculating α_{ult} and [AC1] α_{cr} [AC1] as follows:\nα_{ult} is the minimum load amplifier for the design loads to reach the characteristic value of resistance of the most critical cross section, neglecting any plate buckling and lateral torsional buckling;\nα_{cr} is the minimum load amplifier for the design loads to reach the [AC1] elastic critical loading [AC1] of the member including plate buckling and lateral torsional buckling modes.\n(2) When α_{cr} contains lateral torsional buckling modes, the reduction factor ρ used should be the minimum of the reduction factor according to B.1(3) and the χ_{LT} - value for lateral torsional buckling according to 6.3.3 of EN 1993-1-1.",
+      "page": 46
+    },
+    {
+      "clause_number": "C.1",
+      "title": "General",
+      "text": "(1) Annex C gives guidance on the use of FE-methods for ultimate limit state, serviceability limit state or fatigue verifications of plated structures.\nNOTE 1: For FE-calculation of shell structures see EN 1993-1-6.\nNOTE 2: This guidance is intended for engineers who are experienced in the use of Finite Element methods.\n(2) The choice of the FE-method depends on the problem to be analysed and based on the following assumptions:",
+      "page": 47
+    },
+    {
+      "clause_number": "C.2",
+      "title": "Use",
+      "text": "(1) In using FEM for design special care should be taken to\n- the modelling of the structural component and its boundary conditions;\n- the choice of software and documentation;\n- the use of imperfections;\n- the modelling of material properties;\n- the modelling of loads;\n- the modelling of limit state criteria;\n- the partial factors to be applied.\nNOTE: The National Annex may define the conditions for the use of FEM analysis in design.",
+      "page": 47
+    },
+    {
+      "clause_number": "C.3",
+      "title": "Modelling",
+      "text": "(1) The choice of FE-models (shell models or volume models) and the size of mesh determine the accuracy of results. For validation sensitivity checks with successive refinement may be carried out.\n(2) The FE-modelling may be carried out either for:\n- the component as a whole or\n- a substructure as a part of the whole structure.\nNOTE: An example for a component could be the web and/or the bottom plate of continuous box girders in the region of an intermediate support where the bottom plate is in compression. An example for a substructure could be a subpanel of a bottom plate subject to biaxial stresses.\n(3) The boundary conditions for supports, interfaces and applied loads should be chosen such that results obtained are conservative.\n(4) Geometric properties should be taken as nominal.\n(5) All imperfections should be based on the shapes and amplitudes as given in section C.5.\n(6) Material properties should conform to C.6(2).",
+      "page": 47
+    },
+    {
+      "clause_number": "C.4",
+      "title": "Choice of software and documentation",
+      "text": "(1) The software should be suitable for the task and be proven reliable.\nNOTE: Reliability can be proven by appropriate bench mark tests.\n(2) The mesh size, loading, boundary conditions and other input data as well as the output should be documented in a way that they can be reproduced by third parties.",
+      "page": 48
+    },
+    {
+      "clause_number": "C.5",
+      "title": "Use of imperfections",
+      "text": "(1) Where imperfections need to be included in the FE-model these imperfections should include both geometric and structural imperfections.\n(2) Unless a more refined analysis of the geometric imperfections and the structural imperfections is carried out, equivalent geometric imperfections may be used.\nNOTE 1: Geometric imperfections may be based on the shape of the critical plate buckling modes with amplitudes given in the National Annex. 80 % of the geometric fabrication tolerances is recommended.\nNOTE 2: Structural imperfections in terms of residual stresses may be represented by a stress pattern from the fabrication process with amplitudes equivalent to the mean (expected) values.\n(3) The direction of the applied imperfection should be such that the lowest resistance is obtained.\n(4) For applying equivalent geometric imperfections Table C.2 and Figure C.1 may be used.\n(5) In combining imperfections a leading imperfection should be chosen and the accompanying imperfections may have their values reduced to 70%.\nNOTE 1: Any type of imperfection should be taken as the leading imperfection and the others may be taken as the accompanying imperfections.\nNOTE 2: Equivalent geometric imperfections may be substituted by the appropriate fictitious forces acting on the member.",
+      "page": 48
+    },
+    {
+      "clause_number": "C.6",
+      "title": "Material properties",
+      "text": "(1) Material properties should be taken as characteristic values.\n(2) Depending on the accuracy and the allowable strain required for the analysis the following assumptions for the material behaviour may be used, see Figure C.2:\na) elastic-plastic without strain hardening;\nb) elastic-plastic with a nominal plateau slope;\nc) elastic-plastic with linear strain hardening;\nd) true stress-strain curve modified from the test results as follows:\nσ_{true} = σ (1 + ε)\nε_{true} = ln (1 + ε)\n(C.1)\nNOTE: For the elastic modulus E the nominal value is relevant.",
+      "page": 50
+    },
+    {
+      "clause_number": "C.7",
+      "title": "Loads",
+      "text": "(1) The loads applied to the structures should include relevant load factors and load combination factors. For simplicity a single load multiplier α may be used.",
+      "page": 51
+    },
+    {
+      "clause_number": "C.8",
+      "title": "Limit state criteria",
+      "text": "(1) The ultimate limit state criteria should be used as follows:\n1. for structures susceptible to buckling:\nattainment of the maximum load.\n2. for regions subjected to tensile stresses:\nattainment of a limiting value of the principal membrane strain.\nNOTE 1: The National Annex may specify the limiting of principal strain. A value of 5% is recommended.\nNOTE 2: Other criteria may be used, e.g. attainment of the yielding criterion or limitation of the yielding zone.",
+      "page": 51
+    },
+    {
+      "clause_number": "C.9",
+      "title": "Partial factors",
+      "text": "(1) The load magnification factor α_u to the ultimate limit state should be sufficient to achieve the required reliability.\n(2) The magnification factor α_u should consist of two factors as follows:\n1. α_1 to cover the model uncertainty of the FE-modelling used. It should be obtained from evaluations of test calibrations, see Annex D to EN 1990;\n2. α_2 to cover the scatter of the loading and resistance models. It may be taken as γ_{M1} if instability governs and γ_{M2} if fracture governs.\n(3) It should be verified that:\nα_u > α_1 α_2\n(C.2)\nNOTE: The National Annex may give information on γ_{M1} and γ_{M2}. The use of γ_{M1} and γ_{M2} as specified in the relevant parts of EN 1993 is recommended.",
+      "page": 51
+    },
+    {
+      "clause_number": "D.1",
+      "title": "General",
+      "text": "(1) Annex D covers design rules for I-girders with trapezoidal or sinusoidal corrugated webs, see Figure D.1.",
+      "page": 52
+    },
+    {
+      "clause_number": "D.2",
+      "title": "Ultimate limit state",
+      "text": "D.2 Ultimate limit state",
+      "page": 52
+    },
+    {
+      "clause_number": "D.2.1",
+      "title": "Moment of resistance",
+      "text": "(1) The moment of resistance [AC1] M_{y,Rd} [AC1] due to bending should be taken as the minimum of the following:\n[AC1] M_{y,Rd} [AC1] = min ( (b_2 t_2 f_{yf,r} / γ_{M0}) (h_w + (t_1 + t_2) / 2) ; (b_1 t_1 f_{yf,r} / γ_{M0}) (h_w + (t_1 + t_2) / 2) ; (b_1 t_1 χ f_{yf} / γ_{M1}) (h_w + (t_1 + t_2) / 2) )\n(D.1)\nwhere f_{yf,r} is the value of yield stress reduced due to transverse moments in the flanges\nf_{yf,r} = f_{yf} f_T\nf_T = 1 - 0,4 √((σ_x(M_z) / (f_{yf} / γ_{M0})))\nσ_x(M_z) is the stress due to the transverse moment in the flange\nχ is the reduction factor for out of plane buckling according to 6.3 of EN 1993-1-1\nNOTE 1: The transverse moment M_z results from the shear flow in flanges as indicated in Figure D.2.\nNOTE 2: For sinusoidally corrugated webs f_T is 1,0.\n(2) The effective^p area of the compression flange should be determined from 4.4(1) using the larger value of the slenderness parameter λ_p defined in 4.4(2). [AC1] The buckling factor k_σ should be taken as the larger of a) and b): [AC1]\na) k_σ = 0,43 + (b / a)^2\n(D.2)\nwhere b is the maximum width of the outstand from the toe of the weld to the free edge\na = a_1 + 2a_4\nb) k_σ = 0,60\n(D.3)\n[AC1] text deleted [AC1]",
+      "page": 52
+    },
+    {
+      "clause_number": "D.2.2",
+      "title": "Shear resistance",
+      "text": "(1) The shear resistance [AC1] V_{bw,Rd} [AC1] should be taken as:\n[AC1] V_{bw,Rd} [AC1] = χ_c (f_{yw} / (γ_{M1} √3)) h_w t_w\n(D.4)\nwhere χ_c is the lesser of the values of reduction factors for local buckling χ_{c,l} and global buckling χ_{c,g} obtained from (2) and (3)\n(2) The reduction factor χ_{c,l} for local buckling should be calculated from:\nχ_{c,l} = 1,15 / (0,9 + λ_{c,l}) ≤ 1,0\n(D.5)\n[AC1] where λ_{c,l} = √((f_{yw}) / (τ_{cr,l} √3)) [AC1]\n(D.6)\nτ_{cr,l} = 4,83 E [t_w / a_{max}]^2\n(D.7)\na_{max} should be taken as the greater of a_1 and a_2.\nNOTE: For sinusoidally corrugated webs the National Annex may give information on the calculation of τ_{cr,l} and χ_{c,l}.\nThe use of the following equation is recommended:\nτ_{cr,l} = (5,34 + (a_3 s) / (h_w t_w)) (π^2 E) / (12(1 - ν^2)) [t_w / s]^2\nwhere w is the length of one half wave, see Figure D.1,\ns is the unfolded length of one half wave, see Figure D.1\n(3) The reduction factor χ_{c,g} for global buckling should be taken as\nχ_{c,g} = 1,5 / (0,5 + λ_{c,g}^2) ≤ 1,0\n(D.8)\n[AC1] where λ_{c,g} = √((f_{yw}) / (τ_{cr,g} √3)) [AC1]\n(D.9)\nτ_{cr,g} = 32,4 / (t_w h_w^2) ∜(D_x D_z^3)\n(D.10)\nD_x = (E t_w^3) / (12(1 - ν^2)) (w / s)\nD_z = (E I_z) / w\nI_z second moment of area of one corrugation of length w, see Figure D.1\nNOTE 1: s and I_z are related to the actual shape of the corrugation.\nNOTE 2: Equation (D.10) is valid for plates that are assumed to be hinged at the edges.",
+      "page": 53
+    },
+    {
+      "clause_number": "D.2.3",
+      "title": "Requirements for end stiffeners",
+      "text": "(1) Bearing stiffeners should be designed according to section 9.",
+      "page": 54
+    },
+    {
+      "clause_number": "E.1",
+      "title": "Effective areas for stress levels below the yield strength",
+      "text": "(1) As an alternative to the method given in 4.4(2) the following formulae may be applied to determine effective areas at stress levels lower than the yield strength:\na) for internal compression elements:\nρ = (1 - 0,055(3+ψ)/λ̄_p,red) / λ̄_p,red + 0,18 (λ̄_p - λ̄_p,red) / (λ̄_p - 0,6) but ρ ≤ 1,0 (E.1)\nb) for outstand compression elements:\nρ = (1 - 0,188/λ̄_p,red) / λ̄_p,red + 0,18 (λ̄_p - λ̄_p,red) / (λ̄_p - 0,6) but ρ ≤ 1,0 (E.2)\nFor notations see 4.4(2) and 4.4(4). For calculation of resistance to global buckling 4.4(5) applies.",
+      "page": 55
+    },
+    {
+      "clause_number": "E.2",
+      "title": "Effective areas for stiffness",
+      "text": "(1) For the calculation of effective areas for stiffness the serviceability limit state slenderness λ̄_p,ser may be calculated from:\nλ̄_p,ser = λ̄_p √(σ_com,Ed,ser / f_y) (E.3)\nwhere σ_com,Ed,ser is defined as the maximum compressive stress (calculated on the basis of the effective cross section) in the relevant element under loads at serviceability limit state.\n(2) The second moment of area may be calculated by an interpolation of the gross cross section and the effective cross section for the relevant load combination using the expression:\nI_eff = I_gr - (σ_gr / σ_com,Ed,ser) (I_gr - I_eff(σ_com,Ed,ser)) (E.4)\nwhere I_gr is the second moment of area of the gross cross section\nσ_gr is the maximum bending stress at serviceability limit states based on the gross cross section\nI_eff(σ_com,Ed,ser) is the second moment of area of the effective cross section with allowance for local buckling according to E.1 calculated for the maximum stress σ_com,Ed,ser ≥ σ_gr within the span length considered.\n(3) The effective second moment of area I_eff may be taken as variable along the span according to the most severe locations. Alternatively a uniform value may be used based on the maximum absolute sagging moment under serviceability loading.\n(4) The calculations require iterations, but as a conservative approximation they may be carried out as a single calculation at a stress level equal to or higher than σ_com,Ed,ser.",
+      "page": 55
+    }
+  ],
+  "tables": [
+    {
+      "table_id": "Table 3.1",
+      "title": "Effectiveˢ width factor β",
+      "headers": [
+        "κ",
+        "Verification",
+        "β - value"
+      ],
+      "rows": [
+        [
+          "κ ≤ 0,02",
+          "",
+          "β = 1,0"
+        ],
+        [
+          "0,02 < κ ≤ 0,70",
+          "sagging bending",
+          "β = β_1 = 1 / (1 + 6,4 κ²)"
+        ],
+        [
+          "0,02 < κ ≤ 0,70",
+          "hogging bending",
+          "β = β_2 = 1 / (1 + 6,0 (κ - 1 / (2500 κ)) + 1,6 κ²)"
+        ],
+        [
+          "> 0,70",
+          "sagging bending",
+          "β = β_1 = 1 / (5,9 κ)"
+        ],
+        [
+          "> 0,70",
+          "hogging bending",
+          "β = β_2 = 1 / (8,6 κ)"
+        ],
+        [
+          "all κ",
+          "end support",
+          "β_0 = (0,55 + 0,025 / κ) β_1, but β_0 < β_1"
+        ],
+        [
+          "all κ",
+          "Cantilever",
+          "β = β_2 at support and at the end"
+        ],
+        [
+          "κ = α_0 b_0 / L_e with α_0 = √(1 + A_sl / (b_0 t)) in which A_sl is the area of all longitudinal stiffeners within the width b_0 and other symbols are as defined in Figure 3.1 and Figure 3.2.",
+          "κ = α_0 b_0 / L_e with α_0 = √(1 + A_sl / (b_0 t)) in which A_sl is the area of all longitudinal stiffeners within the width b_0 and other symbols are as defined in Figure 3.1 and Figure 3.2.",
+          "κ = α_0 b_0 / L_e with α_0 = √(1 + A_sl / (b_0 t)) in which A_sl is the area of all longitudinal stiffeners within the width b_0 and other symbols are as defined in Figure 3.1 and Figure 3.2."
+        ]
+      ],
+      "footnotes": [],
+      "clause": "3.2.1",
+      "page": 12
+    },
+    {
+      "table_id": "Table 4.1",
+      "title": "Internal compression elements (Part 1: Effective width)",
+      "headers": [
+        "Stress distribution (compression positive)",
+        "Effective width beff"
+      ],
+      "rows": [
+        [
+          "ψ = 1",
+          "beff = ρ b, be1 = 0,5 beff, be2 = 0,5 beff"
+        ],
+        [
+          "1 > ψ ≥ 0",
+          "beff = ρ b, be1 = 2 / (5 - ψ) beff, be2 = beff - be1"
+        ],
+        [
+          "ψ < 0",
+          "beff = ρ bc = ρ b / (1 - ψ), be1 = 0,4 beff, be2 = 0,6 beff"
+        ]
+      ],
+      "footnotes": [],
+      "clause": "4.4",
+      "page": 19
+    },
+    {
+      "table_id": "Table 4.2",
+      "title": "Outstand compression elements (Part 4: Buckling factor for max stress at free edge)",
+      "headers": [
+        "ψ = σ2 / σ1",
+        "1",
+        "1 > ψ > 0",
+        "0",
+        "0 > ψ > -1",
+        "-1"
+      ],
+      "rows": [
+        [
+          "Buckling factor kσ",
+          "0,43",
+          "0,578 / (ψ + 0,34)",
+          "1,70",
+          "1,7 - 5ψ + 17,1ψ²",
+          "23,8"
+        ]
+      ],
+      "footnotes": [],
+      "clause": "4.4",
+      "page": 19
+    },
+    {
+      "table_id": "Table 5.1",
+      "title": "Contribution from the web χw to shear buckling resistance",
+      "headers": [
+        "",
+        "Rigid end post",
+        "Non-rigid end post"
+      ],
+      "rows": [
+        [
+          "λw < 0,83 / η",
+          "η",
+          "η"
+        ],
+        [
+          "0,83 / η ≤ λw < 1,08",
+          "0,83 / λw",
+          "0,83 / λw"
+        ],
+        [
+          "λw ≥ 1,08",
+          "1,37 / (0,7 + λw)",
+          "0,83 / λw"
+        ]
+      ],
+      "footnotes": [
+        "NOTE: See 6.2.6 in EN 1993-1-1."
+      ],
+      "clause": "5.3",
+      "page": 24
+    },
+    {
+      "table_id": "Unlabeled Table (Figure A.1)",
+      "title": "width for effective area according to Table 4.1",
+      "headers": [
+        "",
+        "width for gross area",
+        "width for effective area according to Table 4.1",
+        "condition for ψi"
+      ],
+      "rows": [
+        [
+          "b1,inf",
+          "(3 - ψ1) / (5 - ψ1) b1",
+          "(3 - ψ1) / (5 - ψ1) b1,eff",
+          "ψ1 = σcr,sl,1 / σcr,p > 0"
+        ],
+        [
+          "b2,sup",
+          "2 / (5 - ψ2) b2",
+          "2 / (5 - ψ2) b2,eff",
+          "ψ2 = σ2 / σcr,sl,1 > 0"
+        ],
+        [
+          "b2,inf",
+          "(3 - ψ2) / (5 - ψ2) b2",
+          "(3 - ψ2) / (5 - ψ2) b2,eff",
+          "ψ2 > 0"
+        ],
+        [
+          "b3,sup",
+          "0,4 b3c",
+          "0,4 b3c,eff",
+          "ψ3 = σ3 / σ2 < 0"
+        ]
+      ],
+      "footnotes": [],
+      "clause": "A.1",
+      "page": 41
+    },
+    {
+      "table_id": "Table B.1",
+      "title": "Values for λ_p0 and α_p",
+      "headers": [
+        "Product",
+        "predominant buckling mode",
+        "α_p",
+        "λ_p0"
+      ],
+      "rows": [
+        [
+          "hot rolled",
+          "direct stress for ψ ≥ 0",
+          "0,13",
+          "0,70"
+        ],
+        [
+          "hot rolled",
+          "direct stress for ψ < 0\nshear\ntransverse stress",
+          "0,13",
+          "0,80"
+        ],
+        [
+          "welded or cold formed",
+          "direct stress for ψ ≥ 0",
+          "0,34",
+          "0,70"
+        ],
+        [
+          "welded or cold formed",
+          "direct stress for ψ < 0\nshear\ntransverse stress",
+          "0,34",
+          "0,80"
+        ]
+      ],
+      "footnotes": [],
+      "clause": "B.1",
+      "page": 45
+    },
+    {
+      "table_id": "Table C.1",
+      "title": "Assumptions for FE-methods",
+      "headers": [
+        "No",
+        "Material behaviour",
+        "Geometric behaviour",
+        "Imperfections, see section C.5",
+        "Example of use"
+      ],
+      "rows": [
+        [
+          "1",
+          "linear",
+          "linear",
+          "no",
+          "elastic shear lag effect, elastic resistance"
+        ],
+        [
+          "2",
+          "non linear",
+          "linear",
+          "no",
+          "plastic resistance in ULS"
+        ],
+        [
+          "3",
+          "linear",
+          "non linear",
+          "no",
+          "critical plate buckling load"
+        ],
+        [
+          "4",
+          "linear",
+          "non linear",
+          "yes",
+          "elastic plate buckling resistance"
+        ],
+        [
+          "5",
+          "non linear",
+          "non linear",
+          "yes",
+          "elastic-plastic resistance in ULS"
+        ]
+      ],
+      "footnotes": [],
+      "clause": "C.1",
+      "page": 47
+    },
+    {
+      "table_id": "Table C.2",
+      "title": "Equivalent geometric imperfections",
+      "headers": [
+        "Type of imperfection",
+        "Component",
+        "Shape",
+        "Magnitude"
+      ],
+      "rows": [
+        [
+          "global",
+          "member with length ℓ",
+          "bow",
+          "see EN 1993-1-1, Table 5.1"
+        ],
+        [
+          "global",
+          "longitudinal stiffener with length a",
+          "bow",
+          "min (a/400, b/400)"
+        ],
+        [
+          "local",
+          "panel or subpanel with short span a or b",
+          "buckling shape",
+          "min (a/200, b/200)"
+        ],
+        [
+          "local",
+          "stiffener or flange subject to twist",
+          "bow twist",
+          "1 / 50"
+        ]
+      ],
+      "footnotes": [],
+      "clause": "C.5",
+      "page": 48
+    }
+  ],
+  "figures": [
+    {
+      "figure_id": "Figure 2.1",
+      "title": "Definition of angle α",
+      "figure_type": "diagram",
+      "description": "A diagram showing a non-rectangular panel with parallel top and bottom edges, length 'a', left edge 'b_1', right edge 'b_2', and an angle 'α' indicating the deviation from a rectangular shape at the top edge.",
+      "labels": [
+        "a",
+        "b_1",
+        "b_2",
+        "α"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "2.3",
+      "page": 10
+    },
+    {
+      "figure_id": "Figure 3.1",
+      "title": "Effective length L_e for continuous beam and distribution of effectiveˢ width",
+      "figure_type": "diagram",
+      "description": "A diagram showing a continuous beam over three spans (L_1, L_2, L_3) with corresponding bending moment diagram. Below it, the effective length L_e is defined for different regions: β_1: L_e=0,85L_1, β_2: L_e=0,25(L_1+L_2), β_1: L_e=0,70L_2, β_2: L_e=2L_3. The bottom part shows the distribution of the effective width factor β along the beam, transitioning between β_0, β_1, and β_2.",
+      "labels": [
+        "L_1",
+        "L_2",
+        "L_3",
+        "L_1/4",
+        "L_1/2",
+        "L_2/4",
+        "L_2/2",
+        "β_0",
+        "β_1",
+        "β_2",
+        "β_1: L_e=0,85L_1",
+        "β_2: L_e=0,25(L_1+L_2)",
+        "β_1: L_e=0,70L_2",
+        "β_2: L_e=2L_3"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "3.2.1",
+      "page": 11
+    },
+    {
+      "figure_id": "Figure 3.2",
+      "title": "Notations for shear lag",
+      "figure_type": "cross_section",
+      "description": "A cross-section of a box girder showing the top flange with longitudinal stiffeners. It defines the flange outstand (1), internal flange (2), plate thickness t (3), and stiffeners with A_sl = Σ A_sli (4). It also shows the effective width b_eff and the geometric width b_0.",
+      "labels": [
+        "b_eff",
+        "b_0",
+        "CL",
+        "1",
+        "2",
+        "3",
+        "4",
+        "1 for flange outstand",
+        "2 for internal flange",
+        "3 plate thickness t",
+        "4 stiffeners with A_sl = Σ A_sli"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "3.2.1",
+      "page": 12
+    },
+    {
+      "figure_id": "Figure 3.3",
+      "title": "Distribution of stresses due to shear lag",
+      "figure_type": "graph",
+      "description": "Two graphs showing the distribution of longitudinal stresses σ(y) across the flange width. The left graph is for β > 0,20, showing stress varying from σ_1 at the web to σ_2 at the edge b_0. The right graph is for β ≤ 0,20, showing stress varying from σ_1 at the web to 0 at a distance b_1 = 5βb_0.",
+      "labels": [
+        "b_eff = βb_0",
+        "σ_1",
+        "σ_2",
+        "σ(y)",
+        "y",
+        "b_0",
+        "b_eff = βb_0",
+        "b_1 = 5βb_0"
+      ],
+      "axis_info": "Vertical axis: stress σ. Horizontal axis: distance y along the flange.",
+      "data_points": "",
+      "clause": "3.2.2",
+      "page": 13
+    },
+    {
+      "figure_id": "Figure 3.4",
+      "title": "In-plane load introduction",
+      "figure_type": "diagram",
+      "description": "A diagram showing a patch load F_z,Ed applied over a length s_s on a flange of thickness t_f, spreading at a 1:1 slope into a web of thickness t_w. It shows the stiff bearing length s_e, distance z, stiffener spacing s_st, and the resulting stress distribution σ_z,Ed over the effective width b_eff. It distinguishes between the stiffener (1), simplified stress distribution (2), and actual stress distribution (3).",
+      "labels": [
+        "s_e",
+        "s_s",
+        "F_z,Ed",
+        "1:1",
+        "t_f",
+        "1",
+        "z",
+        "t_w",
+        "s_st",
+        "σ_z,Ed",
+        "2",
+        "3",
+        "b_eff",
+        "1 stiffener",
+        "2 simplified stress distribution",
+        "3 actual stress distribution"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "3.2.3",
+      "page": 14
+    },
+    {
+      "figure_id": "Figure 4.1",
+      "title": "Class 4 cross-sections - axial force",
+      "figure_type": "cross_section",
+      "description": "Shows the gross cross section and the effective cross section of a Class 4 member under axial force, indicating the shift in the neutral axis eN.",
+      "labels": [
+        "1",
+        "2",
+        "3",
+        "G",
+        "G'",
+        "eN",
+        "Gross cross section",
+        "Effective cross section",
+        "G centroid of the gross cross section",
+        "G' centroid of the effective cross section",
+        "1 centroidal axis of the gross cross section",
+        "2 centroidal axis of the effective cross section",
+        "3 non effective zone"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "4.3",
+      "page": 16
+    },
+    {
+      "figure_id": "Figure 4.2",
+      "title": "Class 4 cross-sections - bending moment",
+      "figure_type": "cross_section",
+      "description": "Shows the gross cross section and the effective cross section of a Class 4 member under bending moment.",
+      "labels": [
+        "1",
+        "2",
+        "3",
+        "G",
+        "G'",
+        "Gross cross section",
+        "Effective cross section",
+        "G centroid of the gross cross section",
+        "G' centroid of the effective cross section",
+        "1 centroidal axis of the gross cross section",
+        "2 centroidal axis of the effective cross section",
+        "3 non effective zone"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "4.3",
+      "page": 16
+    },
+    {
+      "figure_id": "Figure 4.3",
+      "title": "Column-like behaviour",
+      "figure_type": "sketch",
+      "description": "Three 3D sketches illustrating column-like buckling behaviour for different plate configurations: a) plates without longitudinal supports, b) unstiffened plate with small aspect ratio, c) longitudinally stiffened plate with large aspect ratio.",
+      "labels": [
+        "a) column-like behaviour of plates without longitudinal supports",
+        "b) column-like behaviour of an unstiffened plate with a small aspect ratio α",
+        "c) column-like behaviour of a longitudinally stiffened plate with a large aspect ratio α"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "4.4",
+      "page": 18
+    },
+    {
+      "figure_id": "Figure 4.4",
+      "title": "Stiffened plate under uniform compression",
+      "figure_type": "cross_section",
+      "description": "Cross-section of a stiffened plate showing subpanels, stiffeners, and the effective areas Ac,eff,loc and edge effective widths.",
+      "labels": [
+        "b1,edge,eff",
+        "Ac,eff,loc",
+        "b3,edge,eff",
+        "Ac",
+        "b1",
+        "b2",
+        "b3",
+        "b1/2",
+        "b3/2",
+        "b1 ρ1",
+        "b2 ρ2",
+        "b3 ρ3"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "4.5.1",
+      "page": 20
+    },
+    {
+      "figure_id": "Figure 5.1",
+      "title": "End supports",
+      "figure_type": "cross_section",
+      "description": "Shows cross section notations and three types of end supports for girders: No end post, Rigid end post, and Non-rigid end post.",
+      "labels": [
+        "bf",
+        "tf",
+        "hw",
+        "t",
+        "Ae",
+        "a",
+        "e",
+        "Cross section notations",
+        "a) No end post",
+        "b) Rigid end post",
+        "c) Non-rigid end post"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "5.2",
+      "page": 24
+    },
+    {
+      "figure_id": "Figure 5.2",
+      "title": "Shear buckling factor χw",
+      "figure_type": "graph",
+      "description": "Graph plotting the shear buckling factor χw against the modified slenderness λw for rigid and non-rigid end posts.",
+      "labels": [
+        "χw",
+        "λw",
+        "1 Rigid end post",
+        "2 Non-rigid end post",
+        "3 Range of recommended η"
+      ],
+      "axis_info": "x-axis: λw from 0 to 3; y-axis: χw from 0 to 1.3",
+      "data_points": "",
+      "clause": "5.3",
+      "page": 26
+    },
+    {
+      "figure_id": "Figure 5.3",
+      "title": "Web with transverse and longitudinal stiffeners",
+      "figure_type": "diagram",
+      "description": "Diagram of a web panel showing the arrangement of rigid transverse stiffeners, longitudinal stiffeners, and non-rigid transverse stiffeners, along with a cross-section B-B.",
+      "labels": [
+        "1",
+        "2",
+        "3",
+        "B",
+        "B-B",
+        "a1",
+        "a2",
+        "a3",
+        "a4",
+        "hw1",
+        "hw2",
+        "hw",
+        "t",
+        "15εt",
+        "z",
+        "(a)",
+        "(b)",
+        "1 Rigid transverse stiffener",
+        "2 Longitudinal stiffener",
+        "3 Non-rigid transverse stiffener"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "5.3",
+      "page": 26
+    },
+    {
+      "figure_id": "Figure 6.1",
+      "title": "Buckling coefficients for different types of load application",
+      "figure_type": "diagram",
+      "description": "Shows three types of load application on an I-beam cross-section. Type (a) shows load Fs applied through the top flange and resisted by shear forces in the web, with dimension 'a' and stiff bearing 'ss'. Type (b) shows load Fs applied through one flange and transferred directly through the web to the other flange. Type (c) shows load Fs applied through one flange adjacent to an unstiffened end, with dimension 'c' to the end. Includes equations for buckling coefficient kF for each type.",
+      "labels": [
+        "Type (a)",
+        "Type (b)",
+        "Type (c)",
+        "Fs",
+        "V1,S",
+        "V2,S",
+        "hw",
+        "ss",
+        "a",
+        "c",
+        "Vs",
+        "kF = 6 + 2(hw/a)^2",
+        "kF = 3,5 + 2(hw/a)^2",
+        "kF = 2 + 6((ss+c)/hw) ≤ 6"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "6.1",
+      "page": 28
+    },
+    {
+      "figure_id": "Figure 6.2",
+      "title": "Length of stiff bearing",
+      "figure_type": "diagram",
+      "description": "Shows four different configurations for determining the length of stiff bearing ss. The first shows a single concentrated load Fs distributed at a 45 degree (1:1) slope through the flange thickness tf. The second shows an angled load Fs. The third shows multiple closely spaced loads Fs with spacing ss. The fourth shows a load Fs applied at an angle to the flange surface where ss = 0.",
+      "labels": [
+        "45°",
+        "Fs",
+        "ss",
+        "tf",
+        "Ss = 0"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "6.3",
+      "page": 28
+    },
+    {
+      "figure_id": "Figure 9.1",
+      "title": "Effective cross-section of stiffener",
+      "figure_type": "cross_section",
+      "description": "Shows the effective cross-section of a stiffener attached to a plate. The effective width of the plate is shown as 15εt on each side of the stiffener. Two types of stiffeners are shown: a flat stiffener and a T-section stiffener.",
+      "labels": [
+        "15εt",
+        "15εt",
+        "15εt",
+        "15εt",
+        "t",
+        "e",
+        "As",
+        "As"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "9.1",
+      "page": 32
+    },
+    {
+      "figure_id": "Figure 9.2",
+      "title": "Transverse stiffener",
+      "figure_type": "diagram",
+      "description": "Shows a transverse stiffener treated as a simply supported member subject to lateral loading. It illustrates the lengths of adjacent panels a1 and a2, the span b, and an initial sinusoidal imperfection w0.",
+      "labels": [
+        "1",
+        "a1",
+        "a2",
+        "b",
+        "w0",
+        "1 Transverse stiffener"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "9.2.1",
+      "page": 32
+    },
+    {
+      "figure_id": "Figure 9.3",
+      "title": "Welded plates",
+      "figure_type": "detail_drawing",
+      "description": "Shows a detail of plates with changes in thickness welded adjacent to a transverse stiffener. The distance from the stiffener to the weld is labeled as < min(b0/2 or 200 mm).",
+      "labels": [
+        "1",
+        "< min(b0/2 or 200 mm)",
+        "2",
+        "1 Transverse stiffener",
+        "2 Transverse weld"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "9.2.3",
+      "page": 34
+    },
+    {
+      "figure_id": "Figure 9.4",
+      "title": "Cut outs in longitudinal stiffeners",
+      "figure_type": "detail_drawing",
+      "description": "Shows dimensions for cut outs in longitudinal stiffeners. The height of the cut out is hs/4 ≤ 40 mm, and the length is ℓ. The stiffener height is hs and plate thickness is tmin.",
+      "labels": [
+        "hs",
+        "[AC1] ≤ hs/4 ≤ 40 mm [AC1]",
+        "ℓ",
+        "tmin"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "9.2.4",
+      "page": 35
+    },
+    {
+      "figure_id": "Figure 9.5",
+      "title": "Cut outs in transverse stiffeners",
+      "figure_type": "detail_drawing",
+      "description": "Shows dimensions for cut outs in transverse stiffeners. The depth of the cut out is limited to ≤ 0,6hs. The stiffener height is hs and the distance to the neutral axis is e.",
+      "labels": [
+        "hs",
+        "e",
+        "≤ 0,6hs"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "9.2.4",
+      "page": 35
+    },
+    {
+      "figure_id": "Figure 9.6",
+      "title": "Rolled section forming an end-post",
+      "figure_type": "detail_drawing",
+      "description": "Shows a rolled section connected to the end of a web plate to form a rigid end post. Includes an elevation view and a cross-section A-A showing the dimensions hw, e, and t.",
+      "labels": [
+        "e",
+        "hw",
+        "A",
+        "A",
+        "A - A",
+        "e",
+        "t",
+        "1",
+        "1 Inserted section"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "9.3.1",
+      "page": 36
+    },
+    {
+      "figure_id": "Figure A.1",
+      "title": "Notations for longitudinally stiffened plates",
+      "figure_type": "diagram",
+      "description": "Shows a longitudinally stiffened plate with stress distribution σcr,p. It details the subpanels, stiffeners, and effective widths b1,inf, b2,sup, b2,inf, b3,sup. Includes a table for effective area calculations.",
+      "labels": [
+        "σcr,p",
+        "σcr,sl",
+        "bc",
+        "[AC1] bc,1 [AC1]",
+        "+",
+        "a",
+        "3",
+        "4",
+        "5",
+        "b",
+        "+",
+        "1 centroid of [AC1] stiffener [AC1]",
+        "2 centroid of [AC1] column = [AC1] stiffeners + accompanying plating",
+        "3 subpanel",
+        "4 stiffener",
+        "5 plate thickness t",
+        "b1",
+        "2 1",
+        "b1,inf",
+        "b2,sup",
+        "e = max (e1, e2)",
+        "e2 e1",
+        "b2",
+        "b2,inf",
+        "b3,sup",
+        "bc",
+        "b3c",
+        "σcr,p",
+        "σcr,sl,1",
+        "σ2",
+        "σ3",
+        "+"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "A.1",
+      "page": 41
+    },
+    {
+      "figure_id": "Figure A.2",
+      "title": "Notations for a web plate with single stiffener in the compression zone",
+      "figure_type": "diagram",
+      "description": "Shows a web plate with a single stiffener, stress distribution, and effective area dimensions.",
+      "labels": [
+        "a",
+        "b_c",
+        "b_1",
+        "b_2",
+        "b",
+        "t",
+        "A_sl,1",
+        "(3-ψ)/(5-ψ) b_1",
+        "0,4 b_c"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "A.2.1",
+      "page": 42
+    },
+    {
+      "figure_id": "Figure A.3",
+      "title": "Notations for plate with two stiffeners in the compression zone",
+      "figure_type": "diagram",
+      "description": "Shows cross-sections of plates with two stiffeners (Stiffener I, Stiffener II) and a lumped stiffener model.",
+      "labels": [
+        "Stiffener I",
+        "Stiffener II",
+        "Lumped stiffener",
+        "b_1^*",
+        "b_2^*",
+        "B^*",
+        "Cross-sectional area",
+        "Second moment of area",
+        "A_sl,I",
+        "I_sl,I",
+        "A_sl,II",
+        "I_sl,II",
+        "A_sl,I + A_sl,II",
+        "I_sl,I + I_sl,II"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "A.2.1",
+      "page": 43
+    },
+    {
+      "figure_id": "Figure C.1",
+      "title": "Modelling of equivalent geometric imperfections",
+      "figure_type": "diagram",
+      "description": "Shows global member with length ℓ, global longitudinal stiffener with length a, local panel or subpanel, and local stiffener or flange subject to twist.",
+      "labels": [
+        "e_0z",
+        "e_0y",
+        "e_0w",
+        "a",
+        "b",
+        "1/50"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "C.5",
+      "page": 49
+    },
+    {
+      "figure_id": "Figure C.2",
+      "title": "Modelling of material behaviour",
+      "figure_type": "graph",
+      "description": "Shows four stress-strain curves: a) elastic-plastic without strain hardening, b) elastic-plastic with a nominal plateau slope, c) elastic-plastic with linear strain hardening, d) true stress-strain curve modified from test results.",
+      "labels": [
+        "σ",
+        "ε",
+        "f_y",
+        "tan^-1(E)",
+        "tan^-1(E/10000)",
+        "tan^-1(E/100)",
+        "1 true stress-strain curve",
+        "2 stress-strain curve from tests"
+      ],
+      "axis_info": "x-axis: ε, y-axis: σ",
+      "data_points": "",
+      "clause": "C.6",
+      "page": 50
+    },
+    {
+      "figure_id": "Figure D.1",
+      "title": "Geometric notations",
+      "figure_type": "diagram",
+      "description": "Shows a plate girder with corrugated web, including dimensions a1, a2, a3, a4, w, s, hw, t1, t2, b1, b2.",
+      "labels": [
+        "x",
+        "z",
+        "h_w",
+        "t_1",
+        "t_2",
+        "b_1",
+        "b_2",
+        "α>30°",
+        "a_1",
+        "a_2",
+        "a_3",
+        "a_4",
+        "w",
+        "2s",
+        "2w"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "D.1",
+      "page": 52
+    },
+    {
+      "figure_id": "Figure D.2",
+      "title": "Transverse actions due to shear flow introduction into the flange",
+      "figure_type": "diagram",
+      "description": "A diagram showing a corrugated web profile with transverse actions. It illustrates the dimensions w, T_1(x), and T_2(x) along the corrugation, as well as the forces M_1(x) and F_y(x) acting on the profile.",
+      "labels": [
+        "w",
+        "T_1(x)",
+        "T_2(x)",
+        "M_1(x)",
+        "F_y(x)"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "D.2.1",
+      "page": 53
+    }
+  ],
+  "equations": [
+    {
+      "equation_id": "(1.1)",
+      "latex": "r \\ge \\frac{a^2}{t}",
+      "plain_text": "r >= a^2 / t",
+      "description": "Condition for a single plate element to be considered as flat based on its curvature radius.",
+      "variables": [
+        {
+          "symbol": "a",
+          "meaning": "is the panel width"
+        },
+        {
+          "symbol": "t",
+          "meaning": "is the plate thickness"
+        }
+      ],
+      "clause": "1.1",
+      "page": 7
+    },
+    {
+      "equation_id": "(3.1)",
+      "latex": "b_{eff} = \\beta b_0",
+      "plain_text": "b_eff = β b_0",
+      "description": "Calculation of the effectiveˢ width for shear lag under elastic conditions.",
+      "variables": [
+        {
+          "symbol": "b_{eff}",
+          "meaning": "effectiveˢ width for shear lag"
+        },
+        {
+          "symbol": "\\beta",
+          "meaning": "effectiveˢ factor given in Table 3.1"
+        },
+        {
+          "symbol": "b_0",
+          "meaning": "flange outstand or half the width of an internal element"
+        }
+      ],
+      "clause": "3.2.1",
+      "page": 11
+    },
+    {
+      "equation_id": "(3.2)",
+      "latex": "\\sigma_{z,Ed} = \\frac{F_{Ed}}{b_{eff} (t_w + a_{st,1})}",
+      "plain_text": "σ_z,Ed = F_Ed / (b_eff (t_w + a_st,1))",
+      "description": "Calculation of the elastic stress distribution in a stiffened or unstiffened plate due to the local introduction of in-plane forces (patch loads).",
+      "variables": [
+        {
+          "symbol": "a_{st,1}",
+          "meaning": "is the gross cross-sectional area of the directly loaded stiffeners divided over the length s_e"
+        },
+        {
+          "symbol": "t_w",
+          "meaning": "is the web thickness"
+        },
+        {
+          "symbol": "z",
+          "meaning": "is the distance to flange"
+        },
+        {
+          "symbol": "s_e",
+          "meaning": "is the length of the stiff bearing"
+        },
+        {
+          "symbol": "s_{st}",
+          "meaning": "is the spacing of stiffeners"
+        }
+      ],
+      "clause": "3.2.3",
+      "page": 13
+    },
+    {
+      "equation_id": "(3.3)",
+      "latex": "A_{eff} = A_{c,eff} \\beta_{ult}",
+      "plain_text": "A_eff = A_c,eff β_ult",
+      "description": "Calculates the effective area taking into account the combined effects of plate buckling and shear lag.",
+      "variables": [
+        {
+          "symbol": "A_{c,eff}",
+          "meaning": "is the effective area of the compression flange due to plate buckling (see 4.4 and 4.5);"
+        },
+        {
+          "symbol": "\\beta_{ult}",
+          "meaning": "is the effective width factor for the effect of shear lag at the ultimate limit state, which may be taken as β determined from Table 3.1 with α0 replaced by α0*;"
+        }
+      ],
+      "clause": "3.3",
+      "page": 14
+    },
+    {
+      "equation_id": "(3.4)",
+      "latex": "\\alpha_0^* = \\sqrt{\\frac{A_{c,eff}}{b_0 t_f}}",
+      "plain_text": "α_0^* = √(A_c,eff / (b_0 t_f))",
+      "description": "Modified α_0 parameter for determining β_ult from Table 3.1.",
+      "variables": [
+        {
+          "symbol": "A_{c,eff}",
+          "meaning": "is the effectiveᵖ area of the compression flange due to plate buckling"
+        },
+        {
+          "symbol": "b_0",
+          "meaning": "flange outstand or half the width of an internal element"
+        },
+        {
+          "symbol": "t_f",
+          "meaning": "is the flange thickness"
+        }
+      ],
+      "clause": "3.3",
+      "page": 14
+    },
+    {
+      "equation_id": "(3.5)",
+      "latex": "A_{eff} = A_{c,eff} \\beta^\\kappa \\ge A_{c,eff} \\beta",
+      "plain_text": "A_eff = A_c,eff β^κ ≥ A_c,eff β",
+      "description": "Calculation of elastic-plastic shear lag effects allowing for limited plastic strains.",
+      "variables": [
+        {
+          "symbol": "\\beta",
+          "meaning": "effectiveˢ width factor taken from Table 3.1"
+        },
+        {
+          "symbol": "\\kappa",
+          "meaning": "parameter taken from Table 3.1"
+        }
+      ],
+      "clause": "3.3",
+      "page": 15
+    },
+    {
+      "equation_id": "(4.1)",
+      "latex": "A_{c,eff} = \\rho A_c",
+      "plain_text": "A_c,eff = ρ Ac",
+      "description": "Calculates the effective area of the compression zone of a plate.",
+      "variables": [
+        {
+          "symbol": "\\rho",
+          "meaning": "is the reduction factor for plate buckling."
+        }
+      ],
+      "clause": "4.4",
+      "page": 17
+    },
+    {
+      "equation_id": "(4.2)",
+      "latex": "\\rho = \\frac{\\bar{\\lambda}_p - 0,055(3+\\psi)}{\\bar{\\lambda}_p^2} \\le 1,0",
+      "plain_text": "ρ = (λ_p - 0,055(3+ψ)) / λ_p^2 ≤ 1,0",
+      "description": "Calculates the reduction factor ρ for internal compression elements.",
+      "variables": [
+        {
+          "symbol": "\\bar{\\lambda}_p",
+          "meaning": "plate slenderness"
+        },
+        {
+          "symbol": "\\psi",
+          "meaning": "is the stress ratio determined in accordance with 4.4(3) and 4.4(4)"
+        }
+      ],
+      "clause": "4.4",
+      "page": 17
+    },
+    {
+      "equation_id": "(4.3)",
+      "latex": "\\rho = \\frac{\\bar{\\lambda}_p - 0,188}{\\bar{\\lambda}_p^2} \\le 1,0",
+      "plain_text": "ρ = (λ_p - 0,188) / λ_p^2 ≤ 1,0",
+      "description": "Calculates the reduction factor ρ for outstand compression elements.",
+      "variables": [
+        {
+          "symbol": "\\bar{\\lambda}_p",
+          "meaning": "plate slenderness"
+        }
+      ],
+      "clause": "4.4",
+      "page": 17
+    },
+    {
+      "equation_id": "(4.4)",
+      "latex": "\\bar{\\lambda}_{p,red} = \\bar{\\lambda}_p \\sqrt{\\frac{\\sigma_{com,Ed}}{f_y / \\gamma_{M0}}}",
+      "plain_text": "λ_p,red = λ_p √(σ_com,Ed / (fy / γ_M0))",
+      "description": "Calculates the reduced plate slenderness.",
+      "variables": [
+        {
+          "symbol": "\\sigma_{com,Ed}",
+          "meaning": "is the maximum design compressive stress in the element determined using the effective area of the section caused by all simultaneous actions."
+        }
+      ],
+      "clause": "4.4",
+      "page": 18
+    },
+    {
+      "equation_id": "(4.5)",
+      "latex": "A_{c,eff} = \\rho_c A_{c,eff,loc} + \\sum b_{edge,eff} t",
+      "plain_text": "A_c,eff = ρ_c A_c,eff,loc + Σ bedge,eff t",
+      "description": "Calculates the effective area of the compression zone of the stiffened plate.",
+      "variables": [
+        {
+          "symbol": "A_{c,eff,loc}",
+          "meaning": "is the effective section area of all the stiffeners and subpanels that are fully or partially in the compression zone except the effective parts supported by an adjacent plate element with the width bedge,eff, see example in Figure 4.4."
+        }
+      ],
+      "clause": "4.5.1",
+      "page": 20
+    },
+    {
+      "equation_id": "(4.6)",
+      "latex": "A_{c,eff,loc} = A_{sl,eff} + \\sum_c \\rho_{loc} b_{c,loc} t",
+      "plain_text": "A_c,eff,loc = A_sl,eff + Σ_c ρ_loc bc,loc t",
+      "description": "Calculates the area Ac,eff,loc.",
+      "variables": [
+        {
+          "symbol": "\\sum_c",
+          "meaning": "applies to the part of the stiffened panel width that is in compression except the parts bedge,eff, see Figure 4.4;"
+        },
+        {
+          "symbol": "A_{sl,eff}",
+          "meaning": "is the sum of the effective sections according to 4.4 of all longitudinal stiffeners with gross area Asl located in the compression zone;"
+        },
+        {
+          "symbol": "b_{c,loc}",
+          "meaning": "is the width of the compressed part of each subpanel;"
+        },
+        {
+          "symbol": "\\rho_{loc}",
+          "meaning": "is the reduction factor from 4.4(2) for each subpanel."
+        }
+      ],
+      "clause": "4.5.1",
+      "page": 20
+    },
+    {
+      "equation_id": "(4.7)",
+      "latex": "\\bar{\\lambda}_p = \\sqrt{\\frac{\\beta_{A,c} f_y}{\\sigma_{cr,p}}}",
+      "plain_text": "λ_p = √((β_A,c fy) / σ_cr,p)",
+      "description": "Calculates the relative plate slenderness of the equivalent plate.",
+      "variables": [
+        {
+          "symbol": "\\beta_{A,c}",
+          "meaning": "= A_{c,eff,loc} / A_c"
+        },
+        {
+          "symbol": "A_c",
+          "meaning": "is the gross area of the compression zone of the stiffened plate except the parts of subpanels supported by an adjacent plate, see Figure 4.4 (to be multiplied by the shear lag factor if shear lag is relevant, see 3.3);"
+        },
+        {
+          "symbol": "A_{c,eff,loc}",
+          "meaning": "is the effective area of the same part of the plate (including shear lag effect, if relevant) with due allowance made for possible plate buckling of subpanels and/or stiffeners."
+        }
+      ],
+      "clause": "4.5.2",
+      "page": 21
+    },
+    {
+      "equation_id": "(4.8)",
+      "latex": "\\sigma_{cr,c} = \\frac{\\pi^2 E t^2}{12(1-\\nu^2)a^2}",
+      "plain_text": "σ_cr,c = (π² E t²) / (12(1-ν²)a²)",
+      "description": "Calculates the elastic critical column buckling stress for an unstiffened plate.",
+      "variables": [
+        {
+          "symbol": "\\sigma_{cr,c}",
+          "meaning": "elastic critical column buckling stress"
+        }
+      ],
+      "clause": "4.5.3",
+      "page": 21
+    },
+    {
+      "equation_id": "(4.9)",
+      "latex": "\\sigma_{cr,sl} = \\frac{\\pi^2 E I_{sl,1}}{A_{sl,1} a^2}",
+      "plain_text": "σ_cr,sl = (π² E I_sl,1) / (A_sl,1 a²)",
+      "description": "Calculates the elastic critical column buckling stress of the stiffener closest to the panel edge with the highest compressive stress.",
+      "variables": [
+        {
+          "symbol": "I_{sl,1}",
+          "meaning": "is the second moment of area of the gross cross section of the stiffener and the adjacent parts of the plate, relative to the out-of-plane bending of the plate;"
+        },
+        {
+          "symbol": "A_{sl,1}",
+          "meaning": "is the gross cross-sectional area of the stiffener and the adjacent parts of the plate according to Figure A.1."
+        }
+      ],
+      "clause": "4.5.3",
+      "page": 21
+    },
+    {
+      "equation_id": "(4.10)",
+      "latex": "\\bar{\\lambda}_c = \\sqrt{\\frac{f_y}{\\sigma_{cr,c}}}",
+      "plain_text": "λ_c = √(fy / σ_cr,c)",
+      "description": "Calculates the relative column slenderness for unstiffened plates.",
+      "variables": [
+        {
+          "symbol": "\\sigma_{cr,c}",
+          "meaning": "elastic critical column buckling stress"
+        }
+      ],
+      "clause": "4.5.3",
+      "page": 22
+    },
+    {
+      "equation_id": "(4.11)",
+      "latex": "\\bar{\\lambda}_c = \\sqrt{\\frac{\\beta_{A,c} f_y}{\\sigma_{cr,c}}}",
+      "plain_text": "λ_c = √((β_A,c fy) / σ_cr,c)",
+      "description": "Calculates the relative column slenderness for stiffened plates.",
+      "variables": [
+        {
+          "symbol": "\\beta_{A,c}",
+          "meaning": "= A_{sl,1,eff} / A_{sl,1}"
+        },
+        {
+          "symbol": "A_{sl,1}",
+          "meaning": "is defined in 4.5.3(3);"
+        },
+        {
+          "symbol": "A_{sl,1,eff}",
+          "meaning": "is the effective cross-sectional area of the stiffener and the adjacent parts of the plate with due allowance for plate buckling, see Figure A.1."
+        }
+      ],
+      "clause": "4.5.3",
+      "page": 22
+    },
+    {
+      "equation_id": "(4.12)",
+      "latex": "\\alpha_c = \\alpha + \\frac{0,09}{i/e}",
+      "plain_text": "α_c = α + 0,09 / (i/e)",
+      "description": "Calculates the increased imperfection factor for stiffened plates.",
+      "variables": [
+        {
+          "symbol": "i",
+          "meaning": "= √(I_{sl,1} / A_{sl,1})"
+        },
+        {
+          "symbol": "e",
+          "meaning": "= max(e1, e2) is the largest distance from the respective centroids of the plating and the one-sided stiffener (or of the centroids of either set of stiffeners when present on both sides) to the neutral axis of the effective column, see Figure A.1;"
+        },
+        {
+          "symbol": "\\alpha",
+          "meaning": "= 0,34 (curve b) for closed section stiffeners; = 0,49 (curve c) for open section stiffeners."
+        }
+      ],
+      "clause": "4.5.3",
+      "page": 22
+    },
+    {
+      "equation_id": "(4.13)",
+      "latex": "\\rho_c = (\\rho - \\chi_c)\\xi(2-\\xi) + \\chi_c",
+      "plain_text": "ρ_c = (ρ - χ_c)ξ(2-ξ) + χ_c",
+      "description": "Calculates the final reduction factor ρc by interpolation between χc and ρ.",
+      "variables": [
+        {
+          "symbol": "\\xi",
+          "meaning": "= σ_{cr,p} / σ_{cr,c} - 1 but 0 ≤ ξ ≤ 1"
+        },
+        {
+          "symbol": "\\sigma_{cr,p}",
+          "meaning": "is the elastic critical plate buckling stress, see Annex A.1(2);"
+        },
+        {
+          "symbol": "\\sigma_{cr,c}",
+          "meaning": "is the elastic critical column buckling stress according to 4.5.3(2) and (3), respectively;"
+        },
+        {
+          "symbol": "\\chi_c",
+          "meaning": "is the reduction factor due to column buckling."
+        },
+        {
+          "symbol": "\\rho",
+          "meaning": "is the reduction factor due to plate buckling, see 4.4(1)."
+        }
+      ],
+      "clause": "4.5.4",
+      "page": 22
+    },
+    {
+      "equation_id": "(4.14)",
+      "latex": "\\eta_1 = \\frac{N_{Ed}}{f_y A_{eff} / \\gamma_{M0}} + \\frac{M_{Ed} + N_{Ed} e_N}{f_y W_{eff} / \\gamma_{M0}} \\le 1,0",
+      "plain_text": "η_1 = N_Ed / (fy A_eff / γ_M0) + (M_Ed + N_Ed e_N) / (fy W_eff / γ_M0) ≤ 1,0",
+      "description": "Member verification for compression and uniaxial bending.",
+      "variables": [
+        {
+          "symbol": "A_{eff}",
+          "meaning": "is the effective cross-section area in accordance with 4.3(3);"
+        },
+        {
+          "symbol": "e_N",
+          "meaning": "is the shift in the position of neutral axis, see 4.3(3);"
+        },
+        {
+          "symbol": "M_{Ed}",
+          "meaning": "is the design bending moment;"
+        },
+        {
+          "symbol": "N_{Ed}",
+          "meaning": "is the design axial force;"
+        },
+        {
+          "symbol": "W_{eff}",
+          "meaning": "is the effective elastic section modulus, see 4.3(4);"
+        },
+        {
+          "symbol": "\\gamma_{M0}",
+          "meaning": "is the partial factor, see application parts EN 1993-2 to 6."
+        }
+      ],
+      "clause": "4.6",
+      "page": 23
+    },
+    {
+      "equation_id": "(4.15)",
+      "latex": "\\eta_1 = \\frac{N_{Ed}}{f_y A_{eff} / \\gamma_{M0}} + \\frac{M_{y,Ed} + N_{Ed} e_{y,N}}{f_y W_{y,eff} / \\gamma_{M0}} + \\frac{M_{z,Ed} + N_{Ed} e_{z,N}}{f_y W_{z,eff} / \\gamma_{M0}} \\le 1,0",
+      "plain_text": "η_1 = N_Ed / (fy A_eff / γ_M0) + (M_y,Ed + N_Ed e_y,N) / (fy W_y,eff / γ_M0) + (M_z,Ed + N_Ed e_z,N) / (fy W_z,eff / γ_M0) ≤ 1,0",
+      "description": "Member verification for compression and biaxial bending.",
+      "variables": [
+        {
+          "symbol": "M_{y,Ed}, M_{z,Ed}",
+          "meaning": "are the design bending moments with respect to y-y and z-z axes respectively;"
+        },
+        {
+          "symbol": "e_{y,N}, e_{z,N}",
+          "meaning": "are the eccentricities with respect to the neutral axis."
+        }
+      ],
+      "clause": "4.6",
+      "page": 23
+    },
+    {
+      "equation_id": "(5.1)",
+      "latex": "V_{b,Rd} = V_{bw,Rd} + V_{bf,Rd} \\le \\frac{\\eta f_{yw} h_w t}{\\sqrt{3} \\gamma_{M1}}",
+      "plain_text": "V_b,Rd = V_bw,Rd + V_bf,Rd ≤ (η f_yw h_w t) / (√3 γ_M1)",
+      "description": "Calculates the design resistance for shear for unstiffened or stiffened webs.",
+      "variables": [
+        {
+          "symbol": "V_{bw,Rd}",
+          "meaning": "contribution from the web"
+        },
+        {
+          "symbol": "V_{bf,Rd}",
+          "meaning": "contribution from the flanges"
+        }
+      ],
+      "clause": "5.2",
+      "page": 24
+    },
+    {
+      "equation_id": "(5.2)",
+      "latex": "V_{bw,Rd} = \\frac{\\chi_w f_{yw} h_w t}{\\sqrt{3} \\gamma_{M1}}",
+      "plain_text": "V_bw,Rd = (χ_w f_yw h_w t) / (√3 γ_M1)",
+      "description": "Calculates the contribution from the web to the design resistance for shear.",
+      "variables": [
+        {
+          "symbol": "\\chi_w",
+          "meaning": "factor for the contribution of the web to the shear buckling resistance"
+        }
+      ],
+      "clause": "5.2",
+      "page": 24
+    },
+    {
+      "equation_id": "(5.3)",
+      "latex": "\\bar{\\lambda}_w = 0,76 \\sqrt{\\frac{f_{yw}}{\\tau_{cr}}}",
+      "plain_text": "λ_w = 0,76 √(f_yw / τ_cr)",
+      "description": "Calculates the modified slenderness λw.",
+      "variables": [
+        {
+          "symbol": "\\tau_{cr}",
+          "meaning": "elastic critical shear stress"
+        }
+      ],
+      "clause": "5.3",
+      "page": 25
+    },
+    {
+      "equation_id": "(5.4)",
+      "latex": "\\tau_{cr} = k_\\tau \\sigma_E",
+      "plain_text": "τ_cr = k_τ σ_E",
+      "description": "Calculates the elastic critical shear stress.",
+      "variables": [
+        {
+          "symbol": "k_\\tau",
+          "meaning": "shear buckling coefficient"
+        },
+        {
+          "symbol": "\\sigma_E",
+          "meaning": "reference stress"
+        }
+      ],
+      "clause": "5.3",
+      "page": 25
+    },
+    {
+      "equation_id": "(5.5)",
+      "latex": "\\bar{\\lambda}_w = \\frac{h_w}{86,4 t \\varepsilon}",
+      "plain_text": "λ_w = h_w / (86,4 t ε)",
+      "description": "Calculates the modified slenderness λw for transverse stiffeners at supports only.",
+      "variables": [
+        {
+          "symbol": "h_w",
+          "meaning": "web height"
+        },
+        {
+          "symbol": "t",
+          "meaning": "web thickness"
+        },
+        {
+          "symbol": "\\varepsilon",
+          "meaning": "material factor"
+        }
+      ],
+      "clause": "5.3",
+      "page": 25
+    },
+    {
+      "equation_id": "(5.6)",
+      "latex": "\\bar{\\lambda}_w = \\frac{h_w}{37,4 t \\varepsilon \\sqrt{k_\\tau}}",
+      "plain_text": "λ_w = h_w / (37,4 t ε √k_τ)",
+      "description": "Calculates the modified slenderness λw for transverse stiffeners at supports and intermediate transverse or longitudinal stiffeners or both.",
+      "variables": [
+        {
+          "symbol": "k_\\tau",
+          "meaning": "is the minimum shear buckling coefficient for the web panel."
+        }
+      ],
+      "clause": "5.3",
+      "page": 25
+    },
+    {
+      "equation_id": "(5.7)",
+      "latex": "\\bar{\\lambda}_w = \\frac{h_{wi}}{37,4 t \\varepsilon \\sqrt{k_{\\tau i}}}",
+      "plain_text": "λ_w = h_wi / (37,4 t ε √k_τi)",
+      "description": "Calculates the minimum modified slenderness λw for webs with longitudinal stiffeners.",
+      "variables": [
+        {
+          "symbol": "h_{wi}",
+          "meaning": "refer to the subpanel with the largest modified slenderness λw of all subpanels within the web panel under consideration."
+        },
+        {
+          "symbol": "k_{\\tau i}",
+          "meaning": "refer to the subpanel with the largest modified slenderness λw of all subpanels within the web panel under consideration."
+        }
+      ],
+      "clause": "5.3",
+      "page": 26
+    },
+    {
+      "equation_id": "(5.8)",
+      "latex": "V_{bf,Rd} = \\frac{b_f t_f^2 f_{yf}}{c \\gamma_{M1}} \\left( 1 - \\left( \\frac{M_{Ed}}{M_{f,Rd}} \\right)^2 \\right)",
+      "plain_text": "Vbf,Rd = (bf tf^2 fyf) / (c γM1) [ 1 - (MEd / Mf,Rd)^2 ]",
+      "description": "Calculates the contribution from the flanges to the shear resistance when the flange resistance is not completely utilized in resisting the bending moment.",
+      "variables": [
+        {
+          "symbol": "bf",
+          "meaning": "width of the flange which provides the least axial resistance",
+          "unit": ""
+        },
+        {
+          "symbol": "tf",
+          "meaning": "thickness of the flange which provides the least axial resistance",
+          "unit": ""
+        },
+        {
+          "symbol": "fyf",
+          "meaning": "yield strength of the flange",
+          "unit": ""
+        },
+        {
+          "symbol": "c",
+          "meaning": "factor defined by an equation",
+          "unit": ""
+        },
+        {
+          "symbol": "γM1",
+          "meaning": "partial factor",
+          "unit": ""
+        },
+        {
+          "symbol": "MEd",
+          "meaning": "design bending moment",
+          "unit": ""
+        },
+        {
+          "symbol": "Mf,Rd",
+          "meaning": "moment of resistance of the cross section consisting of the effective area of the flanges only",
+          "unit": ""
+        }
+      ],
+      "clause": "5.4",
+      "page": 27
+    },
+    {
+      "equation_id": "(5.9)",
+      "latex": "1 - \\frac{N_{Ed}}{(A_{f1} + A_{f2}) f_{yf} / \\gamma_{M0}}",
+      "plain_text": "1 - NEd / ( (Af1 + Af2) fyf / γM0 )",
+      "description": "Reduction factor for Mf,Rd when an axial force NEd is present.",
+      "variables": [
+        {
+          "symbol": "NEd",
+          "meaning": "axial force",
+          "unit": ""
+        },
+        {
+          "symbol": "Af1",
+          "meaning": "area of the top flange",
+          "unit": ""
+        },
+        {
+          "symbol": "Af2",
+          "meaning": "area of the bottom flange",
+          "unit": ""
+        },
+        {
+          "symbol": "fyf",
+          "meaning": "yield strength of the flange",
+          "unit": ""
+        },
+        {
+          "symbol": "γM0",
+          "meaning": "partial factor",
+          "unit": ""
+        }
+      ],
+      "clause": "5.4",
+      "page": 27
+    },
+    {
+      "equation_id": "(5.10)",
+      "latex": "\\eta_3 = \\frac{V_{Ed}}{V_{b,Rd}} \\le 1,0",
+      "plain_text": "η3 = VEd / Vb,Rd ≤ 1,0",
+      "description": "Verification criterion for shear force.",
+      "variables": [
+        {
+          "symbol": "VEd",
+          "meaning": "design shear force including shear from torque",
+          "unit": ""
+        },
+        {
+          "symbol": "Vb,Rd",
+          "meaning": "design shear resistance",
+          "unit": ""
+        }
+      ],
+      "clause": "5.5",
+      "page": 27
+    },
+    {
+      "equation_id": "(6.1)",
+      "latex": "F_{Rd} = \\frac{f_{yw} L_{eff} t_w}{\\gamma_{M1}}",
+      "plain_text": "FRd = (fyw Leff tw) / γM1",
+      "description": "Design resistance to local buckling under transverse forces for unstiffened or stiffened webs.",
+      "variables": [
+        {
+          "symbol": "tw",
+          "meaning": "thickness of the web",
+          "unit": ""
+        },
+        {
+          "symbol": "fyw",
+          "meaning": "yield strength of the web",
+          "unit": ""
+        },
+        {
+          "symbol": "Leff",
+          "meaning": "effective length for resistance to transverse forces",
+          "unit": ""
+        },
+        {
+          "symbol": "γM1",
+          "meaning": "partial factor",
+          "unit": ""
+        }
+      ],
+      "clause": "6.2",
+      "page": 28
+    },
+    {
+      "equation_id": "(6.2)",
+      "latex": "L_{eff} = \\chi_F \\ell_y",
+      "plain_text": "L_eff = χ_F ℓ_y",
+      "description": "Calculates the effective length for resistance to transverse forces.",
+      "variables": [
+        {
+          "symbol": "\\ell_y",
+          "meaning": "is the effective loaded length, see 6.5, appropriate to the length of stiff bearing ss, see 6.3;"
+        },
+        {
+          "symbol": "\\chi_F",
+          "meaning": "is the reduction factor due to local buckling, see 6.4(1)."
+        }
+      ],
+      "clause": "6.2",
+      "page": 28
+    },
+    {
+      "equation_id": "(6.3)",
+      "latex": "\\chi_F = \\frac{0,5}{\\bar{\\lambda}_F} \\le 1,0",
+      "plain_text": "χF = 0,5 / λF ≤ 1,0",
+      "description": "Reduction factor for effective length for resistance.",
+      "variables": [
+        {
+          "symbol": "λF",
+          "meaning": "slenderness parameter",
+          "unit": ""
+        }
+      ],
+      "clause": "6.4",
+      "page": 29
+    },
+    {
+      "equation_id": "(6.4)",
+      "latex": "\\bar{\\lambda}_F = \\sqrt{\\frac{\\ell_y t_w f_{yw}}{F_{cr}}}",
+      "plain_text": "λF = √ (ℓy tw fyw / Fcr)",
+      "description": "Slenderness parameter for transverse force resistance.",
+      "variables": [
+        {
+          "symbol": "ℓy",
+          "meaning": "effective loaded length",
+          "unit": ""
+        },
+        {
+          "symbol": "tw",
+          "meaning": "thickness of the web",
+          "unit": ""
+        },
+        {
+          "symbol": "fyw",
+          "meaning": "yield strength of the web",
+          "unit": ""
+        },
+        {
+          "symbol": "Fcr",
+          "meaning": "elastic critical force",
+          "unit": ""
+        }
+      ],
+      "clause": "6.4",
+      "page": 29
+    },
+    {
+      "equation_id": "(6.5)",
+      "latex": "F_{cr} = 0,9 k_F E \\frac{t_w^3}{h_w}",
+      "plain_text": "Fcr = 0,9 kF E tw^3 / hw",
+      "description": "Elastic critical force for local buckling under transverse forces.",
+      "variables": [
+        {
+          "symbol": "kF",
+          "meaning": "buckling coefficient",
+          "unit": ""
+        },
+        {
+          "symbol": "E",
+          "meaning": "modulus of elasticity",
+          "unit": ""
+        },
+        {
+          "symbol": "tw",
+          "meaning": "thickness of the web",
+          "unit": ""
+        },
+        {
+          "symbol": "hw",
+          "meaning": "depth of the web",
+          "unit": ""
+        }
+      ],
+      "clause": "6.4",
+      "page": 29
+    },
+    {
+      "equation_id": "(6.6)",
+      "latex": "k_F = 6 + 2 \\left[ \\frac{h_w}{a} \\right]^2 + \\left[ 5,44 \\frac{b_1}{a} - 0,21 \\right] \\sqrt{\\gamma_s}",
+      "plain_text": "kF = 6 + 2 [hw / a]^2 + [5,44 b1 / a - 0,21] √γs",
+      "description": "Buckling coefficient for webs with longitudinal stiffeners.",
+      "variables": [
+        {
+          "symbol": "hw",
+          "meaning": "depth of the web",
+          "unit": ""
+        },
+        {
+          "symbol": "a",
+          "meaning": "distance between transverse stiffeners",
+          "unit": ""
+        },
+        {
+          "symbol": "b1",
+          "meaning": "depth of the loaded subpanel taken as the clear distance between the loaded flange and the stiffener",
+          "unit": ""
+        },
+        {
+          "symbol": "γs",
+          "meaning": "stiffness parameter",
+          "unit": ""
+        }
+      ],
+      "clause": "6.4",
+      "page": 29
+    },
+    {
+      "equation_id": "(6.7)",
+      "latex": "\\gamma_s = 10,9 \\frac{I_{sl,1}}{h_w t_w^3} \\le 13 \\left[ \\frac{a}{h_w} \\right]^3 + 210 \\left[ 0,3 - \\frac{b_1}{a} \\right]",
+      "plain_text": "γs = 10,9 Isl,1 / (hw tw^3) ≤ 13 [a / hw]^3 + 210 [0,3 - b1 / a]",
+      "description": "Stiffness parameter for longitudinal stiffeners.",
+      "variables": [
+        {
+          "symbol": "Isl,1",
+          "meaning": "second moment of area of the stiffener closest to the loaded flange including contributing parts of the web",
+          "unit": ""
+        },
+        {
+          "symbol": "hw",
+          "meaning": "depth of the web",
+          "unit": ""
+        },
+        {
+          "symbol": "tw",
+          "meaning": "thickness of the web",
+          "unit": ""
+        },
+        {
+          "symbol": "a",
+          "meaning": "distance between transverse stiffeners",
+          "unit": ""
+        },
+        {
+          "symbol": "b1",
+          "meaning": "depth of the loaded subpanel",
+          "unit": ""
+        }
+      ],
+      "clause": "6.4",
+      "page": 29
+    },
+    {
+      "equation_id": "(6.8)",
+      "latex": "m_1 = \\frac{f_{yf} b_f}{f_{yw} t_w}",
+      "plain_text": "m1 = (fyf bf) / (fyw tw)",
+      "description": "Parameter m1 for calculating effective loaded length.",
+      "variables": [
+        {
+          "symbol": "fyf",
+          "meaning": "yield strength of the flange",
+          "unit": ""
+        },
+        {
+          "symbol": "bf",
+          "meaning": "width of the flange",
+          "unit": ""
+        },
+        {
+          "symbol": "fyw",
+          "meaning": "yield strength of the web",
+          "unit": ""
+        },
+        {
+          "symbol": "tw",
+          "meaning": "thickness of the web",
+          "unit": ""
+        }
+      ],
+      "clause": "6.5",
+      "page": 29
+    },
+    {
+      "equation_id": "(6.9)",
+      "latex": "m_2 = 0,02 \\left( \\frac{h_w}{t_f} \\right)^2 \\text{ if } \\bar{\\lambda}_F > 0,5 \\quad \\text{or} \\quad m_2 = 0 \\text{ if } \\bar{\\lambda}_F \\le 0,5",
+      "plain_text": "m2 = 0,02 (hw / tf)^2 if λF > 0,5 or m2 = 0 if λF ≤ 0,5",
+      "description": "Parameter m2 for calculating effective loaded length.",
+      "variables": [
+        {
+          "symbol": "hw",
+          "meaning": "depth of the web",
+          "unit": ""
+        },
+        {
+          "symbol": "tf",
+          "meaning": "thickness of the flange",
+          "unit": ""
+        },
+        {
+          "symbol": "λF",
+          "meaning": "slenderness parameter",
+          "unit": ""
+        }
+      ],
+      "clause": "6.5",
+      "page": 29
+    },
+    {
+      "equation_id": "(6.10)",
+      "latex": "\\ell_y = s_s + 2 t_f \\left( 1 + \\sqrt{m_1 + m_2} \\right)",
+      "plain_text": "ℓy = ss + 2 tf (1 + √(m1 + m2))",
+      "description": "Effective loaded length for load types a) and b).",
+      "variables": [
+        {
+          "symbol": "ss",
+          "meaning": "length of stiff bearing",
+          "unit": ""
+        },
+        {
+          "symbol": "tf",
+          "meaning": "thickness of the flange",
+          "unit": ""
+        },
+        {
+          "symbol": "m1",
+          "meaning": "parameter m1",
+          "unit": ""
+        },
+        {
+          "symbol": "m2",
+          "meaning": "parameter m2",
+          "unit": ""
+        }
+      ],
+      "clause": "6.5",
+      "page": 29
+    },
+    {
+      "equation_id": "(6.11)",
+      "latex": "\\ell_y = \\ell_e + t_f \\sqrt{\\frac{m_1}{2} + \\left( \\frac{\\ell_e}{t_f} \\right)^2 + m_2}",
+      "plain_text": "ℓy = ℓe + tf √(m1 / 2 + (ℓe / tf)^2 + m2)",
+      "description": "Effective loaded length for load type c).",
+      "variables": [
+        {
+          "symbol": "ℓe",
+          "meaning": "effective length parameter",
+          "unit": ""
+        },
+        {
+          "symbol": "tf",
+          "meaning": "thickness of the flange",
+          "unit": ""
+        },
+        {
+          "symbol": "m1",
+          "meaning": "parameter m1",
+          "unit": ""
+        },
+        {
+          "symbol": "m2",
+          "meaning": "parameter m2",
+          "unit": ""
+        }
+      ],
+      "clause": "6.5",
+      "page": 30
+    },
+    {
+      "equation_id": "(6.12)",
+      "latex": "\\ell_y = \\ell_e + t_f \\sqrt{m_1 + m_2}",
+      "plain_text": "ℓy = ℓe + tf √(m1 + m2)",
+      "description": "Alternative effective loaded length for load type c).",
+      "variables": [
+        {
+          "symbol": "ℓe",
+          "meaning": "effective length parameter",
+          "unit": ""
+        },
+        {
+          "symbol": "tf",
+          "meaning": "thickness of the flange",
+          "unit": ""
+        },
+        {
+          "symbol": "m1",
+          "meaning": "parameter m1",
+          "unit": ""
+        },
+        {
+          "symbol": "m2",
+          "meaning": "parameter m2",
+          "unit": ""
+        }
+      ],
+      "clause": "6.5",
+      "page": 30
+    },
+    {
+      "equation_id": "(6.13)",
+      "latex": "\\ell_e = \\frac{k_F E t_w^2}{2 f_{yw} h_w} \\le s_s + c",
+      "plain_text": "ℓe = (kF E tw^2) / (2 fyw hw) ≤ ss + c",
+      "description": "Effective length parameter for load type c).",
+      "variables": [
+        {
+          "symbol": "kF",
+          "meaning": "buckling coefficient",
+          "unit": ""
+        },
+        {
+          "symbol": "E",
+          "meaning": "modulus of elasticity",
+          "unit": ""
+        },
+        {
+          "symbol": "tw",
+          "meaning": "thickness of the web",
+          "unit": ""
+        },
+        {
+          "symbol": "fyw",
+          "meaning": "yield strength of the web",
+          "unit": ""
+        },
+        {
+          "symbol": "hw",
+          "meaning": "depth of the web",
+          "unit": ""
+        },
+        {
+          "symbol": "ss",
+          "meaning": "length of stiff bearing",
+          "unit": ""
+        },
+        {
+          "symbol": "c",
+          "meaning": "distance to the unstiffened end",
+          "unit": ""
+        }
+      ],
+      "clause": "6.5",
+      "page": 30
+    },
+    {
+      "equation_id": "(6.14)",
+      "latex": "\\eta_2 = \\frac{F_{Ed}}{f_{yw} L_{eff} t_w / \\gamma_{M1}} \\le 1,0",
+      "plain_text": "η2 = FEd / (fyw Leff tw / γM1) ≤ 1,0",
+      "description": "Verification criterion for transverse force.",
+      "variables": [
+        {
+          "symbol": "FEd",
+          "meaning": "design transverse force",
+          "unit": ""
+        },
+        {
+          "symbol": "fyw",
+          "meaning": "yield strength of the web",
+          "unit": ""
+        },
+        {
+          "symbol": "Leff",
+          "meaning": "effective length for resistance to transverse forces",
+          "unit": ""
+        },
+        {
+          "symbol": "tw",
+          "meaning": "thickness of the plate",
+          "unit": ""
+        },
+        {
+          "symbol": "γM1",
+          "meaning": "partial factor",
+          "unit": ""
+        }
+      ],
+      "clause": "6.6",
+      "page": 30
+    },
+    {
+      "equation_id": "(7.1)",
+      "latex": "\\bar{\\eta}_1 + \\left( 1 - \\frac{M_{f,Rd}}{M_{pl,Rd}} \\right) (2 \\bar{\\eta}_3 - 1)^2 \\le 1,0",
+      "plain_text": "η1 + (1 - Mf,Rd / Mpl,Rd) (2 η3 - 1)^2 ≤ 1,0",
+      "description": "Interaction criterion between shear force and bending moment.",
+      "variables": [
+        {
+          "symbol": "η1",
+          "meaning": "ratio of design bending moment to design plastic resistance",
+          "unit": ""
+        },
+        {
+          "symbol": "Mf,Rd",
+          "meaning": "design plastic moment of resistance of the section consisting of the effective area of the flanges",
+          "unit": ""
+        },
+        {
+          "symbol": "Mpl,Rd",
+          "meaning": "design plastic resistance of the cross section consisting of the effective area of the flanges and the fully effective web",
+          "unit": ""
+        },
+        {
+          "symbol": "η3",
+          "meaning": "ratio of design shear force to design shear resistance",
+          "unit": ""
+        }
+      ],
+      "clause": "7.1",
+      "page": 30
+    },
+    {
+      "equation_id": "(7.2)",
+      "latex": "\\eta_2 + 0,8 \\eta_1 \\le 1,4",
+      "plain_text": "η2 + 0,8 η1 ≤ 1,4",
+      "description": "Interaction criterion between transverse force, bending moment and axial force.",
+      "variables": [
+        {
+          "symbol": "η2",
+          "meaning": "ratio for transverse force verification",
+          "unit": ""
+        },
+        {
+          "symbol": "η1",
+          "meaning": "ratio for bending moment verification",
+          "unit": ""
+        }
+      ],
+      "clause": "7.2",
+      "page": 31
+    },
+    {
+      "equation_id": "(8.1)",
+      "latex": "\\frac{h_w}{t_w} \\le k \\frac{E}{f_{yf}} \\sqrt{\\frac{A_w}{A_{fc}}}",
+      "plain_text": "hw / tw ≤ k (E / fyf) √(Aw / Afc)",
+      "description": "Criterion to prevent compression flange buckling in the plane of the web.",
+      "variables": [
+        {
+          "symbol": "hw",
+          "meaning": "depth of the web",
+          "unit": ""
+        },
+        {
+          "symbol": "tw",
+          "meaning": "thickness of the web",
+          "unit": ""
+        },
+        {
+          "symbol": "k",
+          "meaning": "factor depending on utilized resistance",
+          "unit": ""
+        },
+        {
+          "symbol": "E",
+          "meaning": "modulus of elasticity",
+          "unit": ""
+        },
+        {
+          "symbol": "fyf",
+          "meaning": "yield strength of the flange",
+          "unit": ""
+        },
+        {
+          "symbol": "Aw",
+          "meaning": "cross section area of the web",
+          "unit": ""
+        },
+        {
+          "symbol": "Afc",
+          "meaning": "effective cross section area of the compression flange",
+          "unit": ""
+        }
+      ],
+      "clause": "8",
+      "page": 31
+    },
+    {
+      "equation_id": "(8.2)",
+      "latex": "\\frac{h_w}{t_w} \\le \\frac{k \\frac{E}{f_{yf}} \\sqrt{\\frac{A_w}{A_{fc}}}}{\\sqrt{1 + \\frac{h_w E}{3 r f_{yf}}}}",
+      "plain_text": "hw / tw ≤ (k (E / fyf) √(Aw / Afc)) / √(1 + (hw E) / (3 r fyf))",
+      "description": "Criterion to prevent compression flange buckling for girders curved in elevation.",
+      "variables": [
+        {
+          "symbol": "hw",
+          "meaning": "depth of the web",
+          "unit": ""
+        },
+        {
+          "symbol": "tw",
+          "meaning": "thickness of the web",
+          "unit": ""
+        },
+        {
+          "symbol": "k",
+          "meaning": "factor depending on utilized resistance",
+          "unit": ""
+        },
+        {
+          "symbol": "E",
+          "meaning": "modulus of elasticity",
+          "unit": ""
+        },
+        {
+          "symbol": "fyf",
+          "meaning": "yield strength of the flange",
+          "unit": ""
+        },
+        {
+          "symbol": "Aw",
+          "meaning": "cross section area of the web",
+          "unit": ""
+        },
+        {
+          "symbol": "Afc",
+          "meaning": "effective cross section area of the compression flange",
+          "unit": ""
+        },
+        {
+          "symbol": "r",
+          "meaning": "radius of curvature of the compression flange",
+          "unit": ""
+        }
+      ],
+      "clause": "8",
+      "page": 31
+    },
+    {
+      "equation_id": "(9.1)",
+      "latex": "I_{st} = \\frac{\\sigma_m}{E} \\left( \\frac{b}{\\pi} \\right)^4 \\left( 1 + w_0 \\frac{300}{b} u \\right)",
+      "plain_text": "Ist = (σm / E) (b / π)^4 (1 + w0 (300 / b) u)",
+      "description": "Minimum second moment of area of transverse stiffeners to satisfy rigidity criteria.",
+      "variables": [
+        {
+          "symbol": "σm",
+          "meaning": "stress parameter defined in the clause",
+          "unit": ""
+        },
+        {
+          "symbol": "E",
+          "meaning": "modulus of elasticity",
+          "unit": ""
+        },
+        {
+          "symbol": "b",
+          "meaning": "height between the centroids of the flanges or span of the transverse stiffener",
+          "unit": ""
+        },
+        {
+          "symbol": "w0",
+          "meaning": "initial sinusoidal imperfection",
+          "unit": ""
+        },
+        {
+          "symbol": "u",
+          "meaning": "parameter defined in the clause",
+          "unit": ""
+        }
+      ],
+      "clause": "9.2.1",
+      "page": 33
+    },
+    {
+      "equation_id": "(9.2)",
+      "latex": "q = \\frac{\\pi}{4} \\sigma_m (w_0 + w_{el})",
+      "plain_text": "q = (π / 4) σm (w0 + wel)",
+      "description": "Equivalent uniformly distributed lateral load for first order elastic analysis of transverse stiffeners.",
+      "variables": [
+        {
+          "symbol": "σm",
+          "meaning": "stress parameter defined in (5)",
+          "unit": ""
+        },
+        {
+          "symbol": "w0",
+          "meaning": "initial sinusoidal imperfection defined in Figure 9.2",
+          "unit": ""
+        },
+        {
+          "symbol": "wel",
+          "meaning": "elastic deformation",
+          "unit": ""
+        }
+      ],
+      "clause": "9.2.1",
+      "page": 33
+    },
+    {
+      "equation_id": "(9.3)",
+      "latex": "\\frac{I_T}{I_p} \\ge 5,3 \\frac{f_y}{E}",
+      "plain_text": "IT / Ip ≥ 5,3 fy / E",
+      "description": "Criterion to prevent torsional buckling of stiffeners with open cross-sections.",
+      "variables": [
+        {
+          "symbol": "Ip",
+          "meaning": "polar second moment of area of the stiffener alone around the edge fixed to the plate",
+          "unit": ""
+        },
+        {
+          "symbol": "IT",
+          "meaning": "St. Venant torsional constant for the stiffener alone",
+          "unit": ""
+        },
+        {
+          "symbol": "fy",
+          "meaning": "yield strength",
+          "unit": ""
+        },
+        {
+          "symbol": "E",
+          "meaning": "modulus of elasticity",
+          "unit": ""
+        }
+      ],
+      "clause": "9.2.1",
+      "page": 33
+    },
+    {
+      "equation_id": "(9.4)",
+      "latex": "\\sigma_{cr} \\ge \\theta f_y",
+      "plain_text": "σcr ≥ θ fy",
+      "description": "Criterion for warping stiffness of stiffeners.",
+      "variables": [
+        {
+          "symbol": "σcr",
+          "meaning": "elastic critical stress for torsional buckling not considering rotational restraint from the plate",
+          "unit": ""
+        },
+        {
+          "symbol": "θ",
+          "meaning": "parameter to ensure class 3 behaviour",
+          "unit": ""
+        },
+        {
+          "symbol": "fy",
+          "meaning": "yield strength",
+          "unit": ""
+        }
+      ],
+      "clause": "9.2.1",
+      "page": 34
+    },
+    {
+      "equation_id": "(9.5)",
+      "latex": "V_{Ed} = \\frac{I_{net}}{e} \\frac{f_{yk}}{\\gamma_{M0}} \\frac{\\pi}{b_G}",
+      "plain_text": "VEd = (Inet / e) (fyk / γM0) (π / bG)",
+      "description": "Shear force resistance of the gross web adjacent to a cut out.",
+      "variables": [
+        {
+          "symbol": "Inet",
+          "meaning": "second moment of area for the net section of the transverse stiffener",
+          "unit": ""
+        },
+        {
+          "symbol": "e",
+          "meaning": "maximum distance from the underside of the flange plate to the neutral axis of net section",
+          "unit": ""
+        },
+        {
+          "symbol": "fyk",
+          "meaning": "characteristic yield strength",
+          "unit": ""
+        },
+        {
+          "symbol": "γM0",
+          "meaning": "partial factor",
+          "unit": ""
+        },
+        {
+          "symbol": "bG",
+          "meaning": "length of the transverse stiffener between the flanges",
+          "unit": ""
+        }
+      ],
+      "clause": "9.2.4",
+      "page": 35
+    },
+    {
+      "equation_id": "(9.6)",
+      "latex": "I_{st} \\ge 1,5 h_w^3 t^3 / a^2 \\quad \\text{or} \\quad I_{st} \\ge 0,75 h_w t^3",
+      "plain_text": "Ist ≥ 1,5 hw^3 t^3 / a^2 or Ist ≥ 0,75 hw t^3",
+      "description": "Minimum second moment of area for effective section of intermediate stiffeners acting as rigid supports.",
+      "variables": [
+        {
+          "symbol": "a",
+          "meaning": "distance between transverse stiffeners",
+          "unit": ""
+        },
+        {
+          "symbol": "hw",
+          "meaning": "depth of the web",
+          "unit": ""
+        },
+        {
+          "symbol": "t",
+          "meaning": "thickness of the web",
+          "unit": ""
+        }
+      ],
+      "clause": "9.3.3",
+      "page": 37
+    },
+    {
+      "equation_id": "(10.1)",
+      "latex": "\\frac{\\rho \\alpha_{ult,k}}{\\gamma_{M1}} \\ge 1",
+      "plain_text": "ρ αult,k / γM1 ≥ 1",
+      "description": "Verification criterion for the reduced stress method.",
+      "variables": [
+        {
+          "symbol": "αult,k",
+          "meaning": "minimum load amplifier for the design loads to reach the characteristic value of resistance",
+          "unit": ""
+        },
+        {
+          "symbol": "ρ",
+          "meaning": "reduction factor depending on the plate slenderness",
+          "unit": ""
+        },
+        {
+          "symbol": "γM1",
+          "meaning": "partial factor applied to this method",
+          "unit": ""
+        }
+      ],
+      "clause": "10",
+      "page": 38
+    },
+    {
+      "equation_id": "(10.2)",
+      "latex": "\\bar{\\lambda}_p = \\sqrt{\\frac{\\alpha_{ult,k}}{\\alpha_{cr}}}",
+      "plain_text": "λp = √(αult,k / αcr)",
+      "description": "Modified plate slenderness for the reduced stress method.",
+      "variables": [
+        {
+          "symbol": "αult,k",
+          "meaning": "minimum load amplifier for the design loads to reach the characteristic value of resistance",
+          "unit": ""
+        },
+        {
+          "symbol": "αcr",
+          "meaning": "minimum load amplifier for the design loads to reach the elastic critical load of the plate",
+          "unit": ""
+        }
+      ],
+      "clause": "10",
+      "page": 38
+    },
+    {
+      "equation_id": "(10.3)",
+      "latex": "\\frac{1}{\\alpha_{ult,k}^2} = \\left( \\frac{\\sigma_{x,Ed}}{f_y} \\right)^2 + \\left( \\frac{\\sigma_{z,Ed}}{f_y} \\right)^2 - \\left( \\frac{\\sigma_{x,Ed}}{f_y} \\right) \\left( \\frac{\\sigma_{z,Ed}}{f_y} \\right) + 3 \\left( \\frac{\\tau_{Ed}}{f_y} \\right)^2",
+      "plain_text": "1 / αult,k^2 = (σx,Ed / fy)^2 + (σz,Ed / fy)^2 - (σx,Ed / fy) (σz,Ed / fy) + 3 (τEd / fy)^2",
+      "description": "Yield criterion used for resistance to determine αult,k.",
+      "variables": [
+        {
+          "symbol": "σx,Ed",
+          "meaning": "longitudinal component of the stress field in the ultimate limit state",
+          "unit": ""
+        },
+        {
+          "symbol": "σz,Ed",
+          "meaning": "transverse component of the stress field in the ultimate limit state",
+          "unit": ""
+        },
+        {
+          "symbol": "τEd",
+          "meaning": "shear component of the stress field in the ultimate limit state",
+          "unit": ""
+        },
+        {
+          "symbol": "fy",
+          "meaning": "yield strength",
+          "unit": ""
+        }
+      ],
+      "clause": "10",
+      "page": 38
+    },
+    {
+      "equation_id": "(10.4)",
+      "latex": "\\left( \\frac{\\sigma_{x,Ed}}{f_y / \\gamma_{M1}} \\right)^2 + \\left( \\frac{\\sigma_{z,Ed}}{f_y / \\gamma_{M1}} \\right)^2 - \\left( \\frac{\\sigma_{x,Ed}}{f_y / \\gamma_{M1}} \\right) \\left( \\frac{\\sigma_{z,Ed}}{f_y / \\gamma_{M1}} \\right) + 3 \\left( \\frac{\\tau_{Ed}}{f_y / \\gamma_{M1}} \\right)^2 \\le \\rho^2",
+      "plain_text": "(σx,Ed / (fy / γM1))^2 + (σz,Ed / (fy / γM1))^2 - (σx,Ed / (fy / γM1)) (σz,Ed / (fy / γM1)) + 3 (τEd / (fy / γM1))^2 ≤ ρ^2",
+      "description": "Verification formula using the minimum reduction factor ρ.",
+      "variables": [
+        {
+          "symbol": "σx,Ed",
+          "meaning": "longitudinal stress",
+          "unit": ""
+        },
+        {
+          "symbol": "σz,Ed",
+          "meaning": "transverse stress",
+          "unit": ""
+        },
+        {
+          "symbol": "τEd",
+          "meaning": "shear stress",
+          "unit": ""
+        },
+        {
+          "symbol": "fy",
+          "meaning": "yield strength",
+          "unit": ""
+        },
+        {
+          "symbol": "γM1",
+          "meaning": "partial factor",
+          "unit": ""
+        },
+        {
+          "symbol": "ρ",
+          "meaning": "reduction factor",
+          "unit": ""
+        }
+      ],
+      "clause": "10",
+      "page": 39
+    },
+    {
+      "equation_id": "(10.5)",
+      "latex": "\\left( \\frac{\\sigma_{x,Ed}}{\\rho_x f_y / \\gamma_{M1}} \\right)^2 + \\left( \\frac{\\sigma_{z,Ed}}{\\rho_z f_y / \\gamma_{M1}} \\right)^2 - \\left( \\frac{\\sigma_{x,Ed}}{\\rho_x f_y / \\gamma_{M1}} \\right) \\left( \\frac{\\sigma_{z,Ed}}{\\rho_z f_y / \\gamma_{M1}} \\right) + 3 \\left( \\frac{\\tau_{Ed}}{\\chi_w f_y / \\gamma_{M1}} \\right)^2 \\le 1",
+      "plain_text": "(σx,Ed / (ρx fy / γM1))^2 + (σz,Ed / (ρz fy / γM1))^2 - (σx,Ed / (ρx fy / γM1)) (σz,Ed / (ρz fy / γM1)) + 3 (τEd / (χw fy / γM1))^2 ≤ 1",
+      "description": "Verification format using interpolated reduction factors.",
+      "variables": [
+        {
+          "symbol": "σx,Ed",
+          "meaning": "longitudinal stress",
+          "unit": ""
+        },
+        {
+          "symbol": "σz,Ed",
+          "meaning": "transverse stress",
+          "unit": ""
+        },
+        {
+          "symbol": "τEd",
+          "meaning": "shear stress",
+          "unit": ""
+        },
+        {
+          "symbol": "ρx",
+          "meaning": "reduction factor for longitudinal stresses",
+          "unit": ""
+        },
+        {
+          "symbol": "ρz",
+          "meaning": "reduction factor for transverse stresses",
+          "unit": ""
+        },
+        {
+          "symbol": "χw",
+          "meaning": "reduction factor for shear stresses",
+          "unit": ""
+        },
+        {
+          "symbol": "fy",
+          "meaning": "yield strength",
+          "unit": ""
+        },
+        {
+          "symbol": "γM1",
+          "meaning": "partial factor",
+          "unit": ""
+        }
+      ],
+      "clause": "10",
+      "page": 39
+    },
+    {
+      "equation_id": "(10.6)",
+      "latex": "\\frac{1}{\\alpha_{cr}} = \\frac{1+\\psi_x}{4 \\alpha_{cr,x}} + \\frac{1+\\psi_z}{4 \\alpha_{cr,z}} + \\left[ \\left( \\frac{1+\\psi_x}{4 \\alpha_{cr,x}} + \\frac{1+\\psi_z}{4 \\alpha_{cr,z}} \\right)^2 + \\frac{1-\\psi_x}{2 \\alpha_{cr,x}^2} + \\frac{1-\\psi_z}{2 \\alpha_{cr,z}^2} + \\frac{1}{\\alpha_{cr,\\tau}^2} \\right]^{1/2}",
+      "plain_text": "1 / αcr = (1 + ψx) / (4 αcr,x) + (1 + ψz) / (4 αcr,z) + [ ( (1 + ψx) / (4 αcr,x) + (1 + ψz) / (4 αcr,z) )^2 + (1 - ψx) / (2 αcr,x^2) + (1 - ψz) / (2 αcr,z^2) + 1 / αcr,τ^2 ]^(1/2)",
+      "description": "Formula to determine αcr when values for the complete stress field are not available.",
+      "variables": [
+        {
+          "symbol": "αcr,x",
+          "meaning": "critical load amplifier for longitudinal stress",
+          "unit": ""
+        },
+        {
+          "symbol": "αcr,z",
+          "meaning": "critical load amplifier for transverse stress",
+          "unit": ""
+        },
+        {
+          "symbol": "αcr,τ",
+          "meaning": "critical load amplifier for shear stress",
+          "unit": ""
+        },
+        {
+          "symbol": "ψx",
+          "meaning": "stress ratio for longitudinal stress",
+          "unit": ""
+        },
+        {
+          "symbol": "ψz",
+          "meaning": "stress ratio for transverse stress",
+          "unit": ""
+        }
+      ],
+      "clause": "10",
+      "page": 39
+    },
+    {
+      "equation_id": "(A.1)",
+      "latex": "\\sigma_{cr,p} = k_{\\sigma,p} \\sigma_E",
+      "plain_text": "σ_{cr,p} = k_{σ,p} σ_E",
+      "description": "Elastic critical plate buckling stress of the equivalent orthotropic plate",
+      "variables": [
+        {
+          "symbol": "σ_E",
+          "meaning": "Euler buckling stress of the plate",
+          "unit": "MPa"
+        },
+        {
+          "symbol": "k_{σ,p}",
+          "meaning": "buckling coefficient according to orthotropic plate theory with the stiffeners smeared over the plate",
+          "unit": ""
+        },
+        {
+          "symbol": "b",
+          "meaning": "defined in Figure A.1",
+          "unit": ""
+        },
+        {
+          "symbol": "t",
+          "meaning": "thickness of the plate",
+          "unit": ""
+        }
+      ],
+      "clause": "A.1",
+      "page": 40
+    },
+    {
+      "equation_id": "(A.2)",
+      "latex": "k_{\\sigma,p} = \\frac{2((1 + \\alpha^2)^2 + \\gamma - 1)}{\\alpha^2(\\psi + 1)(1 + \\delta)} \\text{ if } \\alpha \\le \\sqrt[4]{\\gamma} \\quad ; \\quad k_{\\sigma,p} = \\frac{4(1 + \\sqrt{\\gamma})}{(\\psi + 1)(1 + \\delta)} \\text{ if } \\alpha > \\sqrt[4]{\\gamma}",
+      "plain_text": "k_{σ,p} = (2((1 + α^2)^2 + γ - 1)) / (α^2(ψ + 1)(1 + δ)) if α ≤ ∜γ ; k_{σ,p} = (4(1 + √γ)) / ((ψ + 1)(1 + δ)) if α > ∜γ",
+      "description": "Approximation of the plate buckling coefficient for stiffened plates with at least three equally spaced longitudinal stiffeners",
+      "variables": [
+        {
+          "symbol": "I_{sl}",
+          "meaning": "second moment of area of the whole stiffened plate",
+          "unit": ""
+        },
+        {
+          "symbol": "I_p",
+          "meaning": "second moment of area for bending of the plate",
+          "unit": ""
+        },
+        {
+          "symbol": "A_{sl}",
+          "meaning": "sum of the gross areas of the individual longitudinal stiffeners",
+          "unit": ""
+        },
+        {
+          "symbol": "A_p",
+          "meaning": "gross area of the plate",
+          "unit": ""
+        },
+        {
+          "symbol": "σ_1",
+          "meaning": "larger edge stress",
+          "unit": ""
+        },
+        {
+          "symbol": "σ_2",
+          "meaning": "smaller edge stress",
+          "unit": ""
+        }
+      ],
+      "clause": "A.1",
+      "page": 40
+    },
+    {
+      "equation_id": "(A.3)",
+      "latex": "A_{c,eff,loc} = \\frac{\\rho_c f_y A_{sl,1}}{\\sigma_{com,Ed} \\gamma_{M1}}",
+      "plain_text": "A_{c,eff,loc} = (ρ_c f_y A_{sl,1}) / (σ_{com,Ed} γ_{M1})",
+      "description": "Modified effective area of the column",
+      "variables": [
+        {
+          "symbol": "ρ_c",
+          "meaning": "reduction factor determined according to 4.5.4(1)",
+          "unit": ""
+        },
+        {
+          "symbol": "f_y",
+          "meaning": "yield strength",
+          "unit": ""
+        },
+        {
+          "symbol": "A_{sl,1}",
+          "meaning": "gross cross-section of the column",
+          "unit": ""
+        },
+        {
+          "symbol": "σ_{com,Ed}",
+          "meaning": "average stress in the column",
+          "unit": ""
+        },
+        {
+          "symbol": "γ_{M1}",
+          "meaning": "partial factor",
+          "unit": ""
+        }
+      ],
+      "clause": "A.2.1",
+      "page": 42
+    },
+    {
+      "equation_id": "(A.4)",
+      "latex": "\\sigma_{cr,sl} = \\frac{1,05 E \\sqrt{I_{sl,1} t^3 b}}{A_{sl,1} b_1 b_2} \\text{ if } a \\ge a_c \\quad ; \\quad \\sigma_{cr,sl} = \\frac{\\pi^2 E I_{sl,1}}{A_{sl,1} a^2} + \\frac{E t^3 b a^2}{4 \\pi^2 (1 - \\nu^2) A_{sl,1} b_1^2 b_2^2} \\text{ if } a < a_c",
+      "plain_text": "σ_{cr,sl} = (1,05 E √(I_{sl,1} t^3 b)) / (A_{sl,1} b_1 b_2) if a ≥ a_c ; σ_{cr,sl} = (π^2 E I_{sl,1}) / (A_{sl,1} a^2) + (E t^3 b a^2) / (4 π^2 (1 - ν^2) A_{sl,1} b_1^2 b_2^2) if a < a_c",
+      "description": "Elastic critical buckling stress of the stiffener",
+      "variables": [
+        {
+          "symbol": "A_{sl,1}",
+          "meaning": "gross area of the column obtained from A.2.1(2)",
+          "unit": ""
+        },
+        {
+          "symbol": "I_{sl,1}",
+          "meaning": "second moment of area of the gross cross-section of the column defined in A.2.1(2) about an axis through its centroid and parallel to the plane of the plate",
+          "unit": ""
+        },
+        {
+          "symbol": "b_1, b_2",
+          "meaning": "distances from the longitudinal edges of the web to the stiffener",
+          "unit": ""
+        }
+      ],
+      "clause": "A.2.2",
+      "page": 43
+    },
+    {
+      "equation_id": "(A.5)",
+      "latex": "k_\\tau = 5,34 + 4,00 (h_w / a)^2 + k_{\\tau st} \\text{ when } a / h_w \\ge 1 \\quad ; \\quad k_\\tau = 4,00 + 5,34 (h_w / a)^2 + k_{\\tau st} \\text{ when } a / h_w < 1",
+      "plain_text": "k_τ = 5,34 + 4,00 (h_w / a)^2 + k_{τst} when a / h_w ≥ 1 ; k_τ = 4,00 + 5,34 (h_w / a)^2 + k_{τst} when a / h_w < 1",
+      "description": "Shear buckling coefficient for plates with rigid transverse stiffeners and without longitudinal stiffeners or with more than two longitudinal stiffeners",
+      "variables": [
+        {
+          "symbol": "a",
+          "meaning": "distance between transverse stiffeners",
+          "unit": ""
+        },
+        {
+          "symbol": "I_{st}",
+          "meaning": "second moment of area of the longitudinal stiffener about the z-z axis",
+          "unit": ""
+        }
+      ],
+      "clause": "A.3",
+      "page": 44
+    },
+    {
+      "equation_id": "(A.6)",
+      "latex": "k_\\tau = 4,1 + \\frac{6,3 + 0,18 \\frac{I_{st}}{t^3 h_w}}{\\alpha^2} + 2,2 \\sqrt[3]{\\frac{I_{st}}{t^3 h_w}}",
+      "plain_text": "k_τ = 4,1 + (6,3 + 0,18 (I_{st} / (t^3 h_w))) / α^2 + 2,2 ∛(I_{st} / (t^3 h_w))",
+      "description": "Shear buckling coefficient for plates with one or two longitudinal stiffeners and an aspect ratio α < 3",
+      "variables": [
+        {
+          "symbol": "I_{st}",
+          "meaning": "second moment of area of the longitudinal stiffener about the z-z axis",
+          "unit": ""
+        }
+      ],
+      "clause": "A.3",
+      "page": 44
+    },
+    {
+      "equation_id": "(B.1)",
+      "latex": "\\rho = \\frac{1}{\\phi_p + \\sqrt{\\phi_p^2 - \\bar{\\lambda}_p}}",
+      "plain_text": "ρ = 1 / (φ_p + √(φ_p^2 - λ_p))",
+      "description": "Reduction factor ρ",
+      "variables": [
+        {
+          "symbol": "φ_p",
+          "meaning": "intermediate calculation factor",
+          "unit": ""
+        },
+        {
+          "symbol": "λ_p",
+          "meaning": "slenderness parameter",
+          "unit": ""
+        }
+      ],
+      "clause": "B.1",
+      "page": 45
+    },
+    {
+      "equation_id": "(B.2)",
+      "latex": "e_0 = \\alpha_p (\\bar{\\lambda}_p - \\bar{\\lambda}_{p0}) \\frac{t}{6} \\frac{1 - \\frac{\\rho \\bar{\\lambda}_p}{\\gamma_{M1}}}{1 - \\rho \\bar{\\lambda}_p}",
+      "plain_text": "e_0 = α_p (λ_p - λ_{p0}) (t / 6) (1 - (ρ λ_p / γ_{M1})) / (1 - ρ λ_p)",
+      "description": "Equivalent geometric imperfection",
+      "variables": [
+        {
+          "symbol": "α_p",
+          "meaning": "imperfection factor",
+          "unit": ""
+        },
+        {
+          "symbol": "λ_p",
+          "meaning": "slenderness parameter",
+          "unit": ""
+        },
+        {
+          "symbol": "λ_{p0}",
+          "meaning": "plateau length",
+          "unit": ""
+        },
+        {
+          "symbol": "t",
+          "meaning": "thickness",
+          "unit": ""
+        },
+        {
+          "symbol": "ρ",
+          "meaning": "reduction factor",
+          "unit": ""
+        },
+        {
+          "symbol": "γ_{M1}",
+          "meaning": "partial factor",
+          "unit": ""
+        }
+      ],
+      "clause": "B.1",
+      "page": 45
+    },
+    {
+      "equation_id": "(C.1)",
+      "latex": "\\sigma_{true} = \\sigma (1 + \\varepsilon) \\quad ; \\quad \\varepsilon_{true} = \\ln (1 + \\varepsilon)",
+      "plain_text": "σ_{true} = σ (1 + ε) ; ε_{true} = ln (1 + ε)",
+      "description": "True stress-strain curve modified from the test results",
+      "variables": [
+        {
+          "symbol": "σ",
+          "meaning": "engineering stress",
+          "unit": ""
+        },
+        {
+          "symbol": "ε",
+          "meaning": "engineering strain",
+          "unit": ""
+        }
+      ],
+      "clause": "C.6",
+      "page": 50
+    },
+    {
+      "equation_id": "(C.2)",
+      "latex": "\\alpha_u > \\alpha_1 \\alpha_2",
+      "plain_text": "α_u > α_1 α_2",
+      "description": "Verification of load magnification factor",
+      "variables": [
+        {
+          "symbol": "α_u",
+          "meaning": "load magnification factor to the ultimate limit state",
+          "unit": ""
+        },
+        {
+          "symbol": "α_1",
+          "meaning": "factor to cover the model uncertainty of the FE-modelling used",
+          "unit": ""
+        },
+        {
+          "symbol": "α_2",
+          "meaning": "factor to cover the scatter of the loading and resistance models",
+          "unit": ""
+        }
+      ],
+      "clause": "C.9",
+      "page": 51
+    },
+    {
+      "equation_id": "(D.1)",
+      "latex": "M_{y,Rd} = \\min \\left( \\frac{b_2 t_2 f_{yf,r}}{\\gamma_{M0}} \\left(h_w + \\frac{t_1 + t_2}{2}\\right) ; \\frac{b_1 t_1 f_{yf,r}}{\\gamma_{M0}} \\left(h_w + \\frac{t_1 + t_2}{2}\\right) ; \\frac{b_1 t_1 \\chi f_{yf}}{\\gamma_{M1}} \\left(h_w + \\frac{t_1 + t_2}{2}\\right) \\right)",
+      "plain_text": "M_{y,Rd} = min ( (b_2 t_2 f_{yf,r} / γ_{M0}) (h_w + (t_1 + t_2) / 2) ; (b_1 t_1 f_{yf,r} / γ_{M0}) (h_w + (t_1 + t_2) / 2) ; (b_1 t_1 χ f_{yf} / γ_{M1}) (h_w + (t_1 + t_2) / 2) )",
+      "description": "Moment of resistance due to bending",
+      "variables": [
+        {
+          "symbol": "f_{yf,r}",
+          "meaning": "value of yield stress reduced due to transverse moments in the flanges",
+          "unit": ""
+        },
+        {
+          "symbol": "σ_x(M_z)",
+          "meaning": "stress due to the transverse moment in the flange",
+          "unit": ""
+        },
+        {
+          "symbol": "χ",
+          "meaning": "reduction factor for out of plane buckling according to 6.3 of EN 1993-1-1",
+          "unit": ""
+        }
+      ],
+      "clause": "D.2.1",
+      "page": 52
+    },
+    {
+      "equation_id": "(D.2)",
+      "latex": "k_\\sigma = 0,43 + \\left(\\frac{b}{a}\\right)^2",
+      "plain_text": "k_σ = 0,43 + (b/a)²",
+      "description": "Buckling factor for the effective area of the compression flange",
+      "variables": [
+        {
+          "symbol": "b",
+          "meaning": "maximum width of the outstand from the toe of the weld to the free edge",
+          "unit": ""
+        },
+        {
+          "symbol": "a",
+          "meaning": "a_1 + 2a_4",
+          "unit": ""
+        }
+      ],
+      "clause": "",
+      "page": 53
+    },
+    {
+      "equation_id": "(D.3)",
+      "latex": "k_\\sigma = 0,60",
+      "plain_text": "k_σ = 0,60",
+      "description": "Buckling factor k_σ",
+      "variables": [
+        {
+          "symbol": "k_σ",
+          "meaning": "buckling factor",
+          "unit": ""
+        }
+      ],
+      "clause": "D.2.1",
+      "page": 53
+    },
+    {
+      "equation_id": "(D.4)",
+      "latex": "V_{bw,Rd} = \\chi_c \\frac{f_{yw}}{\\gamma_{M1}\\sqrt{3}} h_w t_w",
+      "plain_text": "V_bw,Rd = χ_c * (f_yw / (γ_M1 * √3)) * h_w * t_w",
+      "description": "Shear resistance of the web",
+      "variables": [
+        {
+          "symbol": "\\chi_c",
+          "meaning": "lesser of the values of reduction factors for local buckling χ_c,l and global buckling χ_c,g obtained from (2) and (3)",
+          "unit": ""
+        }
+      ],
+      "clause": "D.2.2",
+      "page": 53
+    },
+    {
+      "equation_id": "(D.5)",
+      "latex": "\\chi_{c,l} = \\frac{1,15}{0,9 + \\bar{\\lambda}_{c,l}} \\le 1,0",
+      "plain_text": "χ_{c,l} = 1,15 / (0,9 + λ_{c,l}) ≤ 1,0",
+      "description": "Reduction factor for local buckling",
+      "variables": [
+        {
+          "symbol": "λ_{c,l}",
+          "meaning": "slenderness parameter for local buckling",
+          "unit": ""
+        }
+      ],
+      "clause": "D.2.2",
+      "page": 53
+    },
+    {
+      "equation_id": "(D.6)",
+      "latex": "\\bar{\\lambda}_{c,l} = \\sqrt{\\frac{f_{yw}}{\\tau_{cr,l} \\sqrt{3}}}",
+      "plain_text": "λ_{c,l} = √((f_{yw}) / (τ_{cr,l} √3))",
+      "description": "Slenderness parameter for local buckling",
+      "variables": [
+        {
+          "symbol": "f_{yw}",
+          "meaning": "yield strength of the web",
+          "unit": ""
+        },
+        {
+          "symbol": "τ_{cr,l}",
+          "meaning": "elastic critical local shear buckling stress",
+          "unit": ""
+        }
+      ],
+      "clause": "D.2.2",
+      "page": 53
+    },
+    {
+      "equation_id": "(D.7)",
+      "latex": "\\tau_{cr,l} = 4,83 E \\left[ \\frac{t_w}{a_{max}} \\right]^2",
+      "plain_text": "τ_cr,l = 4,83 * E * [t_w / a_max]²",
+      "description": "Critical shear stress for local buckling",
+      "variables": [
+        {
+          "symbol": "a_{max}",
+          "meaning": "greater of a_1 and a_2",
+          "unit": ""
+        }
+      ],
+      "clause": "D.2.2",
+      "page": 53
+    },
+    {
+      "equation_id": "(D.8)",
+      "latex": "\\chi_{c,g} = \\frac{1,5}{0,5 + \\bar{\\lambda}_{c,g}^2} \\le 1,0",
+      "plain_text": "χc,g = 1,5 / (0,5 + λ̄c,g²) ≤ 1,0",
+      "description": "Reduction factor for global buckling",
+      "variables": [
+        {
+          "symbol": "\\bar{\\lambda}_{c,g}",
+          "meaning": "Global slenderness parameter, defined in Equation (D.9)"
+        }
+      ],
+      "clause": "",
+      "page": 54
+    },
+    {
+      "equation_id": "(D.9)",
+      "latex": "\\bar{\\lambda}_{c,g} = \\sqrt{\\frac{f_{yw}}{\\tau_{cr,g} \\sqrt{3}}}",
+      "plain_text": "λ_{c,g} = √((f_{yw}) / (τ_{cr,g} √3))",
+      "description": "Slenderness parameter for global buckling",
+      "variables": [
+        {
+          "symbol": "f_{yw}",
+          "meaning": "yield strength of the web",
+          "unit": ""
+        },
+        {
+          "symbol": "τ_{cr,g}",
+          "meaning": "elastic critical global shear buckling stress",
+          "unit": ""
+        }
+      ],
+      "clause": "D.2.2",
+      "page": 54
+    },
+    {
+      "equation_id": "(D.10)",
+      "latex": "\\tau_{cr,g} = \\frac{32,4}{t_w h_w^2} \\sqrt[4]{D_x D_z^3}",
+      "plain_text": "τcr,g = 32,4 / (tw hw²) ∜(Dx Dz³)",
+      "description": "Critical shear stress for global buckling",
+      "variables": [
+        {
+          "symbol": "D_x",
+          "meaning": "Bending stiffness parameter, D_x = (E t_w^3) / (12(1-\\nu^2)) (w / s)"
+        },
+        {
+          "symbol": "D_z",
+          "meaning": "Bending stiffness parameter, D_z = (E I_z) / w"
+        },
+        {
+          "symbol": "I_z",
+          "meaning": "Second moment of area of one corrugation of length w"
+        }
+      ],
+      "clause": "",
+      "page": 54
+    },
+    {
+      "equation_id": "(E.1)",
+      "latex": "\\rho = \\frac{1 - 0,055(3+\\psi)/\\bar{\\lambda}_{p,red}}{\\bar{\\lambda}_{p,red}} + 0,18 \\frac{(\\bar{\\lambda}_p - \\bar{\\lambda}_{p,red})}{(\\bar{\\lambda}_p - 0,6)}",
+      "plain_text": "ρ = (1 - 0,055(3+ψ)/λ̄_p,red) / λ̄_p,red + 0,18 * (λ̄_p - λ̄_p,red) / (λ̄_p - 0,6)",
+      "description": "Reduction factor for internal compression elements at stress levels below yield strength",
+      "variables": [],
+      "clause": "E.1",
+      "page": 55
+    },
+    {
+      "equation_id": "(E.2)",
+      "latex": "\\rho = \\frac{1 - 0,188/\\bar{\\lambda}_{p,red}}{\\bar{\\lambda}_{p,red}} + 0,18 \\frac{(\\bar{\\lambda}_p - \\bar{\\lambda}_{p,red})}{(\\bar{\\lambda}_p - 0,6)}",
+      "plain_text": "ρ = (1 - 0,188/λ̄_p,red) / λ̄_p,red + 0,18 * (λ̄_p - λ̄_p,red) / (λ̄_p - 0,6)",
+      "description": "Reduction factor for outstand compression elements at stress levels below yield strength",
+      "variables": [],
+      "clause": "E.1",
+      "page": 55
+    },
+    {
+      "equation_id": "(E.3)",
+      "latex": "\\bar{\\lambda}_{p,ser} = \\bar{\\lambda}_p \\sqrt{\\frac{\\sigma_{com,Ed,ser}}{f_y}}",
+      "plain_text": "λ̄_p,ser = λ̄_p * √(σ_com,Ed,ser / f_y)",
+      "description": "Serviceability limit state slenderness for the calculation of effective areas for stiffness",
+      "variables": [
+        {
+          "symbol": "\\sigma_{com,Ed,ser}",
+          "meaning": "maximum compressive stress (calculated on the basis of the effective cross section) in the relevant element under loads at serviceability limit state",
+          "unit": ""
+        }
+      ],
+      "clause": "E.2",
+      "page": 55
+    },
+    {
+      "equation_id": "(E.4)",
+      "latex": "I_{eff} = I_{gr} - \\frac{\\sigma_{gr}}{\\sigma_{com,Ed,ser}} \\left(I_{gr} - I_{eff}(\\sigma_{com,Ed,ser})\\right)",
+      "plain_text": "I_eff = I_gr - (σ_gr / σ_com,Ed,ser) * (I_gr - I_eff(σ_com,Ed,ser))",
+      "description": "Second moment of area calculated by an interpolation of the gross cross section and the effective cross section",
+      "variables": [
+        {
+          "symbol": "I_{gr}",
+          "meaning": "second moment of area of the gross cross section",
+          "unit": ""
+        },
+        {
+          "symbol": "\\sigma_{gr}",
+          "meaning": "maximum bending stress at serviceability limit states based on the gross cross section",
+          "unit": ""
+        },
+        {
+          "symbol": "I_{eff}(\\sigma_{com,Ed,ser})",
+          "meaning": "second moment of area of the effective cross section with allowance for local buckling according to E.1 calculated for the maximum stress σ_com,Ed,ser ≥ σ_gr within the span length considered",
+          "unit": ""
+        }
+      ],
+      "clause": "E.2",
+      "page": 55
+    }
+  ],
+  "annexes": [
+    {
+      "clause_number": "Annex A",
+      "title": "[informative] - Calculation of critical stresses for stiffened plates",
+      "text": "Annex A [informative] - Calculation of critical stresses for stiffened plates",
+      "page": 40
+    },
+    {
+      "clause_number": "Annex B",
+      "title": "[informative] - Non-uniform members",
+      "text": "Annex B [informative] - Non-uniform members",
+      "page": 45
+    },
+    {
+      "clause_number": "Annex C",
+      "title": "[informative] - Finite Element Methods of analysis (FEM)",
+      "text": "Annex C [informative] - Finite Element Methods of analysis (FEM)",
+      "page": 47
+    },
+    {
+      "clause_number": "Annex D",
+      "title": "[informative] - Plate girders with corrugated webs",
+      "text": "Annex D [informative] - Plate girders with corrugated webs",
+      "page": 52
+    },
+    {
+      "clause_number": "Annex E",
+      "title": "Alternative methods for determining effective cross sections",
+      "text": "Annex E [normative] - Alternative methods for determining effective cross sections",
+      "page": 55
+    }
+  ],
+  "national_annex": [],
+  "bibliography": [],
+  "_verification": {
+    "missing_tables": [],
+    "missing_figures": [],
+    "missing_equations": [],
+    "missing_clauses": [],
+    "table_errors": [],
+    "overall_quality": "Excellent. The extraction perfectly captured all tables, figures, equations, and clauses present in the document."
+  }
+}

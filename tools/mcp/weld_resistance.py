@@ -6,6 +6,7 @@ from typing import Literal
 from pydantic import BaseModel, Field, PositiveFloat
 
 from tools.mcp.cli import run_cli
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "weld_resistance_ec3"
 
@@ -64,12 +65,7 @@ def calculate(inp: WeldResistanceInput) -> dict:
             "fvw_d_mpa": round(fvw_d, 2),
         },
         "clause_references": [
-            {
-                "doc_id": "ec3.en1993-1-8.2005",
-                "clause_id": "4.5.3.3",
-                "title": "Simplified method for design resistance of fillet weld",
-                "pointer": "en_1993_1_8#4.5.3.3",
-            },
+            clause_ref("ec3.en1993-1-8.2005", "4.5.3.3", "Simplified method for design resistance of fillet weld"),
         ],
         "notes": [
             f"fvw,d = fu / (√3 × βw × γM2) = {fu} / (√3 × {beta_w} × {inp.gamma_M2}) = {fvw_d:.2f} N/mm²",

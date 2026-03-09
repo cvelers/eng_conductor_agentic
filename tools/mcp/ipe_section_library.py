@@ -103,6 +103,7 @@ def _normalize_eurocodepy_row(row: dict[str, Any]) -> dict[str, float] | None:
     b_cm = _pick(row, ["b", "b_mm", "width"])
     tw_cm = _pick(row, ["tw", "tw_mm"])
     tf_cm = _pick(row, ["tf", "tf_mm"])
+    r_cm = _pick(row, ["r", "r_mm"])
     area_cm2 = _pick(row, ["A", "A_cm2", "area", "area_cm2"])
     I_y_cm4 = _pick(row, ["Iy", "I_y_cm4"])
     I_z_cm4 = _pick(row, ["Iz", "I_z_cm4"])
@@ -126,6 +127,8 @@ def _normalize_eurocodepy_row(row: dict[str, Any]) -> dict[str, float] | None:
         "wel_y_cm3": float(wel_y_cm3),
         "wpl_y_cm3": float(wpl_y_cm3),
     }
+    if r_cm is not None:
+        result["r_mm"] = float(r_cm) * cm_to_mm
     if I_y_cm4 is not None:
         result["I_y_cm4"] = float(I_y_cm4)
     if I_z_cm4 is not None:

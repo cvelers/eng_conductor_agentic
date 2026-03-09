@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field, PositiveFloat
 
 from tools.mcp.cli import run_cli
 from tools.mcp.section_library import steel_grade_to_fy
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "stable_length_ec3"
 
@@ -148,12 +149,7 @@ def calculate(inp: StableLengthInput) -> dict:
         },
         "outputs": results,
         "clause_references": [
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "BB.3",
-                "title": "Stable lengths of segment",
-                "pointer": "en_1993_1_1_2005_structured.json#BB.3.1.1",
-            },
+            clause_ref("ec3.en1993-1-1.2005", "BB.3", "Stable lengths of segment"),
         ],
         "notes": notes,
     }

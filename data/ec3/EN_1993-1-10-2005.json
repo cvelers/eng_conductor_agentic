@@ -1,0 +1,1544 @@
+{
+  "metadata": {
+    "standard_number": "EN 1993-1-10:2005",
+    "title": "Eurocode 3: Design of steel structures - Part 1-10: Material toughness and through-thickness properties",
+    "subtitle": "",
+    "language": "English",
+    "publication_year": "2005",
+    "committee": "CEN/TC250",
+    "ics_codes": [
+      "91.010.30"
+    ],
+    "supersedes": "ENV 1993-1-1:1992",
+    "total_pages": 19
+  },
+  "foreword": "This European Standard EN 1993, Eurocode 3: Design of steel structures, has been prepared by Technical Committee CEN/TC250 « Structural Eurocodes », the Secretariat of which is held by BSI. CEN/TC250 is responsible for all Structural Eurocodes.\n\nThis European Standard shall be given the status of a National Standard, either by publication of an identical text or by endorsement, at the latest by November 2005, and conflicting National Standards shall be withdrawn at latest by March 2010.\n\nThis Eurocode supersedes ENV 1993-1-1.\n\nAccording to the CEN-CENELEC Internal Regulations, the National Standard Organizations of the following countries are bound to implement these European Standard: Austria, Belgium, Cyprus, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hungary, Iceland, Ireland, Italy, Latvia, Lithuania, Luxembourg, Malta, Netherlands, Norway, Poland, Portugal, Slovakia, Slovenia, Spain, Sweden, Switzerland and United Kingdom.\n\nBackground to the Eurocode programme\n\nIn 1975, the Commission of the European Community decided on an action programme in the field of construction, based on article 95 of the Treaty. The objective of the programme was the elimination of technical obstacles to trade and the harmonization of technical specifications.\n\nWithin this action programme, the Commission took the initiative to establish a set of harmonized technical rules for the design of construction works which, in a first stage, would serve as an alternative to the national rules in force in the Member States and, ultimately, would replace them.\n\nFor fifteen years, the Commission, with the help of a Steering Committee with Representatives of Member States, conducted the development of the Eurocodes programme, which led to the first generation of European codes in the 1980s.\n\nIn 1989, the Commission and the Member States of the EU and EFTA decided, on the basis of an agreement between the Commission and CEN, to transfer the preparation and the publication of the Eurocodes to CEN through a series of Mandates, in order to provide them with a future status of European Standard (EN). This links de facto the Eurocodes with the provisions of all the Council's Directives and/or Commission's Decisions dealing with European standards (e.g. the Council Directive 89/106/EEC on construction products - CPD - and Council Directives 93/37/EEC, 92/50/EEC and 89/440/EEC on public works and services and equivalent EFTA Directives initiated in pursuit of setting up the internal market).\n\nThe Structural Eurocode programme comprises the following standards generally consisting of a number of Parts:\n\nEN 1990 Eurocode 0: Basis of Structural Design\nEN 1991 Eurocode 1: Actions on structures\nEN 1992 Eurocode 2: Design of concrete structures\nEN 1993 Eurocode 3: Design of steel structures\nEN 1994 Eurocode 4: Design of composite steel and concrete structures\nEN 1995 Eurocode 5: Design of timber structures\nEN 1996 Eurocode 6: Design of masonry structures\nEN 1997 Eurocode 7: Geotechnical design\nEN 1998 Eurocode 8: Design of structures for earthquake resistance\nEN 1999 Eurocode 9: Design of aluminium structures\n\nEurocode standards recognize the responsibility of regulatory authorities in each Member State and have safeguarded their right to determine values related to regulatory safety matters at national level where these continue to vary from State to State.\n\nStatus and field of application of Eurocodes\n\nThe Member States of the EU and EFTA recognize that Eurocodes serve as reference documents for the following purposes:\n\n– as a means to prove compliance of building and civil engineering works with the essential requirements of Council Directive 89/106/EEC, particularly Essential Requirement N°1 – Mechanical resistance and stability – and Essential Requirement N°2 – Safety in case of fire;\n\n– as a basis for specifying contracts for construction works and related engineering services;\n\n– as a framework for drawing up harmonized technical specifications for construction products (ENs and ETAs)\n\nThe Eurocodes, as far as they concern the construction works themselves, have a direct relationship with the Interpretative Documents referred to in Article 12 of the CPD, although they are of a different nature from harmonized product standards. Therefore, technical aspects arising from the Eurocodes work need to be adequately considered by CEN Technical Committees and/or EOTA Working Groups working on product standards with a view to achieving full compatibility of these technical specifications with the Eurocodes.\n\nThe Eurocode standards provide common structural design rules for everyday use for the design of whole structures and component products of both a traditional and an innovative nature. Unusual forms of construction or design conditions are not specifically covered and additional expert consideration will be required by the designer in such cases.\n\nNational Standards implementing Eurocodes\n\nThe National Standards implementing Eurocodes will comprise the full text of the Eurocode (including any annexes), as published by CEN, which may be preceded by a National title page and National foreword, and may be followed by a National annex.\n\nThe National annex may only contain information on those parameters which are left open in the Eurocode for national choice, known as Nationally Determined Parameters, to be used for the design of buildings and civil engineering works to be constructed in the country concerned, i.e. :\n– values and/or classes where alternatives are given in the Eurocode,\n– values to be used where a symbol only is given in the Eurocode,\n– country specific data (geographical, climatic, etc.), e.g. snow map,\n– the procedure to be used where alternative procedures are given in the Eurocode.\nIt may contain\n– decisions on the application of informative annexes,\n– references to non-contradictory complementary information to assist the user to apply the Eurocode.\n\nLinks between Eurocodes and harmonized technical specifications (ENs and ETAs) for products\n\nThere is a need for consistency between the harmonized technical specifications for construction products and the technical rules for works. Furthermore, all the information accompanying the CE Marking of the construction products, which refer to Eurocodes, should clearly mention which Nationally Determined Parameters have been taken into account.\n\nNational annex for EN 1993-1-10\n\nThis standard gives alternative procedures, values and recommendations with notes indicating where national choices may have to be made. The National Standard implementing EN 1993-1-10 should have a National Annex containing all Nationally Determined Parameters for the design of steel structures to be constructed in the relevant country.\n\nNational choice is allowed in EN 1993-1-10 through clauses:\n– 2.2(5)\n– 3.1(1)",
+  "normative_references": [
+    {
+      "id": "EN 1011-2",
+      "title": "Welding. Recommendations for welding of metallic materials: Part 2: Arc welding of ferritic steels"
+    },
+    {
+      "id": "EN 1090",
+      "title": "Execution of steel structures"
+    },
+    {
+      "id": "EN 1990",
+      "title": "Basis of structural design"
+    },
+    {
+      "id": "EN 1991",
+      "title": "Actions on structures"
+    },
+    {
+      "id": "EN 1998",
+      "title": "Design provisions for earthquake resistance of structures"
+    },
+    {
+      "id": "EN 10002",
+      "title": "Tensile testing of metallic materials"
+    },
+    {
+      "id": "EN 10025",
+      "title": "Hot rolled products of structural steels"
+    },
+    {
+      "id": "EN 10045-1",
+      "title": "Metallic materials - Charpy impact test - Part 1: Test method"
+    },
+    {
+      "id": "EN 10160",
+      "title": "Ultrasonic testing of steel flat product of thickness equal or greater than 6 mm (reflection method)"
+    },
+    {
+      "id": "EN 10164",
+      "title": "Steel products with improved deformation properties perpendicular to the surface of the product - Technical delivery conditions"
+    },
+    {
+      "id": "EN 10210-1",
+      "title": "Hot finished structural hollow sections of non-alloy and fine grain structural steels – Part 1: Technical delivery requirements"
+    },
+    {
+      "id": "EN 10219-1",
+      "title": "Cold formed welded structural hollow sections of non-alloy and fine grain steels – Part 1: Technical delivery requirements"
+    }
+  ],
+  "terms_and_definitions": [
+    {
+      "term": "KV-value",
+      "definition": "[AC2] The KV (Charpy V-Notch)-value [AC2] is the impact energy [AC2] text deleted [AC2] in Joules [J] required to fracture a Charpy V-notch specimen at a given test temperature T. Steel product standards generally specify that test specimens should not fail at an impact energy lower than 27J at a specified test temperature T.",
+      "clause": "1.3.1"
+    },
+    {
+      "term": "Transition region",
+      "definition": "The region of the toughness-temperature diagram showing the relationship [AC2] KV(T) [AC2] in which the material toughness decreases with the decrease in temperature and the failure mode changes from ductile to brittle. The temperature values T27J required in the product standards are located in the lower part of this region.",
+      "clause": "1.3.2"
+    },
+    {
+      "term": "Upper shelf region",
+      "definition": "The region of the toughness-temperature diagram in which steel elements exhibit elastic-plastic behaviour with ductile modes of failure irrespective of the presence of small flaws and welding discontinuities from fabrication.",
+      "clause": "1.3.3"
+    },
+    {
+      "term": "T27J",
+      "definition": "Temperature at which a minimum energy [AC2]KV[AC2] will not be less than 27J in a Charpy V-notch impact test.",
+      "clause": "1.3.4"
+    },
+    {
+      "term": "Z-value",
+      "definition": "The transverse reduction of area in a tensile test (see EN 10002) of the through-thickness ductility of a specimen, measured as a percentage.",
+      "clause": "1.3.5"
+    },
+    {
+      "term": "KIc-value",
+      "definition": "The plane strain fracture toughness for linear elastic behaviour measured in N/mm3/2. NOTE The two internationally recognized alternative units for the stress intensity factor K are N/mm3/2 and MPa√m (ie MN/m3/2) where 1 N/mm3/2 = 0,032 MPa√m.",
+      "clause": "1.3.6"
+    },
+    {
+      "term": "Degree of cold forming",
+      "definition": "Permanent strain from cold forming measured as a percentage.",
+      "clause": "1.3.7"
+    }
+  ],
+  "symbols": [
+    {
+      "symbol": "KV(T)",
+      "description": "impact energy in Joule [J] in a test at temperature T with Charpy V notch specimen",
+      "unit": "J"
+    },
+    {
+      "symbol": "K",
+      "description": "stress intensity factor",
+      "unit": ""
+    },
+    {
+      "symbol": "Z",
+      "description": "Z-quality [%]",
+      "unit": "%"
+    },
+    {
+      "symbol": "T",
+      "description": "temperature [°C]",
+      "unit": "°C"
+    },
+    {
+      "symbol": "TEd",
+      "description": "reference temperature",
+      "unit": ""
+    },
+    {
+      "symbol": "δ",
+      "description": "crack tip opening displacement (CTOD) in mm measured on a small specimen to establish its elastic plastic fracture toughness",
+      "unit": "mm"
+    },
+    {
+      "symbol": "J",
+      "description": "elastic plastic fracture toughness value (J-integral value) in N/mm determined as a line or surface integral that encloses the crack front from one crack surface to the other",
+      "unit": "N/mm"
+    },
+    {
+      "symbol": "KIc",
+      "description": "plane strain fracture toughness for linear elastic behaviour measured in N/mm3/2",
+      "unit": "N/mm3/2"
+    },
+    {
+      "symbol": "εcf",
+      "description": "degree of cold forming (DCF) in percent",
+      "unit": "%"
+    },
+    {
+      "symbol": "σEd",
+      "description": "stresses accompanying the reference temperature TEd",
+      "unit": ""
+    }
+  ],
+  "sections": [
+    {
+      "clause_number": "1",
+      "title": "General",
+      "text": "",
+      "page": 8
+    },
+    {
+      "clause_number": "1.1",
+      "title": "Scope",
+      "text": "(1) EN 1993-1-10 contains design guidance for the selection of steel for fracture toughness and for through thickness properties of welded elements where there is a significant risk of lamellar tearing during fabrication. (2) Section 2 applies to steel grades S 235 to S 690. However section 3 applies to steel grades S 235 to S 460 only. NOTE EN 1993-1-1 is restricted to steels S235 to S460. (3) The rules and guidance given in section 2 and 3 assume that the construction will be executed in accordance with EN 1090.",
+      "page": 8
+    },
+    {
+      "clause_number": "1.2",
+      "title": "Normative references",
+      "text": "(1) This European Standard incorporates by dated and undated reference provisions from other publications. These normative references are cited at the appropriate places in the text and the publications are listed hereafter. For dated references, subsequent amendments to or revisions of any of these publications apply to this European Standard only when incorporated in it by amendment or revision. For undated references the latest edition of the publication referred to applies (including amendments). NOTE The Eurocodes were published as European Prestandards. The following European Standards which are published or in preparation are cited in normative clauses: EN 1011-2 Welding. Recommendations for welding of metallic materials: Part 2: Arc welding of ferritic steels EN 1090 Execution of steel structures EN 1990 Basis of structural design EN 1991 Actions on structures EN 1998 Design provisions for earthquake resistance of structures EN 10002 Tensile testing of metallic materials EN 10025 Hot rolled products of structural steels EN 10045-1 Metallic materials - Charpy impact test - Part 1: Test method EN 10160 Ultrasonic testing of steel flat product of thickness equal or greater than 6 mm (reflection method) EN 10164 Steel products with improved deformation properties perpendicular to the surface of the product - Technical delivery conditions EN 10210-1 Hot finished structural hollow sections of non-alloy and fine grain structural steels - Part 1: Technical delivery requirements EN 10219-1 Cold formed welded structural hollow sections of non-alloy and fine grain steels - Part 1: Technical delivery requirements",
+      "page": 8
+    },
+    {
+      "clause_number": "1.3",
+      "title": "Terms and definitions",
+      "text": "",
+      "page": 8
+    },
+    {
+      "clause_number": "1.3.1",
+      "title": "KV-value",
+      "text": "The KV (Charpy V-Notch)-value is the impact energy in Joules [J] required to fracture a Charpy V-notch specimen at a given test temperature T. Steel product standards generally specify that test specimens should not fail at an impact energy lower than 27J at a specified test temperature T.",
+      "page": 8
+    },
+    {
+      "clause_number": "1.3.2",
+      "title": "Transition region",
+      "text": "The region of the toughness-temperature diagram showing the relationship KV(T) in which the material toughness decreases with the decrease in temperature and the failure mode changes from ductile to brittle. The temperature values T27J required in the product standards are located in the lower part of this region.",
+      "page": 9
+    },
+    {
+      "clause_number": "1.3.3",
+      "title": "Upper shelf region",
+      "text": "The region of the toughness-temperature diagram in which steel elements exhibit elastic-plastic behaviour with ductile modes of failure irrespective of the presence of small flaws and welding discontinuities from fabrication.",
+      "page": 9
+    },
+    {
+      "clause_number": "1.3.4",
+      "title": "T27J",
+      "text": "Temperature at which a minimum energy KV will not be less than 27J in a Charpy V-notch impact test.",
+      "page": 9
+    },
+    {
+      "clause_number": "1.3.5",
+      "title": "Z-value",
+      "text": "The transverse reduction of area in a tensile test (see EN 10002) of the through-thickness ductility of a specimen, measured as a percentage.",
+      "page": 9
+    },
+    {
+      "clause_number": "1.3.6",
+      "title": "K1c-value",
+      "text": "The plane strain fracture toughness for linear elastic behaviour measured in N/mm3/2. NOTE The two internationally recognized alternative units for the stress intensity factor K are N/mm3/2 and MPa√m (ie MN/m3/2) where 1 N/mm3/2 = 0,032 MPa√m.",
+      "page": 9
+    },
+    {
+      "clause_number": "1.3.7",
+      "title": "Degree of cold forming",
+      "text": "Permanent strain from cold forming measured as a percentage.",
+      "page": 9
+    },
+    {
+      "clause_number": "1.4",
+      "title": "Symbols",
+      "text": "KV(T) impact energy in Joule [J] in a test at temperature T with Charpy V notch specimen K stress intensity factor Z Z-quality [%] T temperature [°C] TEd reference temperature δ crack tip opening displacement (CTOD) in mm measured on a small specimen to establish its elastic plastic fracture toughness J elastic plastic fracture toughness value (J-integral value) in N/mm determined as a line or surface integral that encloses the crack front from one crack surface to the other K1c plane strain fracture toughness for linear elastic behaviour measured in N/mm3/2 εcf degree of cold forming (DCF) in percent σEd stresses accompanying the reference temperature TEd",
+      "page": 10
+    },
+    {
+      "clause_number": "2",
+      "title": "Selection of materials for fracture toughness",
+      "text": "",
+      "page": 10
+    },
+    {
+      "clause_number": "2.1",
+      "title": "General",
+      "text": "(1) The guidance given in section 2 should be used for the selection of material for new construction. It is not intended to cover the assessment of materials in service. The rules should be used to select a suitable grade of steel from the European Standards for steel products listed in EN 1993-1-1. (2) The rules are applicable to tension elements, welded and fatigue stressed elements in which some portion of the stress cycle is tensile. NOTE For elements not subject to tension, welding or fatigue the rules can be conservative. In such cases evaluation using fracture mechanics may be appropriate, see 2.4. Fracture toughness need not be specified for elements only in compression. (3)P The rules shall be applied to the properties of materials specified for the toughness quality in the relevant steel product standard. Material of a less onerous grade shall not to be used even though test results show compliance with the specified grade.",
+      "page": 10
+    },
+    {
+      "clause_number": "2.2",
+      "title": "Procedure",
+      "text": "(1) The steel grade should be selected taking account of the following: (i) steel material properties: - yield strength depending on the material thickness fy(t) - toughness quality expressed in terms of T27J or T40J (ii) member characteristics: - member shape and detail - stress concentrations according to the details in EN 1993-1-9 - element thickness (t) - appropriate assumptions for fabrication flaws (e.g. as through-thickness cracks or as semi-elliptical surface cracks) (iii) design situations: - design value of lowest member temperature - maximum stresses from permanent and imposed actions derived from the design condition described in (4) below - residual stress - assumptions for crack growth from fatigue loading during an inspection interval (if relevant) - strain rate ε̇ from accidental actions (if relevant) - degree of cold forming (εcf) (if relevant) (2) The permitted thickness of steel elements for fracture should be obtained from section 2.3 and Table 2.1. (3) Alternative methods may be used to determine the toughness requirement as follows: - fracture mechanics method: In this method the design value of the toughness requirement should not exceed the design value of the toughness property. - Numerical evaluation: This may be carried out using one or more large-scale test specimens. To achieve realistic results, the models should be constructed and loaded in a similar way to the actual structure. (4) The following design condition should be used: (i) Actions should be appropriate to the following combination: Ed = E { A[TEd] \"+\" ΣGk \"+\" ψ1 Qk1 \"+\" Σψ2,i Qki } (2.1) where the leading action A is the reference temperature TEd that influences the toughness of material of the member considered and might also lead to stress from restraint of movement. ΣGk are the permanent actions, and ψ1 Qk1 is the frequent value of the variable load and ψ2,i Qki are the quasi-permanent values of the accompanying variable loads, that govern the level of stresses on the material. (ii) The combinations factor ψ1 and ψ2 should be in accordance with EN 1990. (iii) The maximum applied stress σEd should be the nominal stress at the location of the potential fracture initiation. σEd should be calculated as for the serviceability limit state taking into account all combinations of permanent and variable actions as defined in the appropriate part of EN 1991. NOTE 1 The above combination is considered to be equivalent to an accidental combination, because of the assumption of simultaneous occurrence of lowest temperature, flaw size, location of flaw and material property. NOTE 2 σEd may include stresses from restraint of movement from temperature change. NOTE 3 As the leading action is the reference temperature TEd the maximum applied stress σEd generally will not exceed 75% of the yield strength. (5) The reference temperature TEd at the potential fracture location should be determined using the following expression: TEd = Tmd + ΔTr + ΔTσ + ΔTR + ΔTε̇ + ΔTεcf (2.2) where Tmd is the lowest air temperature with a specified return period, see EN 1991-1-5 ΔTr is an adjustment for radiation loss, see EN 1991-1-5 ΔTσ is the adjustment for stress and yield strength of material, crack imperfection and member shape and dimensions, see 2.4(3) ΔTR is a safety allowance, if required, to reflect different reliability levels for different applications ΔTε̇ is the adjustment for a strain rate other than the reference strain rate ε̇0 (see equation 2.3) ΔTεcf is the adjustment for the degree of cold forming εcf (see equation 2.4) NOTE 1 The safety element ΔTR to adjust TEd to other reliability requirements may be given in the National Annex. ΔTR = 0 °C is recommended, when using the tabulated values according to 2.3. NOTE 2 In preparing the tabulated values in 2.3 a standard curve has been used for the temperature shift ΔTσ that envelopes the design values of the stress intensity factor function [K] from applied stresses σEd and residual stresses and includes the Wallin-Sanz-correlation between the stress intensity factor function [K] and the temperature T. A value of ΔTσ = 0°C may be assumed when using the tabulated values according to 2.3. NOTE 3 The National Annex may give maximum values of the range between TEd and the test temperature and also the range of σEd , to which the validity of values for permissible thicknesses in Table 2.1 may be restricted. NOTE 4 The application of Table 2.1 may be limited in the National Annex to use of up to S 460 steels. (6) The reference stresses σEd should be determined using an elastic analysis taking into account secondary effects from deformations",
+      "page": 10
+    },
+    {
+      "clause_number": "2.3",
+      "title": "Maximum permitted thickness values",
+      "text": "",
+      "page": 12
+    },
+    {
+      "clause_number": "2.3.1",
+      "title": "General",
+      "text": "(1) Table 2.1 gives the maximum permissible element thickness appropriate to a steel grade, its toughness quality in terms of KV-value, the reference stress level [σEd] and the reference temperature [TEd]. (2) The tabulated values are based on the following assumptions: - the values satisfy the reliability requirements of EN 1990 for the general quality of material - a reference strain rate ε̇0 = 4×10^-4 /sec has been used. This covers the dynamic action effects for most transient and persistent design situations. For other strain rates ε̇ (e.g. for impact loads) the tabulated values may be used by reducing TEd by deducting ΔTε̇ given by ΔTε̇ = - (1440 - fy(t)) / 550 × (ln(ε̇ / ε̇0))^1.5 [°C] (2.3) - non cold-formed material with εcf = 0% has been assumed. To allow for cold forming of non-ageing steels, the tabulated values may be used by adjusting TEd by deducting ΔTεcf where ΔTεcf = - 3 × εcf [°C] (2.4) - the nominal notch toughness values in terms of T27J are based on the following product standards: EN 10025, EN 10210-1, EN 10219-1 For other values the following correlation has been used T40J = T27J + 10 [°C] T30J = T27J + 0 [°C] (2.5) - for members subject to fatigue all detail categories for nominal stresses in EN 1993-1-9 are covered NOTE Fatigue has been taken into account by applying a fatigue load to a member with an assumed initial flaw. The damage assumed is one quarter of the full fatigue damage obtained from EN 1993-1-9. This approach permits the evaluation of a minimum number of “safe periods” between in-service inspections when inspections should be specified for damage tolerance according to EN 1993-1-9. The required number [n] of in-service inspections is related to the partial factors γFf and γMf applied in fatigue design according to EN 1993-1-9 by the expression n = 4 / (γFf γMf)^m - 1 , where m = 5 applies for long life structures such as bridges. The “safe period” between in-service inspections may also cover the full design life of a structure.",
+      "page": 12
+    },
+    {
+      "clause_number": "2.3.2",
+      "title": "Determination of maximum permissible values of element thickness",
+      "text": "(1) Table 2.1 gives the maximum permissible values of element thickness in terms of three stress levels expressed as proportions of the nominal yield strength: a) σEd = 0,75 fy(t) [N/mm2] b) σEd = 0,50 fy(t) [N/mm2] (2.6) c) σEd = 0,25 fy(t) [N/mm2] where fy(t) may be determined either from fy(t) = fy,nom - 0,25 t / t0 [N/mm2] where t is the thickness of the plate in mm t0 = 1 mm or taken as ReH-values from the relevant steel standards.. The tabulated values are given in terms of a choice of seven reference temperatures: +10, 0, -10, -20, -30, -40 and -50°C.",
+      "page": 13
+    },
+    {
+      "clause_number": "2.4",
+      "title": "Evaluation using fracture mechanics",
+      "text": "(1) For numerical evaluation using fracture mechanics the toughness requirement and the design toughness property of the materials may be expressed in terms of CTOD values, J-integral values, KIc values, or [AC2] KV-values [/AC2] and comparison should be made using suitable fracture mechanics methods.\n(2) The following condition for the reference temperature should be met:\n[AC2] TEd ≥ TRd [/AC2] (2.7)\nwhere TRd is the temperature at which a safe level of fracture toughness can be relied upon under the conditions being evaluated\n(3) The potential failure mechanism should be modelled using a suitable flaw that reduces the net section of the material thus making it more susceptible to failure by fracture of the reduced section. The flaw should meet the following requirements:\n- location and the shape should be appropriate for the notch case considered. The fatigue classification tables in EN 1993-1-9 may be used for guidance on appropriate crack positions.\n- for members not susceptible to fatigue the size of the flaw should be the maximum likely to have been left uncorrected in inspections carried out to EN 1090. [AC2] The assumed flaw should be located at the position of the most adverse stress concentration. [/AC2]\n- for members susceptible to fatigue the size of the flaw should consist of an initial flaw grown by fatigue. The size of the initial crack should be chosen such that it represents the minimum value detectable by the inspection methods used in accordance with EN 1090. The crack growth from fatigue should be calculated with an appropriate fracture mechanics model using loads experienced during the design safe working life or an inspection interval (as relevant).\n(4) If a structural detail cannot be allocated a specific detail category from EN 1993-1-9 or if more rigorous methods are used to obtain results which are more refined than those given in Table 2.1 then a specific verification should be carried out using actual fracture tests on large scale test specimens.\nNOTE The numerical evaluation of the test results may be undertaken using the methodology given in Annex D of EN 1990.",
+      "page": 14
+    },
+    {
+      "clause_number": "3",
+      "title": "Selection of materials for through-thickness properties",
+      "text": "",
+      "page": 15
+    },
+    {
+      "clause_number": "3.1",
+      "title": "General",
+      "text": "(1) The choice of quality class should be selected from Table 3.1 depending on the consequences of lamellar tearing.\n(2) Depending on the quality class selected from Table 3.1, either:\n- through thickness properties for the steel material should be specified from EN 10164, or\n- post fabrication inspection should be used to identify whether lamellar tearing has occurred.\n(3) The following aspects should be considered in the selection of steel assemblies or connections to safeguard against lamellar tearing:\n- the criticality of the location in terms of applied tensile stress and the degree of redundancy.\n- the strain in the through-thickness direction in the element to which the connection is made. This strain arises from the shrinkage of the weld metal as it cools. It is greatly increased where free movement is restrained by other portions of the structure.\n- the nature of the joint detail, in particular welded cruciform, tee and corner joints. For example, at the point shown in Figure 3.1, the horizontal plate might have poor ductility in the through-thickness direction. Lamellar tearing is most likely to arise [AC2] if the strain in the connection acts [/AC2] through the thickness of the material, which occurs if the fusion face is roughly parallel to the surface of the material and the induced shrinkage strain is perpendicular to the direction of rolling of the material. The heavier the weld, the greater is the susceptibility.\n- chemical properties of transversely stressed material. High sulfur levels in particular, even if significantly below normal steel product standard limits, can increase the lamellar tearing.\n(4) The susceptibility of the material should be determined by measuring the through-thickness ductility quality to EN 10164, which is expressed in terms of quality classes identified by Z-values.\nNOTE 1 Lamellar tearing is a weld induced flaw in the material which generally becomes evident during ultrasonic inspection. The main risk of tearing is with cruciform, T- and corner joints and with full penetration welds.\nNOTE 2 Guidance on the avoidance of lamellar tearing during welding is given in EN 1011-2.",
+      "page": 15
+    },
+    {
+      "clause_number": "3.2",
+      "title": "Procedure",
+      "text": "(1) Lamellar tearing may be neglected if the following condition is satisfied:\nZEd ≤ ZRd (3.1)\nwhere ZEd is the required design Z-value resulting from the magnitude of strains from restrained metal shrinkage under the weld beads.\nZRd is the available design Z-value for the material according to EN 10164, i.e. Z15, Z25 or Z35.\n(2) The required design value ZEd may be determined using:\nZEd = Za + Zb + Zc + Zd + Ze (3.2)\nin which Za, Zb, Zc, Zd and Ze are as given in Table 3.2.\n(3) The appropriate ZRd-class according to EN 10164 may be obtained by applying a suitable classification.\nNOTE For classification see EN 1993-1-1 and EN 1993-2 to EN 1993-6.",
+      "page": 16
+    },
+    {
+      "clause_number": "(3)",
+      "title": "",
+      "text": "(3) The appropriate ZRd-class according to EN 10164 may be obtained by applying a suitable classification.\nNOTE For classification see EN 1993-1-1 and EN 1993-2 to EN 1993-6.",
+      "page": 18
+    }
+  ],
+  "tables": [
+    {
+      "table_id": "Table 2.1",
+      "title": "Maximum permissible values of element thickness t in mm",
+      "headers": [
+        "Steel grade",
+        "Sub-grade",
+        "[AC2] KV [/AC2] at T [°C]",
+        "Jmin",
+        "σEd = 0,75 fy(t) | 10",
+        "σEd = 0,75 fy(t) | 0",
+        "σEd = 0,75 fy(t) | -10",
+        "σEd = 0,75 fy(t) | -20",
+        "σEd = 0,75 fy(t) | -30",
+        "σEd = 0,75 fy(t) | -40",
+        "σEd = 0,75 fy(t) | -50",
+        "σEd = 0,50 fy(t) | 10",
+        "σEd = 0,50 fy(t) | 0",
+        "σEd = 0,50 fy(t) | -10",
+        "σEd = 0,50 fy(t) | -20",
+        "σEd = 0,50 fy(t) | -30",
+        "σEd = 0,50 fy(t) | -40",
+        "σEd = 0,50 fy(t) | -50",
+        "σEd = 0,25 fy(t) | 10",
+        "σEd = 0,25 fy(t) | 0",
+        "σEd = 0,25 fy(t) | -10",
+        "σEd = 0,25 fy(t) | -20",
+        "σEd = 0,25 fy(t) | -30",
+        "σEd = 0,25 fy(t) | -40",
+        "σEd = 0,25 fy(t) | -50"
+      ],
+      "rows": [
+        [
+          "S235",
+          "JR",
+          "20",
+          "27",
+          "60",
+          "50",
+          "40",
+          "35",
+          "30",
+          "25",
+          "20",
+          "90",
+          "75",
+          "65",
+          "55",
+          "45",
+          "40",
+          "35",
+          "135",
+          "115",
+          "100",
+          "85",
+          "75",
+          "65",
+          "60"
+        ],
+        [
+          "S235",
+          "J0",
+          "0",
+          "27",
+          "90",
+          "75",
+          "60",
+          "50",
+          "40",
+          "35",
+          "30",
+          "125",
+          "105",
+          "90",
+          "75",
+          "65",
+          "55",
+          "45",
+          "175",
+          "155",
+          "135",
+          "115",
+          "100",
+          "85",
+          "75"
+        ],
+        [
+          "S235",
+          "J2",
+          "-20",
+          "27",
+          "125",
+          "105",
+          "90",
+          "75",
+          "60",
+          "50",
+          "40",
+          "170",
+          "145",
+          "125",
+          "105",
+          "90",
+          "75",
+          "65",
+          "200",
+          "200",
+          "175",
+          "155",
+          "135",
+          "115",
+          "100"
+        ],
+        [
+          "S275",
+          "JR",
+          "20",
+          "27",
+          "55",
+          "45",
+          "35",
+          "30",
+          "25",
+          "20",
+          "15",
+          "80",
+          "70",
+          "55",
+          "50",
+          "40",
+          "35",
+          "30",
+          "125",
+          "110",
+          "95",
+          "80",
+          "70",
+          "60",
+          "55"
+        ],
+        [
+          "S275",
+          "J0",
+          "0",
+          "27",
+          "75",
+          "65",
+          "55",
+          "45",
+          "35",
+          "30",
+          "25",
+          "115",
+          "95",
+          "80",
+          "70",
+          "55",
+          "50",
+          "40",
+          "165",
+          "145",
+          "125",
+          "110",
+          "95",
+          "80",
+          "70"
+        ],
+        [
+          "S275",
+          "J2",
+          "-20",
+          "27",
+          "110",
+          "95",
+          "75",
+          "65",
+          "55",
+          "45",
+          "35",
+          "155",
+          "130",
+          "115",
+          "95",
+          "80",
+          "70",
+          "55",
+          "200",
+          "190",
+          "165",
+          "145",
+          "125",
+          "110",
+          "95"
+        ],
+        [
+          "S275",
+          "M,N",
+          "-20",
+          "40",
+          "135",
+          "110",
+          "95",
+          "75",
+          "65",
+          "55",
+          "45",
+          "180",
+          "155",
+          "130",
+          "115",
+          "95",
+          "80",
+          "70",
+          "200",
+          "200",
+          "190",
+          "165",
+          "145",
+          "125",
+          "110"
+        ],
+        [
+          "S275",
+          "ML,NL",
+          "-50",
+          "27",
+          "185",
+          "160",
+          "135",
+          "110",
+          "95",
+          "75",
+          "65",
+          "200",
+          "200",
+          "180",
+          "155",
+          "130",
+          "115",
+          "95",
+          "230",
+          "200",
+          "200",
+          "200",
+          "190",
+          "165",
+          "145"
+        ],
+        [
+          "S355",
+          "JR",
+          "20",
+          "27",
+          "40",
+          "35",
+          "25",
+          "20",
+          "15",
+          "15",
+          "10",
+          "65",
+          "55",
+          "45",
+          "40",
+          "30",
+          "25",
+          "25",
+          "110",
+          "95",
+          "80",
+          "70",
+          "60",
+          "55",
+          "45"
+        ],
+        [
+          "S355",
+          "J0",
+          "0",
+          "27",
+          "60",
+          "50",
+          "40",
+          "35",
+          "25",
+          "20",
+          "15",
+          "95",
+          "80",
+          "65",
+          "55",
+          "45",
+          "40",
+          "30",
+          "150",
+          "130",
+          "110",
+          "95",
+          "80",
+          "70",
+          "60"
+        ],
+        [
+          "S355",
+          "J2",
+          "-20",
+          "27",
+          "90",
+          "75",
+          "60",
+          "50",
+          "40",
+          "35",
+          "25",
+          "135",
+          "110",
+          "95",
+          "80",
+          "65",
+          "55",
+          "45",
+          "200",
+          "175",
+          "150",
+          "130",
+          "110",
+          "95",
+          "80"
+        ],
+        [
+          "S355",
+          "K2,M,N",
+          "-20",
+          "40",
+          "110",
+          "90",
+          "75",
+          "60",
+          "50",
+          "40",
+          "35",
+          "155",
+          "135",
+          "110",
+          "95",
+          "80",
+          "65",
+          "55",
+          "200",
+          "200",
+          "175",
+          "150",
+          "130",
+          "110",
+          "95"
+        ],
+        [
+          "S355",
+          "ML,NL",
+          "-50",
+          "27",
+          "155",
+          "130",
+          "110",
+          "90",
+          "75",
+          "60",
+          "50",
+          "200",
+          "180",
+          "155",
+          "135",
+          "110",
+          "95",
+          "80",
+          "210",
+          "200",
+          "200",
+          "200",
+          "175",
+          "150",
+          "130"
+        ],
+        [
+          "S420",
+          "M,N",
+          "-20",
+          "40",
+          "95",
+          "80",
+          "65",
+          "55",
+          "45",
+          "35",
+          "30",
+          "140",
+          "120",
+          "100",
+          "85",
+          "70",
+          "60",
+          "50",
+          "200",
+          "185",
+          "160",
+          "140",
+          "120",
+          "100",
+          "85"
+        ],
+        [
+          "S420",
+          "ML,NL",
+          "-50",
+          "27",
+          "135",
+          "115",
+          "95",
+          "80",
+          "65",
+          "55",
+          "45",
+          "190",
+          "165",
+          "140",
+          "120",
+          "100",
+          "85",
+          "70",
+          "200",
+          "200",
+          "200",
+          "185",
+          "160",
+          "140",
+          "120"
+        ],
+        [
+          "S460",
+          "Q",
+          "-20",
+          "30",
+          "70",
+          "60",
+          "50",
+          "40",
+          "30",
+          "25",
+          "20",
+          "110",
+          "95",
+          "75",
+          "65",
+          "55",
+          "45",
+          "35",
+          "175",
+          "155",
+          "130",
+          "115",
+          "95",
+          "80",
+          "70"
+        ],
+        [
+          "S460",
+          "M,N",
+          "-20",
+          "40",
+          "90",
+          "70",
+          "60",
+          "50",
+          "40",
+          "30",
+          "25",
+          "130",
+          "110",
+          "95",
+          "75",
+          "65",
+          "55",
+          "45",
+          "200",
+          "175",
+          "155",
+          "130",
+          "115",
+          "95",
+          "80"
+        ],
+        [
+          "S460",
+          "QL",
+          "-40",
+          "30",
+          "105",
+          "90",
+          "70",
+          "60",
+          "50",
+          "40",
+          "30",
+          "155",
+          "130",
+          "110",
+          "95",
+          "75",
+          "65",
+          "55",
+          "200",
+          "200",
+          "175",
+          "155",
+          "130",
+          "115",
+          "95"
+        ],
+        [
+          "S460",
+          "ML,NL",
+          "-50",
+          "27",
+          "125",
+          "105",
+          "90",
+          "70",
+          "60",
+          "50",
+          "40",
+          "180",
+          "155",
+          "130",
+          "110",
+          "95",
+          "75",
+          "65",
+          "200",
+          "200",
+          "200",
+          "175",
+          "155",
+          "130",
+          "115"
+        ],
+        [
+          "S460",
+          "QL1",
+          "-60",
+          "30",
+          "150",
+          "125",
+          "105",
+          "90",
+          "70",
+          "60",
+          "50",
+          "200",
+          "180",
+          "155",
+          "130",
+          "110",
+          "95",
+          "75",
+          "215",
+          "200",
+          "200",
+          "200",
+          "175",
+          "155",
+          "130"
+        ],
+        [
+          "S690",
+          "Q",
+          "0",
+          "40",
+          "40",
+          "30",
+          "25",
+          "20",
+          "15",
+          "10",
+          "10",
+          "65",
+          "55",
+          "45",
+          "35",
+          "30",
+          "20",
+          "20",
+          "120",
+          "100",
+          "85",
+          "75",
+          "60",
+          "50",
+          "45"
+        ],
+        [
+          "S690",
+          "Q",
+          "-20",
+          "30",
+          "50",
+          "40",
+          "30",
+          "25",
+          "20",
+          "15",
+          "10",
+          "80",
+          "65",
+          "55",
+          "45",
+          "35",
+          "30",
+          "20",
+          "140",
+          "120",
+          "100",
+          "85",
+          "75",
+          "60",
+          "50"
+        ],
+        [
+          "S690",
+          "QL",
+          "-20",
+          "40",
+          "60",
+          "50",
+          "40",
+          "30",
+          "25",
+          "20",
+          "15",
+          "95",
+          "80",
+          "65",
+          "55",
+          "45",
+          "35",
+          "30",
+          "165",
+          "140",
+          "120",
+          "100",
+          "85",
+          "75",
+          "60"
+        ],
+        [
+          "S690",
+          "QL",
+          "-40",
+          "30",
+          "75",
+          "60",
+          "50",
+          "40",
+          "30",
+          "25",
+          "20",
+          "115",
+          "95",
+          "80",
+          "65",
+          "55",
+          "45",
+          "35",
+          "190",
+          "165",
+          "140",
+          "120",
+          "100",
+          "85",
+          "75"
+        ],
+        [
+          "S690",
+          "QL1",
+          "-40",
+          "40",
+          "90",
+          "75",
+          "60",
+          "50",
+          "40",
+          "30",
+          "25",
+          "135",
+          "115",
+          "95",
+          "80",
+          "65",
+          "55",
+          "45",
+          "200",
+          "190",
+          "165",
+          "140",
+          "120",
+          "100",
+          "85"
+        ],
+        [
+          "S690",
+          "QL1",
+          "-60",
+          "30",
+          "110",
+          "90",
+          "75",
+          "60",
+          "50",
+          "40",
+          "30",
+          "160",
+          "135",
+          "115",
+          "95",
+          "80",
+          "65",
+          "55",
+          "200",
+          "200",
+          "190",
+          "165",
+          "140",
+          "120",
+          "100"
+        ]
+      ],
+      "footnotes": [
+        "NOTE 1 Linear interpolation can be used in applying Table 2.1. Most applications require σEd values between σEd = 0,75 fy(t) and σEd = 0,50 fy(t). σEd = 0,25 fy(t) is given for interpolation purposes. Extrapolations beyond the extreme values are not valid.",
+        "NOTE 2 For ordering products made of S 690 steels, the test temperature [AC2] TKV [/AC2] should be given.",
+        "NOTE 3 Table 2.1 has been derived for the guaranteed [AC2] KV-values [/AC2] in the direction of the rolling of the product."
+      ],
+      "clause": "2.4",
+      "page": 14
+    },
+    {
+      "table_id": "Table 3.1",
+      "title": "Choice of quality class",
+      "headers": [
+        "Class",
+        "Application of guidance"
+      ],
+      "rows": [
+        [
+          "1",
+          "All steel products and all thicknesses listed in European standards for all applications"
+        ],
+        [
+          "2",
+          "Certain steel products and thicknesses listed in European standards and/or certain listed applications"
+        ]
+      ],
+      "footnotes": [
+        "NOTE The National Annex may choose the relevant class. The use of class 1 is recommended."
+      ],
+      "clause": "3.1",
+      "page": 15
+    },
+    {
+      "table_id": "Table 3.2",
+      "title": "Criteria affecting the target value of ZEd",
+      "headers": [
+        "Category",
+        "Condition 1",
+        "Condition 2",
+        "Zi"
+      ],
+      "rows": [
+        [
+          "a) Weld depth relevant for straining from metal shrinkage",
+          "[AC2] Effective weld depth aeff (see Figure 3.2) [/AC2]",
+          "[AC2] Throat thickness a of fillet welds [/AC2]",
+          "Zi"
+        ],
+        [
+          "a) Weld depth relevant for straining from metal shrinkage",
+          "aeff ≤ 7mm",
+          "a = 5 mm",
+          "Za = 0"
+        ],
+        [
+          "a) Weld depth relevant for straining from metal shrinkage",
+          "7 < aeff ≤ 10mm",
+          "a = 7 mm",
+          "Za = 3"
+        ],
+        [
+          "a) Weld depth relevant for straining from metal shrinkage",
+          "10 < aeff ≤ 20mm",
+          "a = 14 mm",
+          "Za = 6"
+        ],
+        [
+          "a) Weld depth relevant for straining from metal shrinkage",
+          "20 < aeff ≤ 30mm",
+          "a = 21 mm",
+          "Za = 9"
+        ],
+        [
+          "a) Weld depth relevant for straining from metal shrinkage",
+          "30 < aeff ≤ 40mm",
+          "a = 28 mm",
+          "Za = 12"
+        ],
+        [
+          "a) Weld depth relevant for straining from metal shrinkage",
+          "40 < aeff ≤ 50mm",
+          "a = 35 mm",
+          "Za = 15"
+        ],
+        [
+          "a) Weld depth relevant for straining from metal shrinkage",
+          "50 < aeff",
+          "a > 35 mm",
+          "Za = 15"
+        ],
+        [
+          "b) Shape and position of welds in T- and cruciform- and corner-connections",
+          "T- and cruciform joints",
+          "T- and cruciform joints",
+          "Zb = -25"
+        ],
+        [
+          "b) Shape and position of welds in T- and cruciform- and corner-connections",
+          "corner joints",
+          "corner joints",
+          "Zb = -10"
+        ],
+        [
+          "b) Shape and position of welds in T- and cruciform- and corner-connections",
+          "single run fillet welds Za = 0 or fillet welds with Za > 1 with buttering with low strength weld material",
+          "single run fillet welds Za = 0 or fillet welds with Za > 1 with buttering with low strength weld material",
+          "Zb = -5"
+        ],
+        [
+          "b) Shape and position of welds in T- and cruciform- and corner-connections",
+          "multi run fillet welds",
+          "multi run fillet welds",
+          "Zb = 0"
+        ],
+        [
+          "b) Shape and position of welds in T- and cruciform- and corner-connections",
+          "partial and full penetration welds",
+          "with appropriate welding sequence to reduce shrinkage effects",
+          "Zb = 3"
+        ],
+        [
+          "b) Shape and position of welds in T- and cruciform- and corner-connections",
+          "partial and full penetration welds",
+          "partial and full penetration welds",
+          "Zb = 5"
+        ],
+        [
+          "b) Shape and position of welds in T- and cruciform- and corner-connections",
+          "corner joints",
+          "corner joints",
+          "Zb = 8"
+        ],
+        [
+          "c) Effect of material thickness s on restraint to shrinkage",
+          "s ≤ 10mm",
+          "s ≤ 10mm",
+          "Zc = 2*"
+        ],
+        [
+          "c) Effect of material thickness s on restraint to shrinkage",
+          "10 < s ≤ 20mm",
+          "10 < s ≤ 20mm",
+          "Zc = 4*"
+        ],
+        [
+          "c) Effect of material thickness s on restraint to shrinkage",
+          "20 < s ≤ 30mm",
+          "20 < s ≤ 30mm",
+          "Zc = 6*"
+        ],
+        [
+          "c) Effect of material thickness s on restraint to shrinkage",
+          "30 < s ≤ 40mm",
+          "30 < s ≤ 40mm",
+          "Zc = 8*"
+        ],
+        [
+          "c) Effect of material thickness s on restraint to shrinkage",
+          "40 < s ≤ 50mm",
+          "40 < s ≤ 50mm",
+          "Zc = 10*"
+        ],
+        [
+          "c) Effect of material thickness s on restraint to shrinkage",
+          "50 < s ≤ 60mm",
+          "50 < s ≤ 60mm",
+          "Zc = 12*"
+        ],
+        [
+          "c) Effect of material thickness s on restraint to shrinkage",
+          "60 < s ≤ 70mm",
+          "60 < s ≤ 70mm",
+          "Zc = 15*"
+        ],
+        [
+          "c) Effect of material thickness s on restraint to shrinkage",
+          "70 < s",
+          "70 < s",
+          "Zc = 15*"
+        ],
+        [
+          "d) Remote restraint of shrinkage after welding by other portions of the structure",
+          "Low restraint:",
+          "Free shrinkage possible (e.g. T-joints)",
+          "Zd = 0"
+        ],
+        [
+          "d) Remote restraint of shrinkage after welding by other portions of the structure",
+          "Medium restraint:",
+          "Free shrinkage restricted (e.g. diaphragms in box girders)",
+          "Zd = 3"
+        ],
+        [
+          "d) Remote restraint of shrinkage after welding by other portions of the structure",
+          "High restraint:",
+          "Free shrinkage not possible (e.g. stringers in orthotropic deck plates)",
+          "Zd = 5"
+        ],
+        [
+          "e) Influence of preheating",
+          "Without preheating",
+          "Without preheating",
+          "Ze = 0"
+        ],
+        [
+          "e) Influence of preheating",
+          "Preheating ≥ 100°C",
+          "Preheating ≥ 100°C",
+          "Ze = -8"
+        ]
+      ],
+      "footnotes": [
+        "* May be reduced by 50% for material stressed, in the through-thickness direction, by compression due to predominantly static loads."
+      ],
+      "clause": "3.2",
+      "page": 17
+    }
+  ],
+  "figures": [
+    {
+      "figure_id": "Figure 1.1",
+      "title": "Relationship between impact energy and temperature",
+      "figure_type": "graph",
+      "description": "A curve showing the relationship between impact energy KV(T) [J] on the y-axis and temperature T [°C] on the x-axis. The curve illustrates three regions: 1 lower shelf region, 2 transition region, and 3 upper shelf region. A dashed horizontal line indicates an impact energy of 27 J, intersecting the curve at a temperature marked as T27J on the x-axis.",
+      "labels": [
+        "KV(T) [J]",
+        "T [°C]",
+        "1",
+        "2",
+        "3",
+        "27 J",
+        "T27J",
+        "1 lower shelf region",
+        "2 transition region",
+        "3 upper shelf region"
+      ],
+      "axis_info": "y-axis: KV(T) [J], x-axis: T [°C]",
+      "data_points": "y=27 J at x=T27J",
+      "clause": "1.3.3",
+      "page": 9
+    },
+    {
+      "figure_id": "Figure 3.1",
+      "title": "Lamellar tearing",
+      "figure_type": "diagram",
+      "description": "Two diagrams showing welded joints (a T-joint and a cruciform joint) with arrows indicating the direction of shrinkage strain and wavy lines indicating lamellar tearing in the horizontal plate due to through-thickness stresses.",
+      "labels": [],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "3.1",
+      "page": 16
+    },
+    {
+      "figure_id": "Figure 3.2",
+      "title": "Effective weld depth aeff for shrinkage",
+      "figure_type": "cross_section",
+      "description": "Two cross-sectional diagrams of welded T-joints illustrating the effective weld depth for shrinkage. The left diagram shows a single-sided fillet weld, and the right diagram shows a double-sided fillet weld. Both diagrams indicate the effective weld depth 'aeff' and the plate thickness 's'.",
+      "labels": [
+        "aeff",
+        "s"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "",
+      "page": 18
+    }
+  ],
+  "equations": [
+    {
+      "equation_id": "(2.1)",
+      "latex": "E_d = E \\{ A[T_{Ed}] \"+\" \\sum G_k \"+\" \\psi_1 Q_{k1} \"+\" \\sum \\psi_{2,i} Q_{ki} \\}",
+      "plain_text": "Ed = E { A[TEd] \"+\" ΣGk \"+\" ψ1 Qk1 \"+\" Σψ2,i Qki }",
+      "description": "Design condition combination of actions for fracture mechanics evaluation",
+      "variables": [
+        {
+          "symbol": "A",
+          "meaning": "leading action (reference temperature TEd that influences the toughness of material)",
+          "unit": ""
+        },
+        {
+          "symbol": "TEd",
+          "meaning": "reference temperature that influences the toughness of material of the member considered",
+          "unit": "°C"
+        },
+        {
+          "symbol": "Gk",
+          "meaning": "permanent actions",
+          "unit": ""
+        },
+        {
+          "symbol": "ψ1 Qk1",
+          "meaning": "frequent value of the variable load",
+          "unit": ""
+        },
+        {
+          "symbol": "ψ2,i Qki",
+          "meaning": "quasi-permanent values of the accompanying variable loads",
+          "unit": ""
+        }
+      ],
+      "clause": "2.2",
+      "page": 11
+    },
+    {
+      "equation_id": "(2.2)",
+      "latex": "T_{Ed} = T_{md} + \\Delta T_r + \\Delta T_\\sigma + \\Delta T_R + \\Delta T_{\\dot{\\varepsilon}} + \\Delta T_{\\varepsilon_{cf}}",
+      "plain_text": "TEd = Tmd + ΔTr + ΔTσ + ΔTR + ΔTε̇ + ΔTεcf",
+      "description": "Calculation of the reference temperature TEd at the potential fracture location",
+      "variables": [
+        {
+          "symbol": "Tmd",
+          "meaning": "lowest air temperature with a specified return period",
+          "unit": "°C"
+        },
+        {
+          "symbol": "ΔTr",
+          "meaning": "adjustment for radiation loss",
+          "unit": "°C"
+        },
+        {
+          "symbol": "ΔTσ",
+          "meaning": "adjustment for stress and yield strength of material, crack imperfection and member shape and dimensions",
+          "unit": "°C"
+        },
+        {
+          "symbol": "ΔTR",
+          "meaning": "safety allowance, if required, to reflect different reliability levels for different applications",
+          "unit": "°C"
+        },
+        {
+          "symbol": "ΔTε̇",
+          "meaning": "adjustment for a strain rate other than the reference strain rate ε̇0",
+          "unit": "°C"
+        },
+        {
+          "symbol": "ΔTεcf",
+          "meaning": "adjustment for the degree of cold forming εcf",
+          "unit": "°C"
+        }
+      ],
+      "clause": "2.2",
+      "page": 11
+    },
+    {
+      "equation_id": "(2.3)",
+      "latex": "\\Delta T_{\\dot{\\varepsilon}} = - \\frac{1440 - f_y(t)}{550} \\times \\left( \\ln \\frac{\\dot{\\varepsilon}}{\\dot{\\varepsilon}_0} \\right)^{1.5} [^\\circ C]",
+      "plain_text": "ΔTε̇ = - (1440 - fy(t)) / 550 × (ln(ε̇ / ε̇0))^1.5 [°C]",
+      "description": "Adjustment for a strain rate other than the reference strain rate",
+      "variables": [
+        {
+          "symbol": "ε̇",
+          "meaning": "strain rate",
+          "unit": "/sec"
+        },
+        {
+          "symbol": "ε̇0",
+          "meaning": "reference strain rate (4×10^-4 /sec)",
+          "unit": "/sec"
+        },
+        {
+          "symbol": "fy(t)",
+          "meaning": "yield strength depending on the material thickness",
+          "unit": "N/mm2"
+        }
+      ],
+      "clause": "2.3.1",
+      "page": 12
+    },
+    {
+      "equation_id": "(2.4)",
+      "latex": "\\Delta T_{\\varepsilon_{cf}} = - 3 \\times \\varepsilon_{cf} [^\\circ C]",
+      "plain_text": "ΔTεcf = - 3 × εcf [°C]",
+      "description": "Adjustment for the degree of cold forming",
+      "variables": [
+        {
+          "symbol": "εcf",
+          "meaning": "degree of cold forming",
+          "unit": "%"
+        }
+      ],
+      "clause": "2.3.1",
+      "page": 12
+    },
+    {
+      "equation_id": "(2.5)",
+      "latex": "T_{40J} = T_{27J} + 10 [^\\circ C] \\quad T_{30J} = T_{27J} + 0 [^\\circ C]",
+      "plain_text": "T40J = T27J + 10 [°C] ; T30J = T27J + 0 [°C]",
+      "description": "Correlation for nominal notch toughness values",
+      "variables": [
+        {
+          "symbol": "T40J",
+          "meaning": "temperature for 40J impact energy",
+          "unit": "°C"
+        },
+        {
+          "symbol": "T30J",
+          "meaning": "temperature for 30J impact energy",
+          "unit": "°C"
+        },
+        {
+          "symbol": "T27J",
+          "meaning": "temperature for 27J impact energy",
+          "unit": "°C"
+        }
+      ],
+      "clause": "2.3.1",
+      "page": 12
+    },
+    {
+      "equation_id": "(2.6)",
+      "latex": "a) \\sigma_{Ed} = 0,75 f_y(t) [N/mm^2] \\quad b) \\sigma_{Ed} = 0,50 f_y(t) [N/mm^2] \\quad c) \\sigma_{Ed} = 0,25 f_y(t) [N/mm^2]",
+      "plain_text": "a) σEd = 0,75 fy(t) [N/mm2] b) σEd = 0,50 fy(t) [N/mm2] c) σEd = 0,25 fy(t) [N/mm2]",
+      "description": "Stress levels expressed as proportions of the nominal yield strength",
+      "variables": [
+        {
+          "symbol": "σEd",
+          "meaning": "maximum applied stress",
+          "unit": "N/mm2"
+        },
+        {
+          "symbol": "fy(t)",
+          "meaning": "yield strength depending on the material thickness",
+          "unit": "N/mm2"
+        }
+      ],
+      "clause": "2.3.2",
+      "page": 13
+    },
+    {
+      "equation_id": "(2.7)",
+      "latex": "T_{Ed} \\ge T_{Rd}",
+      "plain_text": "TEd ≥ TRd",
+      "description": "Condition for the reference temperature using fracture mechanics",
+      "variables": [
+        {
+          "symbol": "TEd",
+          "meaning": "reference temperature",
+          "unit": "°C"
+        },
+        {
+          "symbol": "TRd",
+          "meaning": "temperature at which a safe level of fracture toughness can be relied upon under the conditions being evaluated",
+          "unit": "°C"
+        }
+      ],
+      "clause": "2.4",
+      "page": 14
+    },
+    {
+      "equation_id": "(3.1)",
+      "latex": "Z_{Ed} \\le Z_{Rd}",
+      "plain_text": "Z_Ed ≤ Z_Rd",
+      "description": "Condition to neglect lamellar tearing",
+      "variables": [
+        {
+          "symbol": "ZEd",
+          "meaning": "the required design Z-value resulting from the magnitude of strains from restrained metal shrinkage under the weld beads",
+          "unit": ""
+        },
+        {
+          "symbol": "ZRd",
+          "meaning": "the available design Z-value for the material according to EN 10164, i.e. Z15, Z25 or Z35",
+          "unit": ""
+        }
+      ],
+      "clause": "3.2",
+      "page": 16
+    },
+    {
+      "equation_id": "(3.2)",
+      "latex": "Z_{Ed} = Z_a + Z_b + Z_c + Z_d + Z_e",
+      "plain_text": "Z_Ed = Z_a + Z_b + Z_c + Z_d + Z_e",
+      "description": "Calculation of the required design value Z_Ed",
+      "variables": [
+        {
+          "symbol": "Za",
+          "meaning": "given in Table 3.2",
+          "unit": ""
+        },
+        {
+          "symbol": "Zb",
+          "meaning": "given in Table 3.2",
+          "unit": ""
+        },
+        {
+          "symbol": "Zc",
+          "meaning": "given in Table 3.2",
+          "unit": ""
+        },
+        {
+          "symbol": "Zd",
+          "meaning": "given in Table 3.2",
+          "unit": ""
+        },
+        {
+          "symbol": "Ze",
+          "meaning": "given in Table 3.2",
+          "unit": ""
+        }
+      ],
+      "clause": "3.2",
+      "page": 16
+    }
+  ],
+  "annexes": [],
+  "national_annex": [],
+  "bibliography": [],
+  "_verification": {
+    "missing_tables": [],
+    "missing_figures": [],
+    "missing_equations": [],
+    "missing_clauses": [],
+    "table_errors": [],
+    "overall_quality": "Excellent. All tables, figures, equations, and clauses present in the PDF were successfully extracted."
+  }
+}

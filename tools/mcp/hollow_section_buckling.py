@@ -5,6 +5,7 @@ from typing import Literal
 from pydantic import BaseModel, Field, PositiveFloat
 
 from tools.mcp.cli import run_cli
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "hollow_section_buckling_ec3"
 
@@ -62,12 +63,7 @@ def calculate(inp: HollowSectionBucklingInput) -> dict:
             "L_cr_m": round(L_cr / 1000.0, 3),
         },
         "clause_references": [
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "BB.1.3",
-                "title": "Hollow sections as web members and chord members",
-                "pointer": "en_1993_1_1_2005_structured.json#BB.1.3",
-            },
+            clause_ref("ec3.en1993-1-1.2005", "BB.1.3", "Hollow sections as web members and chord members"),
         ],
         "notes": notes,
     }

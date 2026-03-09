@@ -5,6 +5,7 @@ from typing import Optional
 from pydantic import BaseModel, Field, PositiveFloat
 
 from tools.mcp.cli import run_cli
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "steel_grade_properties"
 
@@ -66,18 +67,8 @@ def lookup(inp: SteelGradeInput) -> dict:
             "poisson_ratio": 0.3,
         },
         "clause_references": [
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "Table 3.1",
-                "title": "Nominal values of yield strength fy and ultimate tensile strength fu",
-                "pointer": "en_1993_1_1_2005_ocr.json#table_3.1",
-            },
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "3.2.6",
-                "title": "Design values of material coefficients",
-                "pointer": "en_1993_1_1_2005_ocr.json#3.2.6",
-            },
+            clause_ref("ec3.en1993-1-1.2005", "Table 3.1", "Nominal values of yield strength fy and ultimate tensile strength fu"),
+            clause_ref("ec3.en1993-1-1.2005", "3.2.6", "Design values of material coefficients"),
         ],
         "notes": [
             f"Yield strength fy = {fy} MPa for {grade}, {thickness_range}.",

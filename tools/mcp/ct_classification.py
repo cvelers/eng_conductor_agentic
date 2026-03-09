@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field, PositiveFloat
 
 from tools.mcp.cli import run_cli
 from tools.mcp.section_library import steel_grade_to_fy
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "ct_classification_ec3"
 
@@ -143,12 +144,7 @@ def calculate(inp: CtClassificationInput) -> dict:
                 "epsilon": round(epsilon, 4),
             },
             "clause_references": [
-                {
-                    "doc_id": "ec3.en1993-1-1.2005",
-                    "clause_id": "5.5.2",
-                    "title": "Table 5.2 – Classification limits (Angles)",
-                    "pointer": "en_1993_1_1_2005_structured.json#5.5.2",
-                },
+                clause_ref("ec3.en1993-1-1.2005", "5.5.2", "Table 5.2 – Classification limits (Angles)"),
             ],
             "notes": notes,
         }
@@ -182,12 +178,7 @@ def calculate(inp: CtClassificationInput) -> dict:
             "class_3_limit": round(limits.get(3, float("inf")), 2) if 3 in limits else None,
         },
         "clause_references": [
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "5.5.2",
-                "title": "Table 5.2 – Maximum width-to-thickness ratios",
-                "pointer": "en_1993_1_1_2005_structured.json#5.5.2",
-            },
+            clause_ref("ec3.en1993-1-1.2005", "5.5.2", "Table 5.2 – Maximum width-to-thickness ratios"),
         ],
         "notes": notes,
     }

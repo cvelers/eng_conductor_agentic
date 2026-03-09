@@ -5,6 +5,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field
 
 from tools.mcp.cli import run_cli
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "cm_factor_b_ec3"
 
@@ -124,12 +125,7 @@ def calculate(inp: CmFactorBInput) -> dict:
             "C_m": round(C_m, 4),
         },
         "clause_references": [
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "B.3",
-                "title": "Table B.3 – Equivalent uniform moment factors C_m",
-                "pointer": "en_1993_1_1_2005_structured.json#B.3",
-            },
+            clause_ref("ec3.en1993-1-1.2005", "B.3", "Table B.3 – Equivalent uniform moment factors C_m"),
         ],
         "notes": notes,
     }

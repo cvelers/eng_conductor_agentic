@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field, PositiveFloat, model_validator
 
 from tools.mcp.cli import run_cli
 from tools.mcp.section_library import SECTION_LIBRARY, steel_grade_to_fy
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "ltb_resistance_ec3"
 
@@ -181,18 +182,8 @@ def calculate(inp: LTBResistanceInput) -> dict:
             "M_cr_kNm": round(M_cr_kNm, 2),
         },
         "clause_references": [
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "6.3.2.1",
-                "title": "Lateral torsional buckling resistance",
-                "pointer": "en_1993_1_1_2005_structured.json#6.3.2.1",
-            },
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "6.3.2.2" if inp.method == "general" else "6.3.2.3",
-                "title": "LTB curves" if inp.method == "general" else "LTB for rolled/welded sections",
-                "pointer": "en_1993_1_1_2005_structured.json#6.3.2.2",
-            },
+            clause_ref("ec3.en1993-1-1.2005", "6.3.2.1", "Lateral torsional buckling resistance"),
+            clause_ref("ec3.en1993-1-1.2005", "6.3.2.2" if inp.method == "general" else "6.3.2.3", "LTB curves" if inp.method == "general" else "LTB for rolled/welded sections"),
         ],
         "notes": notes,
     }

@@ -6,6 +6,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field, PositiveFloat
 
 from tools.mcp.cli import run_cli
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "taper_factor_ec3"
 
@@ -118,12 +119,7 @@ def calculate(inp: TaperFactorInput) -> dict:
             "c": round(c, 4),
         },
         "clause_references": [
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "BB.3.3.3",
-                "title": "Taper factor",
-                "pointer": "en_1993_1_1_2005_structured.json#BB.3.3.3",
-            },
+            clause_ref("ec3.en1993-1-1.2005", "BB.3.3.3", "Taper factor"),
         ],
         "notes": notes,
     }

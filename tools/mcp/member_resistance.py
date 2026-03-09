@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, PositiveFloat, field_validator, model_val
 
 from tools.mcp.cli import run_cli
 from tools.mcp.section_library import SECTION_LIBRARY, steel_grade_to_fy
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "member_resistance_ec3"
 
@@ -117,24 +118,9 @@ def compute_resistance(input_data: MemberResistanceInput) -> dict:
             "shear_formula_basis": "V_Rd = A_v * f_y / (sqrt(3) * gamma_M0)",
         },
         "clause_references": [
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "6.2.5(1)",
-                "title": "Bending resistance",
-                "pointer": "en_1993_1_1_sample.json#/clauses/4",
-            },
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "6.2.4(1)",
-                "title": "Compression resistance",
-                "pointer": "en_1993_1_1_sample.json#/clauses/3",
-            },
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "6.2.6(1)",
-                "title": "Shear resistance",
-                "pointer": "en_1993_1_1_sample.json#/clauses/5",
-            },
+            clause_ref("ec3.en1993-1-1.2005", "6.2.5(1)", "Bending resistance"),
+            clause_ref("ec3.en1993-1-1.2005", "6.2.4(1)", "Compression resistance"),
+            clause_ref("ec3.en1993-1-1.2005", "6.2.6(1)", "Shear resistance"),
         ],
         "notes": [
             "Member buckling and lateral torsional buckling are outside this MVP placeholder calculator.",

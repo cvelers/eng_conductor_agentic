@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field, PositiveFloat, model_validator
 
 from tools.mcp.cli import run_cli
 from tools.mcp.section_library import SECTION_LIBRARY, steel_grade_to_fy
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "section_classification_ec3"
 
@@ -79,16 +80,14 @@ def classify(input_data: SectionClassificationInput) -> dict:
     fy = float(input_data.fy_mpa)
     epsilon = math.sqrt(235.0 / fy)
 
-    # Web clear depth: h - 2*tf - 2*r (if root radius known)
-    web_c = float(input_data.h_mm) - 2.0 * float(input_data.tf_mm)
-    if input_data.r_mm:
-        web_c -= 2.0 * float(input_data.r_mm)
+    r = float(input_data.r_mm) if input_data.r_mm is not None else 0.0
+
+    # EC3 Table 5.2: web clear depth c = h - 2*tf - 2*r
+    web_c = float(input_data.h_mm) - 2.0 * float(input_data.tf_mm) - 2.0 * r
     web_ratio = web_c / float(input_data.tw_mm)
 
-    # Flange outstand: (b - tw)/2 - r (for rolled sections per EC3 Table 5.2)
-    flange_c = (float(input_data.b_mm) - float(input_data.tw_mm)) / 2.0
-    if input_data.r_mm:
-        flange_c -= float(input_data.r_mm)
+    # EC3 Table 5.2: flange outstand c = (b - tw - 2*r) / 2
+    flange_c = (float(input_data.b_mm) - float(input_data.tw_mm) - 2.0 * r) / 2.0
     flange_ratio = flange_c / float(input_data.tf_mm)
 
     # EC3 Table 5.2 limits — stress-type dependent for web (internal part)
@@ -112,7 +111,7 @@ def classify(input_data: SectionClassificationInput) -> dict:
             "b_mm": input_data.b_mm,
             "tw_mm": input_data.tw_mm,
             "tf_mm": input_data.tf_mm,
-            "r_mm": input_data.r_mm,
+            "r_mm": r,
             "fy_mpa": round(fy, 3),
         },
         "intermediate": {
@@ -131,18 +130,8 @@ def classify(input_data: SectionClassificationInput) -> dict:
             "governing_class": governing_class,
         },
         "clause_references": [
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "5.5.2(1)",
-                "title": "Classification of cross-sections",
-                "pointer": "en_1993_1_1_sample.json#/clauses/1",
-            },
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "Table 5.2",
-                "title": "Width-to-thickness limits",
-                "pointer": "en_1993_1_1_sample.json#/clauses/2",
-            },
+            clause_ref("ec3.en1993-1-1.2005", "5.5.2(1)", "Classification of cross-sections"),
+            clause_ref("ec3.en1993-1-1.2005", "Table 5.2", "Width-to-thickness limits"),
         ],
         "notes": [
             f"Stress type: {input_data.stress_type}",

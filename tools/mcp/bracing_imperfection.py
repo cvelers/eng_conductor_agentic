@@ -5,6 +5,7 @@ import math
 from pydantic import BaseModel, Field, PositiveFloat, PositiveInt
 
 from tools.mcp.cli import run_cli
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "bracing_imperfection_ec3"
 
@@ -69,12 +70,7 @@ def calculate(inp: BracingImperfectionInput) -> dict:
             "alpha_m": round(alpha_m, 4),
         },
         "clause_references": [
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "5.3.3",
-                "title": "Imperfection for analysis of bracing systems",
-                "pointer": "en_1993_1_1_2005_structured.json#5.3.3",
-            },
+            clause_ref("ec3.en1993-1-1.2005", "5.3.3", "Imperfection for analysis of bracing systems"),
         ],
         "notes": notes,
     }

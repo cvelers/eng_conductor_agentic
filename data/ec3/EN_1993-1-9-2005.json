@@ -1,0 +1,1721 @@
+{
+  "metadata": {
+    "standard_number": "EN 1993-1-9:2005",
+    "title": "Eurocode 3: Design of steel structures - Part 1-9: Fatigue",
+    "subtitle": "",
+    "language": "English",
+    "publication_year": "2005",
+    "committee": "CEN/TC250",
+    "ics_codes": [
+      "91.010.30"
+    ],
+    "supersedes": "ENV 1993-1-1:1992",
+    "total_pages": 37
+  },
+  "foreword": "This European Standard EN 1993, Eurocode 3: Design of steel structures, has been prepared by Technical Committee CEN/TC250 « Structural Eurocodes », the Secretariat of which is held by BSI. CEN/TC250 is responsible for all Structural Eurocodes.\n\nThis European Standard shall be given the status of a National Standard, either by publication of an identical text or by endorsement, at the latest by November 2005, and conflicting National Standards shall be withdrawn at latest by March 2010.\n\nThis Eurocode supersedes ENV 1993-1-1.\n\nAccording to the CEN-CENELEC Internal Regulations, the National Standard Organizations of the following countries are bound to implement these European Standard: Austria, Belgium, Cyprus, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hungary, Iceland, Ireland, Italy, Latvia, Lithuania, Luxembourg, Malta, Netherlands, Norway, Poland, Portugal, Slovakia, Slovenia, Spain, Sweden, Switzerland and United Kingdom.\n\nBackground to the Eurocode programme\n\nIn 1975, the Commission of the European Community decided on an action programme in the field of construction, based on article 95 of the Treaty. The objective of the programme was the elimination of technical obstacles to trade and the harmonization of technical specifications.\n\nWithin this action programme, the Commission took the initiative to establish a set of harmonized technical rules for the design of construction works which, in a first stage, would serve as an alternative to the national rules in force in the Member States and, ultimately, would replace them.\n\nFor fifteen years, the Commission, with the help of a Steering Committee with Representatives of Member States, conducted the development of the Eurocodes programme, which led to the first generation of European codes in the 1980s.\n\nIn 1989, the Commission and the Member States of the EU and EFTA decided, on the basis of an agreement between the Commission and CEN, to transfer the preparation and the publication of the Eurocodes to CEN through a series of Mandates, in order to provide them with a future status of European Standard (EN). This links de facto the Eurocodes with the provisions of all the Council's Directives and/or Commission's Decisions dealing with European standards (e.g. the Council Directive 89/106/EEC on construction products - CPD - and Council Directives 93/37/EEC, 92/50/EEC and 89/440/EEC on public works and services and equivalent EFTA Directives initiated in pursuit of setting up the internal market).\n\nThe Structural Eurocode programme comprises the following standards generally consisting of a number of Parts:\n\nEN 1990 Eurocode 0: Basis of Structural Design\nEN 1991 Eurocode 1: Actions on structures\nEN 1992 Eurocode 2: Design of concrete structures\nEN 1993 Eurocode 3: Design of steel structures\nEN 1994 Eurocode 4: Design of composite steel and concrete structures\nEN 1995 Eurocode 5: Design of timber structures\nEN 1996 Eurocode 6: Design of masonry structures\nEN 1997 Eurocode 7: Geotechnical design\nEN 1998 Eurocode 8: Design of structures for earthquake resistance\nEN 1999 Eurocode 9: Design of aluminium structures\n\nEurocode standards recognize the responsibility of regulatory authorities in each Member State and have safeguarded their right to determine values related to regulatory safety matters at national level where these continue to vary from State to State.\n\nStatus and field of application of Eurocodes\n\nThe Member States of the EU and EFTA recognize that Eurocodes serve as reference documents for the following purposes :\n– as a means to prove compliance of building and civil engineering works with the essential requirements of Council Directive 89/106/EEC, particularly Essential Requirement N°1 – Mechanical resistance and stability – and Essential Requirement N°2 – Safety in case of fire;\n– as a basis for specifying contracts for construction works and related engineering services;\n– as a framework for drawing up harmonized technical specifications for construction products (ENs and ETAs)\n\nThe Eurocodes, as far as they concern the construction works themselves, have a direct relationship with the Interpretative Documents referred to in Article 12 of the CPD, although they are of a different nature from harmonized product standards. Therefore, technical aspects arising from the Eurocodes work need to be adequately considered by CEN Technical Committees and/or EOTA Working Groups working on product standards with a view to achieving full compatibility of these technical specifications with the Eurocodes.\n\nThe Eurocode standards provide common structural design rules for everyday use for the design of whole structures and component products of both a traditional and an innovative nature. Unusual forms of construction or design conditions are not specifically covered and additional expert consideration will be required by the designer in such cases.\n\nNational Standards implementing Eurocodes\n\nThe National Standards implementing Eurocodes will comprise the full text of the Eurocode (including any annexes), as published by CEN, which may be preceded by a National title page and National foreword, and may be followed by a National annex.\n\nThe National annex may only contain information on those parameters which are left open in the Eurocode for national choice, known as Nationally Determined Parameters, to be used for the design of buildings and civil engineering works to be constructed in the country concerned, i.e. :\n– values and/or classes where alternatives are given in the Eurocode,\n– values to be used where a symbol only is given in the Eurocode,\n– country specific data (geographical, climatic, etc.), e.g. snow map,\n– the procedure to be used where alternative procedures are given in the Eurocode.\nIt may contain\n– decisions on the application of informative annexes,\n– references to non-contradictory complementary information to assist the user to apply the Eurocode.\n\nLinks between Eurocodes and harmonized technical specifications (ENs and ETAs) for products\n\nThere is a need for consistency between the harmonized technical specifications for construction products and the technical rules for works. Furthermore, all the information accompanying the CE Marking of the construction products which refer to Eurocodes should clearly mention which Nationally Determined Parameters have been taken into account.\n\nNational annex for EN 1993-1-9\n\nThis standard gives alternative procedures, values and recommendations with notes indicating where national choices may have to be made. The National Standard implementing EN 1993-1-9 should have a National Annex containing all Nationally Determined Parameters for the design of steel structures to be constructed in the relevant country.\n\nNational choice is allowed in EN 1993-1-9 through:\n– 1.1(2)\n– 2(2)\n– 2(4)\n– 3(2)\n– 3(7)\n– 5(2)\n– 6.1(1)\n– 6.2(2)\n– 7.1(3)\n– 7.1(5)\n– 8(4)",
+  "normative_references": [
+    {
+      "id": "EN 1090",
+      "title": "Execution of steel structures – Technical requirements"
+    },
+    {
+      "id": "EN 1990",
+      "title": "Basis of structural design"
+    },
+    {
+      "id": "EN 1991",
+      "title": "Actions on structures"
+    },
+    {
+      "id": "EN 1993",
+      "title": "Design of Steel Structures"
+    },
+    {
+      "id": "EN 1994-2",
+      "title": "Design of Composite Steel and Concrete Structures: Part 2: Bridges"
+    }
+  ],
+  "terms_and_definitions": [
+    {
+      "term": "fatigue",
+      "definition": "The process of initiation and propagation of cracks through a structural part due to action of fluctuating stress.",
+      "clause": "1.3.1.1"
+    },
+    {
+      "term": "nominal stress",
+      "definition": "A stress in the parent material or in a weld adjacent to a potential crack location calculated in accordance with elastic theory excluding all stress concentration effects. NOTE The nominal stress as specified in this part can be a direct stress, a shear stress, a principal stress or an equivalent stress.",
+      "clause": "1.3.1.2"
+    },
+    {
+      "term": "modified nominal stress",
+      "definition": "A nominal stress multiplied by an appropriate stress concentration factor kf, to allow for a geometric discontinuity that has not been taken into account in the classification of a particular constructional detail.",
+      "clause": "1.3.1.3"
+    },
+    {
+      "term": "geometric stress / hot spot stress",
+      "definition": "The maximum principal stress in the parent material adjacent to the weld toe, taking into account stress concentration effects due to the overall geometry of a particular constructional detail. NOTE Local stress concentration effects e.g. from the weld profile shape (which is already included in the detail categories in Annex B) need not be considered.",
+      "clause": "1.3.1.4"
+    },
+    {
+      "term": "residual stress",
+      "definition": "Residual stress is a permanent state of stress in a structure that is in static equilibrium and is independent of any applied action. Residual stresses can arise from rolling stresses, cutting processes, welding shrinkage or lack of fit between members or from any loading event that causes yielding of part of the structure.",
+      "clause": "1.3.1.5"
+    },
+    {
+      "term": "loading event",
+      "definition": "A defined loading sequence applied to the structure and giving rise to a stress history, which is normally repeated a defined number of times in the life of the structure.",
+      "clause": "1.3.2.1"
+    },
+    {
+      "term": "stress history",
+      "definition": "A record or a calculation of the stress variation at a particular point in a structure during a loading event.",
+      "clause": "1.3.2.2"
+    },
+    {
+      "term": "rainflow method",
+      "definition": "Particular cycle counting method of producing a stress-range spectrum from a given stress history.",
+      "clause": "1.3.2.3"
+    },
+    {
+      "term": "reservoir method",
+      "definition": "Particular cycle counting method of producing a stress-range spectrum from a given stress history. NOTE For the mathematical determination see annex A.",
+      "clause": "1.3.2.4"
+    },
+    {
+      "term": "stress range",
+      "definition": "The algebraic difference between the two extremes of a particular stress cycle derived from a stress history.",
+      "clause": "1.3.2.5"
+    },
+    {
+      "term": "stress-range spectrum",
+      "definition": "Histogram of the number of occurrences for all stress ranges of different magnitudes recorded or calculated for a particular loading event.",
+      "clause": "1.3.2.6"
+    },
+    {
+      "term": "design spectrum",
+      "definition": "The total of all stress-range spectra in the design life of a structure relevant to the fatigue assessment.",
+      "clause": "1.3.2.7"
+    },
+    {
+      "term": "design life",
+      "definition": "The reference period of time for which a structure is required to perform safely with an acceptable probability that failure by fatigue cracking will not occur.",
+      "clause": "1.3.2.8"
+    },
+    {
+      "term": "fatigue life",
+      "definition": "The predicted period of time to cause fatigue failure under the application of the design spectrum.",
+      "clause": "1.3.2.9"
+    },
+    {
+      "term": "Miner's summation",
+      "definition": "A linear cumulative damage calculation based on the Palmgren-Miner rule.",
+      "clause": "1.3.2.10"
+    },
+    {
+      "term": "equivalent constant amplitude stress range",
+      "definition": "The constant-amplitude stress range that would result in the same fatigue life as for the design spectrum, when the comparison is based on a Miner's summation. NOTE For the mathematical determination see Annex A.",
+      "clause": "1.3.2.11"
+    },
+    {
+      "term": "fatigue loading",
+      "definition": "A set of action parameters based on typical loading events described by the positions of loads, their magnitudes, frequencies of occurrence, sequence and relative phasing. NOTE 1 The fatigue actions in EN 1991 are upper bound values based on evaluations of measurements of loading effects according to Annex A. NOTE 2 The action parameters as given in EN 1991 are either Qmax, nmax, standardized spectrum or QE,nmax related to nmax or QE,2 corresponding to n = 2×10^6 cycles. Dynamic effects are included in these parameters unless otherwise stated.",
+      "clause": "1.3.2.12"
+    },
+    {
+      "term": "equivalent constant amplitude fatigue loading",
+      "definition": "Simplified constant amplitude loading causing the same fatigue damage effects as a series of actual variable amplitude loading events",
+      "clause": "1.3.2.13"
+    },
+    {
+      "term": "fatigue strength curve",
+      "definition": "The quantitative relationship between the stress range and number of stress cycles to fatigue failure, used for the fatigue assessment of a particular category of structural detail. NOTE The fatigue strengths given in this part are lower bound values based on the evaluation of fatigue tests with large scale test specimens in accordance with EN 1990 - Annex D.",
+      "clause": "1.3.3.1"
+    },
+    {
+      "term": "detail category",
+      "definition": "The numerical designation given to a particular detail for a given direction of stress fluctuation, in order to indicate which fatigue strength curve is applicable for the fatigue assessment (The detail category number indicates the reference fatigue strength ΔσC in N/mm²).",
+      "clause": "1.3.3.2"
+    },
+    {
+      "term": "constant amplitude fatigue limit",
+      "definition": "The limiting direct or shear stress range value below which no fatigue damage will occur in tests under constant amplitude stress conditions. Under variable amplitude conditions all stress ranges have to be below this limit for no fatigue damage to occur.",
+      "clause": "1.3.3.3"
+    },
+    {
+      "term": "cut-off limit",
+      "definition": "Limit below which stress ranges of the design spectrum do not contribute to the calculated cumulative damage.",
+      "clause": "1.3.3.4"
+    },
+    {
+      "term": "endurance",
+      "definition": "The life to failure expressed in cycles, under the action of a constant amplitude stress history.",
+      "clause": "1.3.3.5"
+    },
+    {
+      "term": "reference fatigue strength",
+      "definition": "The constant amplitude stress range ΔσC, for a particular detail category for an endurance N = 2×10^6 cycles",
+      "clause": "1.3.3.6"
+    }
+  ],
+  "symbols": [
+    {
+      "symbol": "Δσ",
+      "description": "stress range (direct stress)"
+    },
+    {
+      "symbol": "Δτ",
+      "description": "stress range (shear stress)"
+    },
+    {
+      "symbol": "ΔσE, ΔτE",
+      "description": "equivalent constant amplitude stress range related to nmax"
+    },
+    {
+      "symbol": "ΔσE,2, ΔτE,2",
+      "description": "equivalent constant amplitude stress range related to 2 million cycles"
+    },
+    {
+      "symbol": "ΔσC, ΔτC",
+      "description": "reference value of the fatigue strength at NC = 2 million cycles"
+    },
+    {
+      "symbol": "ΔσD, ΔτD",
+      "description": "fatigue limit for constant amplitude stress ranges at the number of cycles ND"
+    },
+    {
+      "symbol": "ΔσL, ΔτL",
+      "description": "cut-off limit for stress ranges at the number of cycle NL"
+    },
+    {
+      "symbol": "Δσeq",
+      "description": "equivalent stress range for connections in webs of orthotropic decks"
+    },
+    {
+      "symbol": "ΔσC,red",
+      "description": "reduced reference value of the fatigue strength"
+    },
+    {
+      "symbol": "γFf",
+      "description": "partial factor for equivalent constant amplitude stress ranges ΔσE, ΔτE"
+    },
+    {
+      "symbol": "γMf",
+      "description": "partial factor for fatigue strength ΔσC, ΔτC"
+    },
+    {
+      "symbol": "m",
+      "description": "slope of fatigue strength curve"
+    },
+    {
+      "symbol": "λi",
+      "description": "damage equivalent factors"
+    },
+    {
+      "symbol": "ψ1",
+      "description": "factor for frequent value of a variable action"
+    },
+    {
+      "symbol": "Qk",
+      "description": "characteristic value of a single variable action"
+    },
+    {
+      "symbol": "ks",
+      "description": "reduction factor for fatigue stress to account for size effects"
+    },
+    {
+      "symbol": "k1",
+      "description": "magnification factor for nominal stress ranges to account for secondary bending moments in trusses"
+    },
+    {
+      "symbol": "kf",
+      "description": "stress concentration factor"
+    },
+    {
+      "symbol": "NR",
+      "description": "design life time expressed as number of cycles related to a constant stress range"
+    }
+  ],
+  "sections": [
+    {
+      "clause_number": "5",
+      "title": "Calculation of stresses",
+      "text": "(1) Stresses should be calculated at the serviceability limit state.\n(2) Class 4 cross sections are assessed for fatigue loads according to EN 1993-1-5.\nNOTE 1 For guidance see EN 1993-2 to EN 1993-6.\nNOTE 2 The National Annex may give limitations for class 4 sections.\n(3) Nominal stresses should be calculated at the site of potential fatigue initiation. Effects producing stress concentrations at details other than those included in Table 8.1 to Table 8.10 should be accounted for by using a stress concentration factor (SCF) according to 6.3 to give a modified nominal stress.\n(4) When using geometrical (hot spot) stress methods for details covered by Table B.1, the stresses should be calculated as shown in 6.5.\n(5) The relevant stresses for details in the parent material are:\n- nominal direct stresses σ\n- nominal shear stresses τ\nNOTE For effects of combined nominal stresses see 8(3).\n(6) The relevant stresses in the welds are (see Figure 5.1)\n- normal stresses σwf transverse to the axis of the weld: σwf = √(σ⊥f² + τ⊥f²)\n- shear stresses τwf longitudinal to the axis of the weld: τwf = τ∥f\nfor which two separate checks should be performed.\nNOTE The above procedure differs from the procedure given for the verification of fillet welds for the ultimate limit state, given in EN 1993-1-8.",
+      "page": 14
+    },
+    {
+      "clause_number": "6",
+      "title": "Calculation of stress ranges",
+      "text": "",
+      "page": 15
+    },
+    {
+      "clause_number": "6.1",
+      "title": "General",
+      "text": "(1) The fatigue assessment should be carried out using\n- nominal stress ranges for details shown in Table 8.1 to Table 8.10,\n- modified nominal stress ranges where, e.g. abrupt changes of section occur close to the initiation site which are not included in Table 8.1 to Table 8.10 or\n- geometric stress ranges where high stress gradients occur close to a weld toe in joints covered by Table B.1\nNOTE The National Annex may give information on the use of the nominal stress ranges, modified nominal stress ranges or the geometric stress ranges. For detail categories for geometric stress ranges see Annex B.\n(2) The design value of stress range to be used for the fatigue assessment should be the stress ranges γFf ΔσE,2 corresponding to NC = 2×10^6 cycles.",
+      "page": 15
+    },
+    {
+      "clause_number": "6.2",
+      "title": "Design value of nominal stress range",
+      "text": "(1) The design value of nominal stress ranges γFf ΔσE,2 and γFf ΔτE,2 should be determined as follows:\nγFf ΔσE,2 = λ1 × λ2 × λi × ... × λn × Δσ(γFf Qk) (6.1)\nγFf ΔτE,2 = λ1 × λ2 × λi × ... × λn × Δτ(γFf Qk)\nwhere Δσ(γFf Qk), Δτ(γFf Qk) is the stress range caused by the fatigue loads specified in EN 1991\nλi are damage equivalent factors depending on the spectra as specified in the relevant parts of EN 1993.\n(2) Where no appropriate data for λi are available the design value of nominal stress range may be determined using the principles in Annex A.\nNOTE The National Annex may give informations supplementing Annex A.",
+      "page": 15
+    },
+    {
+      "clause_number": "6.3",
+      "title": "Design value of modified nominal stress range",
+      "text": "(1) The design value of modified nominal stress ranges γFf ΔσE,2 and γFf ΔτE,2 should be determined as follows:\nγFf ΔσE,2 = kf × λ1 × λ2 × λi × ... × λn × Δσ(γFf Qk) (6.2)\nγFf ΔτE,2 = kf × λ1 × λ2 × λi × ... × λn × Δτ(γFf Qk)\nwhere kf is the stress concentration factor to take account of the local stress magnification in relation to detail geometry not included in the reference ΔσR-N-curve\nNOTE kf-values may be taken from handbooks or from appropriate finite element calculations.",
+      "page": 16
+    },
+    {
+      "clause_number": "6.4",
+      "title": "Design value of stress range for welded joints of hollow sections",
+      "text": "(1) Unless more accurate calculations are carried out the design value of modified nominal stress range γFf ΔσE,2 should be determined as follows using the simplified model in 4(2):\nγFf ΔσE,2 = k1 (γFf Δσ*E,2) (6.3)\nwhere γFf Δσ*E,2 is the design value of stress range calculated with a simplified truss model with pinned joints\nk1 is the magnification factor according to Table 4.1 and Table 4.2.",
+      "page": 16
+    },
+    {
+      "clause_number": "6.5",
+      "title": "Design value of stress range for geometrical (hot spot) stress",
+      "text": "(1) The design value of geometrical (hot spot) stress range γFf ΔσE,2 should be determined as follows:\nγFf ΔσE,2 = kf (γFf Δσ*E,2) (6.4)\nwhere kf is the stress concentration factor",
+      "page": 16
+    },
+    {
+      "clause_number": "7",
+      "title": "Fatigue strength",
+      "text": "",
+      "page": 16
+    },
+    {
+      "clause_number": "7.1",
+      "title": "General",
+      "text": "(1) The fatigue strength for nominal stress ranges is represented by a series of (log ΔσR) - (log N) curves and (log ΔτR) - (log N) curves (S-N-curves), which correspond to typical detail categories. Each detail category is designated by a number which represents, in N/mm², the reference value ΔσC and ΔτC for the fatigue strength at 2 million cycles.\n(2) For constant amplitude nominal stress ranges the fatigue strength can be obtained as follows:\nΔσmR NR = ΔσmC 2×10^6 with m = 3 for N ≤ 5×10^6, see Figure 7.1\nΔτmR NR = ΔτmC 2×10^6 with m = 5 for N ≤ 10^8, see Figure 7.2\nΔσD = (2/5)^(1/3) ΔσC = 0,737ΔσC is the constant amplitude fatigue limit, see Figure 7.1, and\nΔτL = (2/100)^(1/5) ΔτC = 0,457ΔτC is the cut off limit, see Figure 7.2.\n(3) For nominal stress spectra with stress ranges above and below the constant amplitude fatigue limit ΔσD the fatigue strength should be based on the extended fatigue strength curves as follows:\nΔσmR NR = ΔσmC 2×10^6 with m = 3 for N ≤ 5×10^6\nΔσmR NR = ΔσmD 5×10^6 with m = 5 for 5×10^6 ≤ N ≤ 10^8\nΔσL = (5/100)^(1/5) ΔσD = 0,549ΔσD is the cut off limit, see Figure 7.1.\nNOTE 1 When test data were used to determine the appropriate detail category for a particular constructional detail, the value of the stress range ΔσC corresponding to a value of NC = 2 million cycles were calculated for a 75% confidence level of 95% probability of survival for log N, taking into account the standard deviation and the sample size and residual stress effects. The number of data points (not lower than 10) was considered in the statistical analysis, see annex D of EN 1990.\nNOTE 2 The National Annex may permit the verification of a fatigue strength category for a particular application provided that it is evaluated in accordance with NOTE 1.\nNOTE 3 Test data for some details do not exactly fit the fatigue strength curves in Figure 7.1. In order to ensure that non conservative conditions are avoided, such details, marked with an asterisk, are located one detail category lower than their fatigue strength at 2×10^6 cycles would require. An alternative assessment may increase the classification of such details by one detail category provided that the constant amplitude fatigue limit ΔσD is defined as the fatigue strength at 10^7 cycles for m=3 (see Figure 7.3).\n(4) Detail categories ΔσC and ΔτC for nominal stresses are given in\nTable 8.1 for plain members and mechanically fastened joints\nTable 8.2 for welded built-up sections\nTable 8.3 for transverse butt welds\nTable 8.4 for weld attachments and stiffeners\nTable 8.5 for load carrying welded joints\nTable 8.6 for hollow sections\nTable 8.7 for lattice girder node joints\nTable 8.8 for orthotropic decks – closed stringers\nTable 8.9 for orthotropic decks – open stringers\nTable 8.10 for top flange to web junctions of runway beams\n(5) The fatigue strength categories ΔσC for geometric stress ranges are given in Annex B.\nNOTE The National Annex may give fatigue strength categories ΔσC and ΔτC for details not covered by Table 8.1 to Table 8.10 and by Annex B.",
+      "page": 16
+    },
+    {
+      "clause_number": "7.2",
+      "title": "Fatigue strength modifications",
+      "text": "",
+      "page": 19
+    },
+    {
+      "clause_number": "7.2.1",
+      "title": "Non-welded or stress-relieved welded details in compression",
+      "text": "(1) In non-welded details or stress-relieved welded details, the mean stress influence on the fatigue strength may be taken into account by determining a reduced effective stress range ΔσE,2 in the fatigue assessment when part or all of the stress cycle is compressive.\n(2) The effective stress range may be calculated by adding the tensile portion of the stress range and 60% of the magnitude of the compressive portion of the stress range, see Figure 7.4.",
+      "page": 19
+    },
+    {
+      "clause_number": "7.2.2",
+      "title": "Size effect",
+      "text": "(1) The size effect due to thickness or other dimensional effects should be taken into account as given in Table 8.1 to Table 8.10. The fatigue strength then is given by:\nΔσC,red = ks ΔσC (7.1)",
+      "page": 20
+    },
+    {
+      "clause_number": "8",
+      "title": "Fatigue verification",
+      "text": "(1) Nominal, modified nominal or geometric stress ranges due to frequent loads ψ1 Qk (see EN 1990) should not exceed\nΔσ ≤ 1,5 fy for direct stress ranges\nΔτ ≤ 1,5 fy / √3 for shear stress ranges (8.1)\n(2) It should be verified that under fatigue loading\n(γFf ΔσE,2) / (ΔσC / γMf) ≤ 1,0\nand\n(γFf ΔτE,2) / (ΔτC / γMf) ≤ 1,0 (8.2)\nNOTE Table 8.1 to Table 8.9 require stress ranges to be based on principal stresses for some details.\n(3) Unless otherwise stated in the fatigue strength categories in Table 8.8 and Table 8.9, in the case of combined stress ranges ΔσE,2 and ΔτE,2 it should be verified that:\n( (γFf ΔσE,2) / (ΔσC / γMf) )^3 + ( (γFf ΔτE,2) / (ΔτC / γMf) )^5 ≤ 1,0 (8.3)\n(4) When no data for ΔσE,2 or ΔτE,2 are available the verification format in Annex A may be used.\nNOTE 1 Annex A is presented for stress ranges in longitudinal direction. This presentation may be adopted also for shear stress ranges.\nNOTE 2 The National Annex may give information on the use of Annex A.",
+      "page": 20
+    }
+  ],
+  "tables": [
+    {
+      "table_id": "Table 4.2",
+      "title": "k1-factors for rectangular hollow sections under in-plane loading",
+      "headers": [
+        "Type of joint",
+        "Chords",
+        "Verticals",
+        "Diagonals"
+      ],
+      "rows": [
+        [
+          "Gap joints K type",
+          "1,5",
+          "-",
+          "1,5"
+        ],
+        [
+          "Gap joints N type / KT type",
+          "1,5",
+          "2,2",
+          "1,6"
+        ],
+        [
+          "Overlap joints K type",
+          "1,5",
+          "-",
+          "1,3"
+        ],
+        [
+          "Overlap joints N type / KT type",
+          "1,5",
+          "2,0",
+          "1,4"
+        ]
+      ],
+      "footnotes": [
+        "NOTE 1 For the definition of joint types see EN 1993-1-8.",
+        "NOTE 2 Ranges of geometric validity:\nFor CHS planar joints (K-, N-, KT-joints):\n0,30 ≤ β ≤ 0,60\n12,0 ≤ γ ≤ 30,0\n0,25 ≤ τ ≤ 1,00\n30° ≤ θ ≤ 60°\nFor SHS joints (K-, N-, KT-joints):\n0,40 ≤ β ≤ 0,60\n6,25 ≤ γ ≤ 12,5\n0,25 ≤ τ ≤ 1,00\n30° ≤ θ ≤ 60°"
+      ],
+      "clause": "4",
+      "page": 14
+    },
+    {
+      "table_id": "Table 8.1",
+      "title": "Plain members and mechanically fastened joints",
+      "headers": [
+        "Detail category",
+        "Constructional detail",
+        "Description",
+        "Requirements"
+      ],
+      "rows": [
+        [
+          "160",
+          "[Image of detail 1, 2, 3]",
+          "NOTE The fatigue strength curve associated with category 160 is the highest. No detail can reach a better fatigue strength at any number of cycles.\nRolled or extruded products:\n1) Plates and flats with as rolled edges;\n2) Rolled sections with as rolled edges;\n3) Seamless hollow sections, either rectangular or circular.",
+          "Details 1) to 3):\nSharp edges, surface and rolling flaws to be improved by grinding until removed and smooth transition achieved."
+        ],
+        [
+          "140",
+          "[Image of detail 4]",
+          "Sheared or gas cut plates:\n4) Machine gas cut or sheared material with subsequent dressing.",
+          "4) All visible signs of edge discontinuities to be removed. The cut areas are to be machined or ground and all burrs to be removed. Any machinery scratches for example from grinding operations, can only be parallel to the stresses.\nDetails 4) and 5):\n- Re-entrant corners to be improved by grinding (slope ≤ 1/4) or evaluated using the appropriate stress concentration factors.\n- No repair by weld refill."
+        ],
+        [
+          "125",
+          "[Image of detail 5]",
+          "5) Material with machine gas cut edges having shallow and regular drag lines or manual gas cut material, subsequently dressed to remove all edge discontinuities.\nMachine gas cut with cut quality according to EN 1090.",
+          "4) All visible signs of edge discontinuities to be removed. The cut areas are to be machined or ground and all burrs to be removed. Any machinery scratches for example from grinding operations, can only be parallel to the stresses.\nDetails 4) and 5):\n- Re-entrant corners to be improved by grinding (slope ≤ 1/4) or evaluated using the appropriate stress concentration factors.\n- No repair by weld refill."
+        ],
+        [
+          "100\nm = 5",
+          "[Image of detail 6, 7]",
+          "6) and 7)\nRolled or extruded products as in details 1), 2), 3)",
+          "Details 6) and 7):\nΔτ calculated from: τ = V S(t) / I t"
+        ],
+        [
+          "For detail 1 – 5 made of weathering steel use the next lower category.",
+          "For detail 1 – 5 made of weathering steel use the next lower category.",
+          "For detail 1 – 5 made of weathering steel use the next lower category.",
+          "For detail 1 – 5 made of weathering steel use the next lower category."
+        ],
+        [
+          "112",
+          "[Image of detail 8]",
+          "8) Double covered symmetrical joint with preloaded high strength bolts.",
+          "8) Δσ to be calculated on the gross cross-section.\nFor bolted connections (Details 8) to 13)) in general:\nEnd distance: e1 ≥ 1,5 d\nEdge distance: e2 ≥ 1,5 d\nSpacing: p1 ≥ 2,5 d\nSpacing: p2 ≥ 2,5 d"
+        ],
+        [
+          "112",
+          "[Image of detail 8]",
+          "8) Double covered symmetrical joint with preloaded injection bolts.",
+          "8) ... gross cross-section.\nFor bolted connections (Details 8) to 13)) in general:\nEnd distance: e1 ≥ 1,5 d\nEdge distance: e2 ≥ 1,5 d\nSpacing: p1 ≥ 2,5 d\nSpacing: p2 ≥ 2,5 d"
+        ],
+        [
+          "90",
+          "[Image of detail 9]",
+          "9) Double covered joint with fitted bolts.",
+          "9) ... net cross-section.\nFor bolted connections (Details 8) to 13)) in general:\nEnd distance: e1 ≥ 1,5 d\nEdge distance: e2 ≥ 1,5 d\nSpacing: p1 ≥ 2,5 d\nSpacing: p2 ≥ 2,5 d"
+        ],
+        [
+          "90",
+          "[Image of detail 9]",
+          "9) Double covered joint with non preloaded injection bolts.",
+          "9) ... net cross-section.\nFor bolted connections (Details 8) to 13)) in general:\nEnd distance: e1 ≥ 1,5 d\nEdge distance: e2 ≥ 1,5 d\nSpacing: p1 ≥ 2,5 d\nSpacing: p2 ≥ 2,5 d"
+        ],
+        [
+          "90",
+          "[Image of detail 10]",
+          "10) One sided connection with preloaded high strength bolts.",
+          "10) ... gross cross-section.\nFor bolted connections (Details 8) to 13)) in general:\nEnd distance: e1 ≥ 1,5 d\nEdge distance: e2 ≥ 1,5 d\nSpacing: p1 ≥ 2,5 d\nSpacing: p2 ≥ 2,5 d"
+        ],
+        [
+          "90",
+          "[Image of detail 10]",
+          "10) One sided connection with preloaded injection bolts.",
+          "10) ... gross cross-section.\nFor bolted connections (Details 8) to 13)) in general:\nEnd distance: e1 ≥ 1,5 d\nEdge distance: e2 ≥ 1,5 d\nSpacing: p1 ≥ 2,5 d\nSpacing: p2 ≥ 2,5 d"
+        ],
+        [
+          "90",
+          "[Image of detail 11]",
+          "11) Structural element with holes subject to bending and axial forces",
+          "11) ... net cross-section.\nDetailing to EN 1993-1-8, Figure 3.1"
+        ],
+        [
+          "80",
+          "[Image of detail 12]",
+          "12) One sided connection with fitted bolts.",
+          "12) ... net cross-section."
+        ],
+        [
+          "80",
+          "[Image of detail 12]",
+          "12) One sided connection with non-preloaded injection bolts.",
+          "12) ... net cross-section."
+        ],
+        [
+          "50",
+          "[Image of detail 13]",
+          "13) One sided or double covered symmetrical connection with non-preloaded bolts in normal clearance holes. No load reversals.",
+          "13) ... net cross-section."
+        ],
+        [
+          "50\nsize effect for t > 30mm:\nks=(30/t)^0,25",
+          "[Image of detail 14]",
+          "14) Bolts and rods with rolled or cut threads in tension. For large diameters (anchor bolts) the size effect has to be taken into account with ks.",
+          "14) Δσ to be calculated using the tensile stress area of the bolt. Bending and tension resulting from prying effects and bending stresses from other sources must be taken into account. For preloaded bolts, the reduction of the stress range may be taken into account."
+        ],
+        [
+          "100\nm=5",
+          "[Image of detail 15]",
+          "Bolts in single or double shear\nThread not in the shear plane\n15)\n- Fitted bolts\n- normal bolts without load reversal (bolts of grade 5.6, 8.8 or 10.9)",
+          "15)\nΔτ calculated on the shank area of the bolt."
+        ]
+      ],
+      "footnotes": [],
+      "clause": "8",
+      "page": 22
+    },
+    {
+      "table_id": "Table 8.2",
+      "title": "Welded built-up sections",
+      "headers": [
+        "Detail category",
+        "Constructional detail",
+        "Description",
+        "Requirements"
+      ],
+      "rows": [
+        [
+          "125",
+          "[Image of detail 1, 2]",
+          "Continuous longitudinal welds:\n1) Automatic or fully mechanized butt welds carried out from both sides.\n2) Automatic or fully mechanized fillet welds. Cover plate ends to be checked using detail 6) or 7) in Table 8.5.",
+          "Details 1) and 2):\nNo stop/start position is permitted except when the repair is performed by a specialist and inspection is carried out to verify the proper execution of the repair."
+        ],
+        [
+          "112",
+          "[Image of detail 3, 4]",
+          "3) Automatic or fully mechanized fillet or butt weld carried out from both sides but containing stop/start positions.\n4) Automatic or fully mechanized butt welds made from one side only, with a continuous backing bar, but without start/stop positions.",
+          "4) When this detail contains stop/start positions category 100 to be used."
+        ],
+        [
+          "100",
+          "[Image of detail 5, 6]",
+          "5) Manual fillet or butt weld.\n6) Manual or automatic or fully mechanized butt welds carried out from one side only, particularly for box girders",
+          "5), 6) A very good fit between the flange and web plates is essential. The web edge to be prepared such that the root face is adequate for the achievement of regular root penetration without break-out."
+        ],
+        [
+          "100",
+          "[Image of detail 7]",
+          "7) Repaired automatic or fully mechanized or manual fillet or butt welds for categories 1) to 6).",
+          "7) Improvement by grinding performed by specialist to remove all visible signs and adequate verification can restore the original category."
+        ],
+        [
+          "80",
+          "[Image of detail 8]",
+          "8) Intermittent longitudinal fillet welds.",
+          "8) Δσ based on direct stress in flange."
+        ],
+        [
+          "71",
+          "[Image of detail 9]",
+          "9) Longitudinal butt weld, fillet weld or intermittent weld with a cope hole height not greater than 60 mm.\nFor cope holes with a height > 60 mm see detail 1) in Table 8.4",
+          "9) Δσ based on direct stress in flange."
+        ],
+        [
+          "125",
+          "[Image of detail 10]",
+          "10) Longitudinal butt weld, both sides ground flush parallel to load direction. 100% NDT",
+          ""
+        ],
+        [
+          "112",
+          "[Image of detail 10]",
+          "10) No grinding and no start/stop",
+          ""
+        ],
+        [
+          "90",
+          "[Image of detail 10]",
+          "10) with start/stop positions",
+          ""
+        ],
+        [
+          "140",
+          "[Image of detail 11]",
+          "11) Automatic or fully mechanized longitudinal seam weld without stop/start positions in hollow sections",
+          "11) Wall thickness t ≤ 12,5 mm."
+        ],
+        [
+          "125",
+          "[Image of detail 11]",
+          "11) Automatic or fully mechanized longitudinal seam weld without stop/start positions in hollow sections",
+          "11) Wall thickness t > 12,5 mm."
+        ],
+        [
+          "90",
+          "[Image of detail 11]",
+          "11) with stop/start positions",
+          "11) Wall thickness t > 12,5 mm."
+        ],
+        [
+          "For details 1 to 11 made with fully mechanized welding the categories for automatic welding apply.",
+          "For details 1 to 11 made with fully mechanized welding the categories for automatic welding apply.",
+          "For details 1 to 11 made with fully mechanized welding the categories for automatic welding apply.",
+          "For details 1 to 11 made with fully mechanized welding the categories for automatic welding apply."
+        ]
+      ],
+      "footnotes": [],
+      "clause": "8",
+      "page": 23
+    },
+    {
+      "table_id": "Table 8.3",
+      "title": "Transverse butt welds",
+      "headers": [
+        "Detail category",
+        "Constructional detail",
+        "Description",
+        "Requirements"
+      ],
+      "rows": [
+        [
+          "112\nsize effect for t>25mm:\nks=(25/t)^0,2",
+          "[Image of detail 1, 2, 3, 4]",
+          "Without backing bar:\n1) Transverse splices in plates and flats.\n2) Flange and web splices in plate girders before assembly.\n3) Full cross-section butt welds of rolled sections without cope holes.\n4) Transverse splices in plates or flats tapered in width or in thickness, with a slope ≤ 1/4.",
+          "- All welds ground flush to plate surface parallel to direction of the arrow.\n- Weld run-on and run-off pieces to be used and subsequently removed, plate edges to be ground flush in direction of stress.\n- Welded from both sides; checked by NDT.\nDetail 3):\nApplies only to joints of rolled sections, cut and welded."
+        ],
+        [
+          "90\nsize effect for t>25mm:\nks=(25/t)^0,2",
+          "[Image of detail 5, 6, 7]",
+          "5) Transverse splices in plates or flats.\n6) Full cross-section butt welds of rolled sections without cope holes.\n7) Transverse splices in plates or flats tapered in width or in thickness with a slope ≤ 1/4.\nTranslation of welds to be machined notch free.",
+          "- The height of the weld convexity to be not greater than 10% of the weld width, with smooth transition to the plate surface.\n- Weld run-on and run-off pieces to be used and subsequently removed, plate edges to be ground flush in direction of stress.\n- Welded from both sides; checked by NDT.\nDetails 5 and 7:\nWelds made in flat position."
+        ],
+        [
+          "90\nsize effect for t>25mm:\nks=(25/t)^0,2",
+          "[Image of detail 8]",
+          "8) As detail 3) but with cope holes.",
+          "- All welds ground flush to plate surface parallel to direction of the arrow.\n- Weld run-on and run-off pieces to be used and subsequently removed, plate edges to be ground flush in direction of stress.\n- Welded from both sides; checked by NDT.\n- Rolled sections with the same dimensions without tolerance differences"
+        ],
+        [
+          "80\nsize effect for t>25mm:\nks=(25/t)^0,2",
+          "[Image of detail 9, 10, 11]",
+          "9) Transverse splices in welded plate girders without cope hole.\n10) Full cross-section butt welds of rolled sections with cope holes.\n11) Transverse splices in plates, flats, rolled sections or plate girders.",
+          "- The height of the weld convexity to be not greater than 20% of the weld width, with smooth transition to the plate surface.\n- Weld not ground flush\n- Weld run-on and run-off pieces to be used and subsequently removed, plate edges to be ground flush in direction of stress.\n- Welded from both sides; checked by NDT.\nDetail 10:\nThe height of the weld convexity to be not greater than 10% of the weld width, with smooth transition to the plate surface."
+        ],
+        [
+          "63",
+          "[Image of detail 12]",
+          "12) Full cross-section butt welds of rolled sections without cope hole.",
+          "- Weld run-on and run-off pieces to be used and subsequently removed, plate edges to be ground flush in direction of stress.\n- Welded from both sides."
+        ],
+        [
+          "36",
+          "[Image of detail 13]",
+          "13) Butt welds made from one side only.",
+          "13) Without backing strip."
+        ],
+        [
+          "71\nsize effect for t>25mm:\nks=(25/t)^0,2",
+          "[Image of detail 13]",
+          "13) Butt welds made from one side only when full penetration checked by appropriate NDT.",
+          "13) Without backing strip."
+        ],
+        [
+          "71\nsize effect for t>25mm:\nks=(25/t)^0,2",
+          "[Image of detail 14, 15]",
+          "With backing strip:\n14) Transverse splice.\n15) Transverse butt weld tapered in width or thickness with a slope ≤ 1/4.\nAlso valid for curved plates.",
+          "Details 14) and 15):\nFillet welds attaching the backing strip to terminate ≥ 10 mm from the edges of the stressed plate.\nTack welds inside the shape of butt welds."
+        ],
+        [
+          "50\nsize effect for t>25mm:\nks=(25/t)^0,2",
+          "[Image of detail 16]",
+          "16) Transverse butt weld on a permanent backing strip tapered in width or thickness with a slope ≤ 1/4.\nAlso valid for curved plates.",
+          "16) Where backing strip fillet welds end < 10 mm from the plate edge, or if a good fit cannot be guaranteed."
+        ],
+        [
+          "71\nsize effect for t>25mm and/or generalization for eccentricity:\nks = (25/t1)^0,2 / (1 + (6e t1^1,5)/(t1 t1^1,5 + t2^1,5))",
+          "[Image of detail 17]",
+          "17) Transverse butt weld, different thicknesses without transition, centrelines aligned.",
+          "17) Transverse butt weld, different thicknesses without transition, centrelines aligned."
+        ],
+        [
+          "40\nAs detail 4 in Table 8.4",
+          "[Image of detail 18, 19]",
+          "18) Transverse butt weld at intersecting flanges.",
+          "Details 18) and 19)\nThe fatigue strength of the continuous component has to be checked with Table 8.4, detail 4 or detail 5."
+        ],
+        [
+          "40\nAs detail 4 in Table 8.4",
+          "[Image of detail 18, 19]",
+          "19) With transition radius according to Table 8.4, detail 4",
+          "Details 18) and 19)\nThe fatigue strength of the continuous component has to be checked with Table 8.4, detail 4 or detail 5."
+        ]
+      ],
+      "footnotes": [],
+      "clause": "8",
+      "page": 24
+    },
+    {
+      "table_id": "Table 8.4",
+      "title": "Weld attachments and stiffeners",
+      "headers": [
+        "Detail category",
+        "Constructional detail",
+        "Description",
+        "Requirements"
+      ],
+      "rows": [
+        [
+          "80",
+          "L≤50mm",
+          "Longitudinal attachments:\n1) The detail category varies according to the length of the attachment L.",
+          "The thickness of the attachment must be less than its height. If not see Table 8.5, details 5 or 6."
+        ],
+        [
+          "71",
+          "50<L≤80mm",
+          "Longitudinal attachments:\n1) The detail category varies according to the length of the attachment L.",
+          "The thickness of the attachment must be less than its height. If not see Table 8.5, details 5 or 6."
+        ],
+        [
+          "63",
+          "80<L≤100mm",
+          "Longitudinal attachments:\n1) The detail category varies according to the length of the attachment L.",
+          "The thickness of the attachment must be less than its height. If not see Table 8.5, details 5 or 6."
+        ],
+        [
+          "56",
+          "L>100mm",
+          "Longitudinal attachments:\n1) The detail category varies according to the length of the attachment L.",
+          "The thickness of the attachment must be less than its height. If not see Table 8.5, details 5 or 6."
+        ],
+        [
+          "71",
+          "L>100mm\nα<45°",
+          "2) Longitudinal attachments to plate or tube.",
+          "The thickness of the attachment must be less than its height. If not see Table 8.5, details 5 or 6."
+        ],
+        [
+          "80",
+          "r>150mm",
+          "3) Longitudinal fillet welded gusset with radius transition to plate or tube; end of fillet weld reinforced (full penetration); length of reinforced weld > r.",
+          "Details 3) and 4):\nSmooth transition radius r formed by initially machining or gas cutting the gusset plate before welding, then subsequently grinding the weld area parallel to the direction of the arrow so that the transverse weld toe is fully removed."
+        ],
+        [
+          "90",
+          "r/l ≥ 1/3\nor\nr>150mm",
+          "4) Gusset plate, welded to the edge of a plate or beam flange.",
+          "Details 3) and 4):\nSmooth transition radius r formed by initially machining or gas cutting the gusset plate before welding, then subsequently grinding the weld area parallel to the direction of the arrow so that the transverse weld toe is fully removed."
+        ],
+        [
+          "71",
+          "1/6 ≤ r/l ≤ 1/3",
+          "4) Gusset plate, welded to the edge of a plate or beam flange.",
+          "Details 3) and 4):\nSmooth transition radius r formed by initially machining or gas cutting the gusset plate before welding, then subsequently grinding the weld area parallel to the direction of the arrow so that the transverse weld toe is fully removed."
+        ],
+        [
+          "50",
+          "r/l < 1/6",
+          "4) Gusset plate, welded to the edge of a plate or beam flange.",
+          "Details 3) and 4):\nSmooth transition radius r formed by initially machining or gas cutting the gusset plate before welding, then subsequently grinding the weld area parallel to the direction of the arrow so that the transverse weld toe is fully removed."
+        ],
+        [
+          "40",
+          "[Image of detail 5]",
+          "5) As welded, no radius transition.",
+          ""
+        ],
+        [
+          "80",
+          "l≤50mm",
+          "Transverse attachments:\n6) Welded to plate.\n7) Vertical stiffeners welded to a beam or plate girder.\n8) Diaphragm of box girders welded to the flange or the web. May not be possible for small hollow sections.",
+          "Details 6) and 7):\nEnds of welds to be carefully ground to remove any undercut that may be present.\n7) Δσ to be calculated using principal stresses if the stiffener terminates in the web, see left side."
+        ],
+        [
+          "71",
+          "50<l≤80mm",
+          "Transverse attachments:\n6) Welded to plate.\n7) Vertical stiffeners welded to a beam or plate girder.\n8) Diaphragm of box girders welded to the flange or the web. May not be possible for small hollow sections.\nThe values are also valid for ring stiffeners.",
+          "Details 6) and 7):\nEnds of welds to be carefully ground to remove any undercut that may be present.\n7) Δσ to be calculated using principal stresses if the stiffener terminates in the web, see left side."
+        ],
+        [
+          "80",
+          "[Image of detail 9]",
+          "9) The effect of welded shear studs on base material.",
+          ""
+        ]
+      ],
+      "footnotes": [],
+      "clause": "8",
+      "page": 26
+    },
+    {
+      "table_id": "Table 8.5",
+      "title": "Load carrying welded joints",
+      "headers": [
+        "Detail category",
+        "Constructional detail",
+        "Description",
+        "Requirements"
+      ],
+      "rows": [
+        [
+          "80",
+          "l < 50 mm\nall t [mm]",
+          "Cruciform and Tee joints:\n1) Toe failure in full penetration butt welds and all partial penetration joints.",
+          "1) Inspected and found free from discontinuities and misalignments outside the tolerances of EN 1090.\n2) For computing Δσ, use modified nominal stress.\n3) In partial penetration joints two fatigue assessments are required. Firstly, root cracking evaluated according to stresses defined in section 5, using category 36* for Δσw and category 80 for Δτw. Secondly, toe cracking is evaluated by determining Δσ in the load-carrying plate.\nDetails 1) to 3):\nThe misalignment of the load-carrying plates should not exceed 15 % of the thickness of the intermediate plate."
+        ],
+        [
+          "71",
+          "50 < l ≤ 80\nall t",
+          "Cruciform and Tee joints:\n1) Toe failure in full penetration butt welds and all partial penetration joints.",
+          "1) Inspected and found free from discontinuities and misalignments outside the tolerances of EN 1090.\n2) For computing Δσ, use modified nominal stress.\n3) In partial penetration joints two fatigue assessments are required. Firstly, root cracking evaluated according to stresses defined in section 5, using category 36* for Δσw and category 80 for Δτw. Secondly, toe cracking is evaluated by determining Δσ in the load-carrying plate.\nDetails 1) to 3):\nThe misalignment of the load-carrying plates should not exceed 15 % of the thickness of the intermediate plate."
+        ],
+        [
+          "63",
+          "80 < l ≤ 100\nall t",
+          "Cruciform and Tee joints:\n1) Toe failure in full penetration butt welds and all partial penetration joints.",
+          "1) Inspected and found free from discontinuities and misalignments outside the tolerances of EN 1090.\n2) For computing Δσ, use modified nominal stress.\n3) In partial penetration joints two fatigue assessments are required. Firstly, root cracking evaluated according to stresses defined in section 5, using category 36* for Δσw and category 80 for Δτw. Secondly, toe cracking is evaluated by determining Δσ in the load-carrying plate.\nDetails 1) to 3):\nThe misalignment of the load-carrying plates should not exceed 15 % of the thickness of the intermediate plate."
+        ],
+        [
+          "56",
+          "100 < l ≤ 120\nall t",
+          "Cruciform and Tee joints:\n1) Toe failure in full penetration butt welds and all partial penetration joints.",
+          "1) Inspected and found free from discontinuities and misalignments outside the tolerances of EN 1090.\n2) For computing Δσ, use modified nominal stress.\n3) In partial penetration joints two fatigue assessments are required. Firstly, root cracking evaluated according to stresses defined in section 5, using category 36* for Δσw and category 80 for Δτw. Secondly, toe cracking is evaluated by determining Δσ in the load-carrying plate.\nDetails 1) to 3):\nThe misalignment of the load-carrying plates should not exceed 15 % of the thickness of the intermediate plate."
+        ],
+        [
+          "56",
+          "l > 120\nt ≤ 20",
+          "Cruciform and Tee joints:\n1) Toe failure in full penetration butt welds and all partial penetration joints.",
+          "1) Inspected and found free from discontinuities and misalignments outside the tolerances of EN 1090.\n2) For computing Δσ, use modified nominal stress.\n3) In partial penetration joints two fatigue assessments are required. Firstly, root cracking evaluated according to stresses defined in section 5, using category 36* for Δσw and category 80 for Δτw. Secondly, toe cracking is evaluated by determining Δσ in the load-carrying plate.\nDetails 1) to 3):\nThe misalignment of the load-carrying plates should not exceed 15 % of the thickness of the intermediate plate."
+        ],
+        [
+          "50",
+          "120 < l ≤ 200\nt > 20\nl > 200\n20 < t ≤ 30",
+          "Cruciform and Tee joints:\n1) Toe failure in full penetration butt welds and all partial penetration joints.",
+          "1) Inspected and found free from discontinuities and misalignments outside the tolerances of EN 1090.\n2) For computing Δσ, use modified nominal stress.\n3) In partial penetration joints two fatigue assessments are required. Firstly, root cracking evaluated according to stresses defined in section 5, using category 36* for Δσw and category 80 for Δτw. Secondly, toe cracking is evaluated by determining Δσ in the load-carrying plate.\nDetails 1) to 3):\nThe misalignment of the load-carrying plates should not exceed 15 % of the thickness of the intermediate plate."
+        ],
+        [
+          "45",
+          "200 < l ≤ 300\nt > 30\nl > 300\n30 < t ≤ 50",
+          "Cruciform and Tee joints:\n1) Toe failure in full penetration butt welds and all partial penetration joints.",
+          "1) Inspected and found free from discontinuities and misalignments outside the tolerances of EN 1090.\n2) For computing Δσ, use modified nominal stress.\n3) In partial penetration joints two fatigue assessments are required. Firstly, root cracking evaluated according to stresses defined in section 5, using category 36* for Δσw and category 80 for Δτw. Secondly, toe cracking is evaluated by determining Δσ in the load-carrying plate.\nDetails 1) to 3):\nThe misalignment of the load-carrying plates should not exceed 15 % of the thickness of the intermediate plate."
+        ],
+        [
+          "40",
+          "l > 300\nt > 50",
+          "Cruciform and Tee joints:\n1) Toe failure in full penetration butt welds and all partial penetration joints.",
+          "1) Inspected and found free from discontinuities and misalignments outside the tolerances of EN 1090.\n2) For computing Δσ, use modified nominal stress.\n3) In partial penetration joints two fatigue assessments are required. Firstly, root cracking evaluated according to stresses defined in section 5, using category 36* for Δσw and category 80 for Δτw. Secondly, toe cracking is evaluated by determining Δσ in the load-carrying plate.\nDetails 1) to 3):\nThe misalignment of the load-carrying plates should not exceed 15 % of the thickness of the intermediate plate."
+        ],
+        [
+          "As detail 1 in Table 8.5",
+          "flexible panel",
+          "2) Toe failure from edge of attachment to plate, with stress peaks at weld ends due to local plate deformations.",
+          "1) Inspected and found free from discontinuities and misalignments outside the tolerances of EN 1090.\n2) For computing Δσ, use modified nominal stress.\n3) In partial penetration joints two fatigue assessments are required. Firstly, root cracking evaluated according to stresses defined in section 5, using category 36* for Δσw and category 80 for Δτw. Secondly, toe cracking is evaluated by determining Δσ in the load-carrying plate.\nDetails 1) to 3):\nThe misalignment of the load-carrying plates should not exceed 15 % of the thickness of the intermediate plate."
+        ],
+        [
+          "36*",
+          "[Image of detail 3]",
+          "3) Root failure in partial penetration Tee-butt joints or fillet welded joint and in Tee-butt weld, according to Figure 4.6 in EN 1993-1-8:2005.",
+          "1) Inspected and found free from discontinuities and misalignments outside the tolerances of EN 1090.\n2) For computing Δσ, use modified nominal stress.\n3) In partial penetration joints two fatigue assessments are required. Firstly, root cracking evaluated according to stresses defined in section 5, using category 36* for Δσw and category 80 for Δτw. Secondly, toe cracking is evaluated by determining Δσ in the load-carrying plate.\nDetails 1) to 3):\nThe misalignment of the load-carrying plates should not exceed 15 % of the thickness of the intermediate plate."
+        ],
+        [
+          "As detail 1 in Table 8.5",
+          ">10 mm\n>10 mm\nstressed area of main panel: slope = 1/2",
+          "Overlapped welded joints:\n4) Fillet welded lap joint.",
+          "4) Δσ in the main plate to be calculated on the basis of area shown in the sketch.\n5) Δσ to be calculated in the overlapping plates.\nDetails 4) and 5):\n- Weld terminations more than 10 mm from plate edge.\n- Shear cracking in the weld should be checked using detail 8)."
+        ],
+        [
+          "45*",
+          ">10 mm",
+          "Overlapped:\n5) Fillet welded lap joint.",
+          "4) Δσ in the main plate to be calculated on the basis of area shown in the sketch.\n5) Δσ to be calculated in the overlapping plates.\nDetails 4) and 5):\n- Weld terminations more than 10 mm from plate edge.\n- Shear cracking in the weld should be checked using detail 8)."
+        ],
+        [
+          "56*",
+          "tc<t\nt≤20\ntc≥t\n-",
+          "Cover plates in beams and plate girders:\n6) End zones of single or multiple welded cover plates, with or without transverse end weld.",
+          "6) If the cover plate is wider than the flange, a transverse end weld is needed. This weld should be carefully ground to remove undercut.\nThe minimum length of the cover plate is 300 mm. For shorter attachments size effect see detail 1)."
+        ],
+        [
+          "50",
+          "20<t≤30\nt≤20",
+          "Cover plates in beams and plate girders:\n6) End zones of single or multiple welded cover plates, with or without transverse end weld.",
+          "6) If the cover plate is wider than the flange, a transverse end weld is needed. This weld should be carefully ground to remove undercut.\nThe minimum length of the cover plate is 300 mm. For shorter attachments size effect see detail 1)."
+        ],
+        [
+          "45",
+          "30<t≤50\n20<t≤30",
+          "Cover plates in beams and plate girders:\n6) End zones of single or multiple welded cover plates, with or without transverse end weld.",
+          "6) If the cover plate is wider than the flange, a transverse end weld is needed. This weld should be carefully ground to remove undercut.\nThe minimum length of the cover plate is 300 mm. For shorter attachments size effect see detail 1)."
+        ],
+        [
+          "40",
+          "t>50\n30<t≤50",
+          "Cover plates in beams and plate girders:\n6) End zones of single or multiple welded cover plates, with or without transverse end weld.",
+          "6) If the cover plate is wider than the flange, a transverse end weld is needed. This weld should be carefully ground to remove undercut.\nThe minimum length of the cover plate is 300 mm. For shorter attachments size effect see detail 1)."
+        ],
+        [
+          "36",
+          "-\nt>50",
+          "Cover plates in beams and plate girders:\n6) End zones of single or multiple welded cover plates, with or without transverse end weld.",
+          "6) If the cover plate is wider than the flange, a transverse end weld is needed. This weld should be carefully ground to remove undercut.\nThe minimum length of the cover plate is 300 mm. For shorter attachments size effect see detail 1)."
+        ],
+        [
+          "56",
+          "reinforced transverse end weld\n≤1/4",
+          "7) Cover plates in beams and plate girders.\n5tc is the minimum length of the reinforcement weld.",
+          "7) Transverse end weld ground flush. In addition, if tc>20mm, front of plate at the end ground with a slope < 1 in 4."
+        ],
+        [
+          "80\nm=5",
+          ">10 mm",
+          "8) Continuous fillet welds transmitting a shear flow, such as web to flange welds in plate girders.\n9) Fillet welded lap joint.",
+          "8) Δτ to be calculated from the weld throat area.\n9) Δτ to be calculated from the weld throat area considering the total length of the weld. Weld terminations more than 10 mm from the plate edge, see also 4) and 5) above."
+        ],
+        [
+          "see EN 1994-2\n(90\nm=8)",
+          "[Image of detail 10]",
+          "Welded stud shear connectors:\n10) For composite application",
+          "10) Δτ to be calculated from the nominal cross section of the stud."
+        ],
+        [
+          "71",
+          "[Image of detail 11]",
+          "11) Tube socket joint with 80% full penetration butt welds.",
+          "11) Weld toe ground. Δσ computed in tube."
+        ],
+        [
+          "40",
+          "[Image of detail 12]",
+          "12) Tube socket joint with fillet welds.",
+          "12) Δσ computed in tube."
+        ]
+      ],
+      "footnotes": [],
+      "clause": "8",
+      "page": 27
+    },
+    {
+      "table_id": "Table 8.6",
+      "title": "Hollow sections (t ≤ 12,5 mm)",
+      "headers": [
+        "Detail category",
+        "Constructional detail",
+        "Description",
+        "Requirements"
+      ],
+      "rows": [
+        [
+          "71",
+          "[Image of detail 1]",
+          "1) Tube-plate joint, tubes flatted, butt weld (X-groove)",
+          "1) Δσ computed in tube.\nOnly valid for tube diameter less than 200 mm."
+        ],
+        [
+          "71",
+          "α≤45°",
+          "2) Tube-plate joint, tube slitted and welded to plate. Holes at end of slit.",
+          "2) Δσ computed in tube.\nShear cracking in the weld should be verified using Table 8.5, detail 8)."
+        ],
+        [
+          "63",
+          "α>45°",
+          "2) Tube-plate joint, tube slitted and welded to plate. Holes at end of slit.",
+          "2) Δσ computed in tube.\nShear cracking in the weld should be verified using Table 8.5, detail 8)."
+        ],
+        [
+          "71",
+          "[Image of detail 3]",
+          "Transverse butt welds:\n3) Butt-welded end-to-end connections between circular structural hollow sections.",
+          "Details 3) and 4):\n- Weld convexity ≤ 10% of weld width, with smooth transitions.\n- Welded in flat position, inspected and found free from defects outside the tolerances EN 1090.\n- Classify 2 detail categories higher if t > 8 mm."
+        ],
+        [
+          "56",
+          "[Image of detail 4]",
+          "Transverse butt welds:\n4) Butt-welded end-to-end connections between rectangular structural hollow sections.",
+          "Details 3) and 4):\n- Weld convexity ≤ 10% of weld width, with smooth transitions.\n- Welded in flat position, inspected and found free from defects outside the tolerances EN 1090.\n- Classify 2 detail categories higher if t > 8 mm."
+        ],
+        [
+          "71",
+          "[Image of detail 5]",
+          "Welded attachments:\n5) Circular or rectangular structural hollow section, fillet-welded to another section.",
+          "5)\n- Non load-carrying welds.\n- Width parallel to stress direction l ≤ 100 mm.\n- Other cases see Table 8.4."
+        ],
+        [
+          "50",
+          "[Image of detail 6]",
+          "Welded splices:\n6) Circular structural hollow sections, butt-welded end-to-end with an intermediate plate.",
+          "Details 6) and 7):\n- Load-carrying welds.\n- Welds inspected and found free from defects outside the tolerances of EN 1090.\n- Classify 1 detail category higher if t > 8 mm."
+        ],
+        [
+          "45",
+          "[Image of detail 7]",
+          "Welded splices:\n7) Rectangular structural hollow sections, butt welded end-to-end with an intermediate plate.",
+          "Details 6) and 7):\n- Load-carrying welds.\n- Welds inspected and found free from defects outside the tolerances of EN 1090.\n- Classify 1 detail category higher if t > 8 mm."
+        ],
+        [
+          "40",
+          "[Image of detail 8]",
+          "8) Circular structural hollow sections, fillet-welded end-to-end with an intermediate plate.",
+          "Details 8) and 9):\n- Load-carrying welds.\n- Wall thickness t ≤ 8 mm."
+        ],
+        [
+          "36",
+          "[Image of detail 9]",
+          "9) Rectangular structural hollow sections, fillet-welded end-to-end with an intermediate plate.",
+          "Details 8) and 9):\n- Load-carrying welds.\n- Wall thickness t ≤ 8 mm."
+        ]
+      ],
+      "footnotes": [],
+      "clause": "8",
+      "page": 28
+    },
+    {
+      "table_id": "Table 3.1",
+      "title": "Table 3.1: Recommended values for partial factors for fatigue strength",
+      "headers": [
+        "Assessment method",
+        "Consequence of failure - Low consequence",
+        "Consequence of failure - High consequence"
+      ],
+      "rows": [
+        [
+          "Damage tolerant",
+          "1,00",
+          "1,15"
+        ],
+        [
+          "Safe life",
+          "1,15",
+          "1,35"
+        ]
+      ],
+      "footnotes": [],
+      "clause": "3",
+      "page": 13
+    },
+    {
+      "table_id": "Table 4.1",
+      "title": "Table 4.1: k1-factors for circular hollow sections under in-plane loading",
+      "headers": [
+        "Type of joint",
+        "Joint configuration",
+        "Chords",
+        "Verticals",
+        "Diagonals"
+      ],
+      "rows": [
+        [
+          "Gap joints",
+          "K type",
+          "1,5",
+          "AC2 -",
+          "1,3"
+        ],
+        [
+          "Gap joints",
+          "N type / KT type",
+          "1,5",
+          "1,8",
+          "1,4"
+        ],
+        [
+          "Overlap joints",
+          "K type",
+          "1,5",
+          "- AC2",
+          "1,2"
+        ],
+        [
+          "Overlap joints",
+          "N type / KT type",
+          "1,5",
+          "1,65",
+          "1,25"
+        ]
+      ],
+      "footnotes": [],
+      "clause": "4",
+      "page": 13
+    },
+    {
+      "table_id": "Table 8.7",
+      "title": "Table 8.7: Lattice girder node joints",
+      "headers": [
+        "Detail category",
+        "Constructional detail",
+        "Requirements"
+      ],
+      "rows": [
+        [
+          "90\nt0/ti ≥ 2,0\nm=5",
+          "Gap joints: Detail 1): K and N joints, circular structural hollow sections:\n[Images of joints with labels g, t0, t1, d0, d1, e, theta]",
+          "Details 1) and 2):\n- Separate assessments needed for the chords and the braces.\n- For intermediate values of the ratio t0/ti interpolate linearly between detail categories.\n- Fillet welds permitted for braces with wall thickness t ≤ 8 mm.\n- t0 and ti ≤ 8mm\n- 35° ≤ θ ≤ 50°\n- b0/t0×t0/ti ≤ 25\n- d0/t0×t0/ti ≤ 25\n- 0,4 ≤ bi/b0 ≤ 1,0\n- 0,25 ≤ di/d0 ≤ 1,0\n- b0 ≤ 200 mm\n- d0 ≤ 300 mm\n- - 0,5h0 ≤ eop ≤ 0,25h0\n- - 0,5d0 ≤ eop ≤ 0,25d0\n- eop ≤ 0,02b0 or ≤ 0,02d0\n[eop is out-of-plane eccentricity]\nDetail 2):\n0,5(b0 - bi) ≤ g ≤ 1,1(b0 - bi) and g ≥ 2ti"
+        ],
+        [
+          "45\nt0/ti = 1,0\nm=5",
+          "Gap joints: Detail 1): K and N joints, circular structural hollow sections:\n[Images of joints with labels g, t0, t1, d0, d1, e, theta]",
+          "Details 1) and 2):\n- Separate assessments needed for the chords and the braces.\n- For intermediate values of the ratio t0/ti interpolate linearly between detail categories.\n- Fillet welds permitted for braces with wall thickness t ≤ 8 mm.\n- t0 and ti ≤ 8mm\n- 35° ≤ θ ≤ 50°\n- b0/t0×t0/ti ≤ 25\n- d0/t0×t0/ti ≤ 25\n- 0,4 ≤ bi/b0 ≤ 1,0\n- 0,25 ≤ di/d0 ≤ 1,0\n- b0 ≤ 200 mm\n- d0 ≤ 300 mm\n- - 0,5h0 ≤ eop ≤ 0,25h0\n- - 0,5d0 ≤ eop ≤ 0,25d0\n- eop ≤ 0,02b0 or ≤ 0,02d0\n[eop is out-of-plane eccentricity]\nDetail 2):\n0,5(b0 - bi) ≤ g ≤ 1,1(b0 - bi) and g ≥ 2ti"
+        ],
+        [
+          "71\nt0/ti ≥ 2,0\nm=5",
+          "Gap joints: Detail 2): K and N joints, rectangular structural hollow sections:\n[Images of joints]",
+          "Details 1) and 2):\n- Separate assessments needed for the chords and the braces.\n- For intermediate values of the ratio t0/ti interpolate linearly between detail categories.\n- Fillet welds permitted for braces with wall thickness t ≤ 8 mm.\n- t0 and ti ≤ 8mm\n- 35° ≤ θ ≤ 50°\n- b0/t0×t0/ti ≤ 25\n- d0/t0×t0/ti ≤ 25\n- 0,4 ≤ bi/b0 ≤ 1,0\n- 0,25 ≤ di/d0 ≤ 1,0\n- b0 ≤ 200 mm\n- d0 ≤ 300 mm\n- - 0,5h0 ≤ eop ≤ 0,25h0\n- - 0,5d0 ≤ eop ≤ 0,25d0\n- eop ≤ 0,02b0 or ≤ 0,02d0\n[eop is out-of-plane eccentricity]\nDetail 2):\n0,5(b0 - bi) ≤ g ≤ 1,1(b0 - bi) and g ≥ 2ti"
+        ],
+        [
+          "36\nt0/ti = 1,0\nm=5",
+          "Gap joints: Detail 2): K and N joints, rectangular structural hollow sections:\n[Images of joints]",
+          "Details 1) and 2):\n- Separate assessments needed for the chords and the braces.\n- For intermediate values of the ratio t0/ti interpolate linearly between detail categories.\n- Fillet welds permitted for braces with wall thickness t ≤ 8 mm.\n- t0 and ti ≤ 8mm\n- 35° ≤ θ ≤ 50°\n- b0/t0×t0/ti ≤ 25\n- d0/t0×t0/ti ≤ 25\n- 0,4 ≤ bi/b0 ≤ 1,0\n- 0,25 ≤ di/d0 ≤ 1,0\n- b0 ≤ 200 mm\n- d0 ≤ 300 mm\n- - 0,5h0 ≤ eop ≤ 0,25h0\n- - 0,5d0 ≤ eop ≤ 0,25d0\n- eop ≤ 0,02b0 or ≤ 0,02d0\n[eop is out-of-plane eccentricity]\nDetail 2):\n0,5(b0 - bi) ≤ g ≤ 1,1(b0 - bi) and g ≥ 2ti"
+        ],
+        [
+          "71\nt0/ti ≥ 1,4\nm=5",
+          "Overlap joints: Detail 3): K joints, circular or rectangular structural hollow sections:\n[Images of joints]",
+          "Details 3) and 4):\n- 30 % ≤ overlap ≤ 100 %\n- overlap = (q/p) × 100 %\n- Separate assessments needed for the chords and the braces.\n- For intermediate values of the ratio t0/ti interpolate linearly between detail categories.\n- Fillet welds permitted for braces with wall thickness t ≤ 8 mm.\n- t0 and ti ≤ 8mm\n- 35° ≤ θ ≤ 50°\n- b0/t0×t0/ti ≤ 25\n- d0/t0×t0/ti ≤ 25\n- 0,4 ≤ bi/b0 ≤ 1,0\n- 0,25 ≤ di/d0 ≤ 1,0\n- b0 ≤ 200 mm\n- d0 ≤ 300 mm\n- - 0,5h0 ≤ eop ≤ 0,25h0\n- - 0,5d0 ≤ eop ≤ 0,25d0\n- eop ≤ 0,02b0 or ≤ 0,02d0\n[eop is out-of-plane eccentricity]\nDefinition of p and q:\n[Image]"
+        ],
+        [
+          "56\nt0/ti = 1,0\nm=5",
+          "Overlap joints: Detail 3): K joints, circular or rectangular structural hollow sections:\n[Images of joints]",
+          "Details 3) and 4):\n- 30 % ≤ overlap ≤ 100 %\n- overlap = (q/p) × 100 %\n- Separate assessments needed for the chords and the braces.\n- For intermediate values of the ratio t0/ti interpolate linearly between detail categories.\n- Fillet welds permitted for braces with wall thickness t ≤ 8 mm.\n- t0 and ti ≤ 8mm\n- 35° ≤ θ ≤ 50°\n- b0/t0×t0/ti ≤ 25\n- d0/t0×t0/ti ≤ 25\n- 0,4 ≤ bi/b0 ≤ 1,0\n- 0,25 ≤ di/d0 ≤ 1,0\n- b0 ≤ 200 mm\n- d0 ≤ 300 mm\n- - 0,5h0 ≤ eop ≤ 0,25h0\n- - 0,5d0 ≤ eop ≤ 0,25d0\n- eop ≤ 0,02b0 or ≤ 0,02d0\n[eop is out-of-plane eccentricity]\nDefinition of p and q:\n[Image]"
+        ],
+        [
+          "71\nt0/ti ≥ 1,4\nm=5",
+          "Overlap joints: Detail 4): N joints, circular or rectangular structural hollow sections:\n[Images of joints]",
+          "Details 3) and 4):\n- 30 % ≤ overlap ≤ 100 %\n- overlap = (q/p) × 100 %\n- Separate assessments needed for the chords and the braces.\n- For intermediate values of the ratio t0/ti interpolate linearly between detail categories.\n- Fillet welds permitted for braces with wall thickness t ≤ 8 mm.\n- t0 and ti ≤ 8mm\n- 35° ≤ θ ≤ 50°\n- b0/t0×t0/ti ≤ 25\n- d0/t0×t0/ti ≤ 25\n- 0,4 ≤ bi/b0 ≤ 1,0\n- 0,25 ≤ di/d0 ≤ 1,0\n- b0 ≤ 200 mm\n- d0 ≤ 300 mm\n- - 0,5h0 ≤ eop ≤ 0,25h0\n- - 0,5d0 ≤ eop ≤ 0,25d0\n- eop ≤ 0,02b0 or ≤ 0,02d0\n[eop is out-of-plane eccentricity]\nDefinition of p and q:\n[Image]"
+        ],
+        [
+          "50\nt0/ti = 1,0\nm=5",
+          "Overlap joints: Detail 4): N joints, circular or rectangular structural hollow sections:\n[Images of joints]",
+          "Details 3) and 4):\n- 30 % ≤ overlap ≤ 100 %\n- overlap = (q/p) × 100 %\n- Separate assessments needed for the chords and the braces.\n- For intermediate values of the ratio t0/ti interpolate linearly between detail categories.\n- Fillet welds permitted for braces with wall thickness t ≤ 8 mm.\n- t0 and ti ≤ 8mm\n- 35° ≤ θ ≤ 50°\n- b0/t0×t0/ti ≤ 25\n- d0/t0×t0/ti ≤ 25\n- 0,4 ≤ bi/b0 ≤ 1,0\n- 0,25 ≤ di/d0 ≤ 1,0\n- b0 ≤ 200 mm\n- d0 ≤ 300 mm\n- - 0,5h0 ≤ eop ≤ 0,25h0\n- - 0,5d0 ≤ eop ≤ 0,25d0\n- eop ≤ 0,02b0 or ≤ 0,02d0\n[eop is out-of-plane eccentricity]\nDefinition of p and q:\n[Image]"
+        ]
+      ],
+      "footnotes": [],
+      "clause": "8",
+      "page": 29
+    },
+    {
+      "table_id": "Table 8.8",
+      "title": "Table 8.8: Orthotropic decks – closed stringers",
+      "headers": [
+        "Detail category",
+        "Constructional detail",
+        "Description",
+        "Requirements"
+      ],
+      "rows": [
+        [
+          "80\nt≤12mm",
+          "[Image of continuous stringer with cutout]",
+          "1) Continuous longitudinal stringer, with additional cutout in cross girder.",
+          "1) Assessment based on the direct stress range Δσ in the longitudinal stringer."
+        ],
+        [
+          "71\nt>12mm",
+          "[Image of continuous stringer with cutout]",
+          "1) Continuous longitudinal stringer, with additional cutout in cross girder.",
+          "1) Assessment based on the direct stress range Δσ in the longitudinal stringer."
+        ],
+        [
+          "80\nt≤12mm",
+          "[Image of continuous stringer without cutout]",
+          "2) Continuous longitudinal stringer, no additional cutout in cross girder.",
+          "2) Assessment based on the direct stress range Δσ in the stringer."
+        ],
+        [
+          "71\nt>12mm",
+          "[Image of continuous stringer without cutout]",
+          "2) Continuous longitudinal stringer, no additional cutout in cross girder.",
+          "2) Assessment based on the direct stress range Δσ in the stringer."
+        ],
+        [
+          "36",
+          "[Image of separate stringers]",
+          "3) Separate longitudinal stringer each side of the cross girder.",
+          "3) Assessment based on the direct stress range Δσ in the stringer."
+        ],
+        [
+          "71",
+          "[Image of joint in rib]",
+          "4) Joint in rib, full penetration butt weld with steel backing plate.",
+          "4) Assessment based on the direct stress range Δσ in the stringer."
+        ],
+        [
+          "112\nAs detail 1, 2, 4 in Table 8.3",
+          "[Image of full penetration butt weld in rib]",
+          "5) Full penetration butt weld in rib, welded from both sides, without backing plate.",
+          "5) Assessment based on the direct stress range Δσ in the stringer. Tack welds inside the shape of butt welds."
+        ],
+        [
+          "90\nAs detail 5, 7 in Table 8.3",
+          "[Image of full penetration butt weld in rib]",
+          "5) Full penetration butt weld in rib, welded from both sides, without backing plate.",
+          "5) Assessment based on the direct stress range Δσ in the stringer. Tack welds inside the shape of butt welds."
+        ],
+        [
+          "80\nAs detail 9, 11 in Table 8.3",
+          "[Image of full penetration butt weld in rib]",
+          "5) Full penetration butt weld in rib, welded from both sides, without backing plate.",
+          "5) Assessment based on the direct stress range Δσ in the stringer. Tack welds inside the shape of butt welds."
+        ],
+        [
+          "71",
+          "[Image of critical section in web]",
+          "6) Critical section in web of cross girder due to cut outs.\nNOTE In case the stress range is determined according to EN 1993-2, 9.4.2.2(3), detail category 112 may be used.",
+          "6) Assessment based on stress range in critical section taking account of Vierendeel effects."
+        ],
+        [
+          "71",
+          "[Image of weld connecting deck plate to rib]",
+          "Weld connecting deck plate to trapezoidal or V-section rib\n7) Partial penetration weld with a ≥ t\nΔσ = ΔMw / Ww",
+          "7) Assessment based on direct stress range from bending in the plate."
+        ],
+        [
+          "50",
+          "[Image of fillet weld connecting deck plate to rib]",
+          "8) Fillet weld or partial penetration welds out of the range of detail 7)",
+          "8) Assessment based on direct stress range from bending in the plate."
+        ]
+      ],
+      "footnotes": [],
+      "clause": "8",
+      "page": 30
+    },
+    {
+      "table_id": "Table 8.9",
+      "title": "Table 8.9: Orthotropic decks – open stringers",
+      "headers": [
+        "Detail category",
+        "Constructional detail",
+        "Description",
+        "Requirements"
+      ],
+      "rows": [
+        [
+          "80\nt≤12mm",
+          "[Image of connection of longitudinal stringer to cross girder]",
+          "1) Connection of longitudinal stringer to cross girder.",
+          "1) Assessment based on the direct stress range Δσ in the stringer."
+        ],
+        [
+          "71\nt>12mm",
+          "[Image of connection of longitudinal stringer to cross girder]",
+          "1) Connection of longitudinal stringer to cross girder.",
+          "1) Assessment based on the direct stress range Δσ in the stringer."
+        ],
+        [
+          "56",
+          "[Images of connection of continuous longitudinal stringer to cross girder]",
+          "2) Connection of continuous longitudinal stringer to cross girder.\nΔσ = ΔM / Wnet,s\nΔτ = ΔVs / Aw,net,s\nCheck also stress range between stringers as defined in EN 1993-2.",
+          "2) Assessment based on combining the shear stress range Δτ and direct stress range Δσ in the web of the cross girder, as an equivalent stress range:\nΔσeq = 1/2 (Δσ + √(Δσ² + 4Δτ²))"
+        ]
+      ],
+      "footnotes": [],
+      "clause": "8",
+      "page": 31
+    },
+    {
+      "table_id": "Table 8.10",
+      "title": "Table 8.10: Top flange to web junction of runway beams",
+      "headers": [
+        "Detail category",
+        "Constructional detail",
+        "Description",
+        "Requirements"
+      ],
+      "rows": [
+        [
+          "160",
+          "[Image 1]",
+          "1) Rolled I- or H-sections",
+          "1) Vertical compressive stress range Δσc,en in web due to wheel loads"
+        ],
+        [
+          "71",
+          "[Image 2]",
+          "2) Full penetration tee-butt weld",
+          "2) Vertical compressive stress range Δσc,en in web due to wheel loads"
+        ],
+        [
+          "36*",
+          "[Image 3]",
+          "3) Partial penetration tee-butt welds, or effective full penetration tee-butt weld conforming with EN 1993-1-8",
+          "3) Stress range Δσc,en in weld throat due to vertical compression from wheel loads"
+        ],
+        [
+          "36*",
+          "[Image 4]",
+          "4) Fillet welds",
+          "4) Stress range Δσc,en in weld throat due to vertical compression from wheel loads"
+        ],
+        [
+          "71",
+          "[Image 5]",
+          "5) T-section flange with full penetration tee-butt weld",
+          "5) Vertical compressive stress range Δσc,en in web due to wheel loads"
+        ],
+        [
+          "36*",
+          "[Image 6]",
+          "6) T-section flange with partial penetration tee-butt weld, or effective full penetration tee-butt weld conforming with EN 1993-1-8",
+          "6) Stress range Δσc,en in weld throat due to vertical compression from wheel loads"
+        ],
+        [
+          "36*",
+          "[Image 7]",
+          "7) T-section flange with fillet welds",
+          "7) Stress range Δσc,en in weld throat due to vertical compression from wheel loads"
+        ]
+      ],
+      "footnotes": [],
+      "clause": "8",
+      "page": 31
+    },
+    {
+      "table_id": "Table B.1",
+      "title": "Table B.1: Detail categories for use with geometric (hot spot) stress method",
+      "headers": [
+        "Detail category",
+        "Constructional detail",
+        "Description",
+        "Requirements"
+      ],
+      "rows": [
+        [
+          "112",
+          "[Image 1]",
+          "1) Full penetration butt joint.",
+          "1)\n- All welds ground flush to plate surface parallel to direction of the arrow.\n- Weld run-on and run-off pieces to be used and subsequently removed, plate edges to be ground flush in direction of stress.\n- Welded from both sides, checked by NDT.\n- For misalignment see NOTE 1."
+        ],
+        [
+          "100",
+          "[Image 2]",
+          "2) Full penetration butt joint.",
+          "2)\n- Weld not ground flush\n- Weld run-on and run-off pieces to be used and subsequently removed, plate edges to be ground flush in direction of stress.\n- Welded from both sides.\n- For misalignment see NOTE 1."
+        ],
+        [
+          "100",
+          "[Image 3]",
+          "3) Cruciform joint with full penetration K-butt welds.",
+          "3)\n- Weld toe angle ≤60°.\n- For misalignment see NOTE 1."
+        ],
+        [
+          "100",
+          "[Image 4]",
+          "4) Non load-carrying fillet welds.",
+          "4)\n- Weld toe angle ≤60°.\n- See also NOTE 2."
+        ],
+        [
+          "100",
+          "[Image 5]",
+          "5) Bracket ends, ends of longitudinal stiffeners.",
+          "5)\n- Weld toe angle ≤60°.\n- See also NOTE 2."
+        ],
+        [
+          "100",
+          "[Image 6]",
+          "6) Cover plate ends and similar joints.",
+          "6)\n- Weld toe angle ≤60°.\n- See also NOTE 2."
+        ],
+        [
+          "90",
+          "[Image 7]",
+          "7) Cruciform joints with load-carrying fillet welds.",
+          "7)\n- Weld toe angle ≤60°.\n- For misalignment see NOTE 1.\n- See also NOTE 2."
+        ]
+      ],
+      "footnotes": [
+        "NOTE 1 Table B.1 does not cover effects of misalignment. They have to be considered explicitly in determination of stress.",
+        "NOTE 2 Table B.1 does not cover fatigue initiation from the root followed by propagation through the throat."
+      ],
+      "clause": "Annex B",
+      "page": 35
+    }
+  ],
+  "figures": [
+    {
+      "figure_id": "Figure 5.1",
+      "title": "Relevant stresses in the fillet welds",
+      "figure_type": "diagram",
+      "description": "Two 3D diagrams showing a fillet weld on a rectangular section. The left diagram shows normal stresses σ⊥f transverse to the axis of the weld. The right diagram shows shear stresses τ∥f longitudinal to the axis of the weld and τ⊥f transverse to the axis. Both diagrams label the weld throat 'a'.",
+      "labels": [
+        "σ⊥f",
+        "a",
+        "relevant stresses σf",
+        "τ∥f",
+        "τ⊥f",
+        "a",
+        "relevant stresses τf"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "5",
+      "page": 15
+    },
+    {
+      "figure_id": "Figure 7.1",
+      "title": "Fatigue strength curves for direct stress ranges",
+      "figure_type": "graph",
+      "description": "Log-log graph showing fatigue strength curves for direct stress ranges. The y-axis is Direct stress range ΔσR [N/mm²] from 10 to 1000. The x-axis is Endurance, number of cycles N from 1.0E+04 to 1.0E+09. Multiple parallel lines with slope m=3 transition to slope m=5 at N=5×10^6, and then become horizontal at N=10^8. The curves are labeled with detail categories from 36 to 160. Key points are marked: 1 Detail category ΔσC, 2 Constant amplitude fatigue limit ΔσD, 3 Cut-off limit ΔσL.",
+      "labels": [
+        "1000",
+        "100",
+        "10",
+        "1,0E+04",
+        "1,0E+05",
+        "1,0E+06",
+        "1,0E+07",
+        "1,0E+08",
+        "1,0E+09",
+        "Direct stress range ΔσR [N/mm²]",
+        "Endurance, number of cycles N",
+        "m = 3",
+        "m = 5",
+        "1 Detail category ΔσC",
+        "2 Constant amplitude fatigue limit ΔσD",
+        "3 Cut-off limit ΔσL",
+        "160",
+        "140",
+        "125",
+        "112",
+        "100",
+        "90",
+        "80",
+        "71",
+        "63",
+        "56",
+        "50",
+        "45",
+        "40",
+        "36"
+      ],
+      "axis_info": "y-axis: Direct stress range ΔσR [N/mm²] (log scale 10 to 1000); x-axis: Endurance, number of cycles N (log scale 1.0E+04 to 1.0E+09)",
+      "data_points": "",
+      "clause": "7.1",
+      "page": 17
+    },
+    {
+      "figure_id": "Figure 7.2",
+      "title": "Fatigue strength curves for shear stress ranges",
+      "figure_type": "graph",
+      "description": "Log-log graph showing fatigue strength curves for shear stress ranges. The y-axis is Shear stress range ΔτR [N/mm²] from 10 to 1000. The x-axis is Endurance, number of cycles N from 1.0E+04 to 1.0E+09. Two parallel lines with slope m=5 transition to horizontal at N=10^8. The curves are labeled 100 and 80. Key points are marked: 1 Detail category ΔτC, 2 Cut-off limit ΔτL.",
+      "labels": [
+        "1000",
+        "100",
+        "10",
+        "1,0E+04",
+        "1,0E+05",
+        "1,0E+06",
+        "1,0E+07",
+        "1,0E+08",
+        "1,0E+09",
+        "Shear stress range ΔτR [N/mm²]",
+        "Endurance, number of cycles N",
+        "m = 5",
+        "100",
+        "80",
+        "1 Detail category ΔτC",
+        "2 Cut-off limit ΔτL"
+      ],
+      "axis_info": "y-axis: Shear stress range ΔτR [N/mm²] (log scale 10 to 1000); x-axis: Endurance, number of cycles N (log scale 1.0E+04 to 1.0E+09)",
+      "data_points": "",
+      "clause": "7.1",
+      "page": 18
+    },
+    {
+      "figure_id": "Figure 7.3",
+      "title": "Alternative strength Δσc for details classified as Δσc*",
+      "figure_type": "graph",
+      "description": "Log-log graph showing alternative fatigue strength curves. The y-axis is log ΔσR and the x-axis is log N. It shows two parallel dashed lines with a slope transitioning to horizontal. The upper line is labeled ΔσC and the lower line is labeled ΔσC*. The transition points are marked at 2×10^6, 5×10^6, and 10^7 cycles.",
+      "labels": [
+        "log ΔσR",
+        "log N",
+        "ΔσC",
+        "ΔσC*",
+        "2×10^6",
+        "5×10^6",
+        "10^7"
+      ],
+      "axis_info": "y-axis: log ΔσR; x-axis: log N",
+      "data_points": "",
+      "clause": "7.1",
+      "page": 19
+    },
+    {
+      "figure_id": "Figure 7.4",
+      "title": "Modified stress range for non-welded or stress relieved details",
+      "figure_type": "graph",
+      "description": "A graph showing a sinusoidal stress cycle over time. The y-axis represents stress, with positive values for tension and negative for compression. The maximum stress is σmax and the minimum is σmin. The modified stress range is calculated as Δσ = |σmax| + 0,6 |σmin|.",
+      "labels": [
+        "+",
+        "-",
+        "σmax",
+        "σmin",
+        "Δσ = |σmax| + 0,6 |σmin|",
+        "+ tension",
+        "- compression"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "7.2.1",
+      "page": 20
+    },
+    {
+      "figure_id": "Figure A.1",
+      "title": "Figure A.1: Cumulative damage method",
+      "figure_type": "diagram",
+      "description": "A multi-part diagram illustrating the cumulative damage method. It includes six sections: a) Loading sequence showing a typical load cycle repeated n-times in the design life; b) Stress history at detail showing stress σ over time T; c) Cycle counting (e.g. reservoir method) showing stress ranges Δσ1, Δσ2, Δσ3, Δσ4; d) Stress range spectrum showing a histogram of stress ranges Δσ against number of cycles n; e) Cycles to failure showing a log Δσ vs log N curve with corresponding Δσ and N values; f) Damage summation (Palmgren-Miner rule) showing the equation Σ(ni/Ni) ≤ DL.",
+      "labels": [
+        "a) Loading sequence: Typical load cycle (repeated n-times in the design life)",
+        "P1",
+        "P2",
+        "T",
+        "b) Stress history at detail",
+        "σ",
+        "T",
+        "c) Cycle counting (e.g. reservoir method)",
+        "Δσ1",
+        "Δσ2",
+        "Δσ3",
+        "Δσ4",
+        "d) Stress range spectrum",
+        "Δσ",
+        "Δσ1",
+        "Δσ2",
+        "Δσ3",
+        "Δσ4",
+        "n1",
+        "n2",
+        "n3",
+        "n4",
+        "N",
+        "e) Cycles to failure",
+        "log Δσ",
+        "Δσ1",
+        "Δσ2",
+        "Δσ3",
+        "Δσ4",
+        "N1",
+        "N2",
+        "N3",
+        "N4",
+        "log N",
+        "f) Damage summation (Palmgren-Miner rule)",
+        "Σ(ni/Ni) = n1/N1 + n2/N2 + n3/N3 + n4/N4 ≤ DL"
+      ],
+      "axis_info": "Graphs show Time (T) on x-axis for a and b; Number of cycles (N) on x-axis for d; log N on x-axis for e. Y-axes show Load (P), Stress (σ), Stress range (Δσ), and log Δσ respectively.",
+      "data_points": "",
+      "clause": "A.4",
+      "page": 34
+    }
+  ],
+  "equations": [
+    {
+      "equation_id": "(6.1)",
+      "latex": "\\gamma_{Ff} \\Delta\\sigma_{E,2} = \\lambda_1 \\times \\lambda_2 \\times \\lambda_i \\times \\dots \\times \\lambda_n \\times \\Delta\\sigma(\\gamma_{Ff} Q_k) \\\\ \\gamma_{Ff} \\Delta\\tau_{E,2} = \\lambda_1 \\times \\lambda_2 \\times \\lambda_i \\times \\dots \\times \\lambda_n \\times \\Delta\\tau(\\gamma_{Ff} Q_k)",
+      "plain_text": "γFf ΔσE,2 = λ1 × λ2 × λi × ... × λn × Δσ(γFf Qk)\nγFf ΔτE,2 = λ1 × λ2 × λi × ... × λn × Δτ(γFf Qk)",
+      "description": "Design value of nominal stress ranges",
+      "variables": [
+        {
+          "symbol": "Δσ(γFf Qk), Δτ(γFf Qk)",
+          "meaning": "the stress range caused by the fatigue loads specified in EN 1991"
+        },
+        {
+          "symbol": "λi",
+          "meaning": "damage equivalent factors depending on the spectra as specified in the relevant parts of EN 1993"
+        }
+      ],
+      "clause": "6.2",
+      "page": 15
+    },
+    {
+      "equation_id": "(6.2)",
+      "latex": "\\gamma_{Ff} \\Delta\\sigma_{E,2} = k_f \\times \\lambda_1 \\times \\lambda_2 \\times \\lambda_i \\times \\dots \\times \\lambda_n \\times \\Delta\\sigma(\\gamma_{Ff} Q_k) \\\\ \\gamma_{Ff} \\Delta\\tau_{E,2} = k_f \\times \\lambda_1 \\times \\lambda_2 \\times \\lambda_i \\times \\dots \\times \\lambda_n \\times \\Delta\\tau(\\gamma_{Ff} Q_k)",
+      "plain_text": "γFf ΔσE,2 = kf × λ1 × λ2 × λi × ... × λn × Δσ(γFf Qk)\nγFf ΔτE,2 = kf × λ1 × λ2 × λi × ... × λn × Δτ(γFf Qk)",
+      "description": "Design value of modified nominal stress ranges",
+      "variables": [
+        {
+          "symbol": "kf",
+          "meaning": "stress concentration factor to take account of the local stress magnification in relation to detail geometry not included in the reference ΔσR-N-curve"
+        }
+      ],
+      "clause": "6.3",
+      "page": 16
+    },
+    {
+      "equation_id": "(6.3)",
+      "latex": "\\gamma_{Ff} \\Delta\\sigma_{E,2} = k_1 (\\gamma_{Ff} \\Delta\\sigma^*_{E,2})",
+      "plain_text": "γFf ΔσE,2 = k1 (γFf Δσ*E,2)",
+      "description": "Design value of modified nominal stress range for welded joints of hollow sections",
+      "variables": [
+        {
+          "symbol": "γFf Δσ*E,2",
+          "meaning": "design value of stress range calculated with a simplified truss model with pinned joints"
+        },
+        {
+          "symbol": "k1",
+          "meaning": "magnification factor according to Table 4.1 and Table 4.2"
+        }
+      ],
+      "clause": "6.4",
+      "page": 16
+    },
+    {
+      "equation_id": "(6.4)",
+      "latex": "\\gamma_{Ff} \\Delta\\sigma_{E,2} = k_f (\\gamma_{Ff} \\Delta\\sigma^*_{E,2})",
+      "plain_text": "γFf ΔσE,2 = kf (γFf Δσ*E,2)",
+      "description": "Design value of geometrical (hot spot) stress range",
+      "variables": [
+        {
+          "symbol": "kf",
+          "meaning": "stress concentration factor"
+        }
+      ],
+      "clause": "6.5",
+      "page": 16
+    },
+    {
+      "equation_id": "(7.1)",
+      "latex": "\\Delta\\sigma_{C,red} = k_s \\Delta\\sigma_C",
+      "plain_text": "ΔσC,red = ks ΔσC",
+      "description": "Fatigue strength modified for size effect",
+      "variables": [],
+      "clause": "7.2.2",
+      "page": 20
+    },
+    {
+      "equation_id": "(8.1)",
+      "latex": "\\Delta\\sigma \\le 1,5 f_y \\quad \\text{for direct stress ranges} \\\\ \\Delta\\tau \\le 1,5 f_y / \\sqrt{3} \\quad \\text{for shear stress ranges}",
+      "plain_text": "Δσ ≤ 1,5 fy for direct stress ranges\nΔτ ≤ 1,5 fy / √3 for shear stress ranges",
+      "description": "Maximum stress ranges due to frequent loads",
+      "variables": [],
+      "clause": "8",
+      "page": 20
+    },
+    {
+      "equation_id": "(8.2)",
+      "latex": "\\frac{\\gamma_{Ff} \\Delta\\sigma_{E,2}}{\\Delta\\sigma_C / \\gamma_{Mf}} \\le 1,0 \\\\ \\text{and} \\\\ \\frac{\\gamma_{Ff} \\Delta\\tau_{E,2}}{\\Delta\\tau_C / \\gamma_{Mf}} \\le 1,0",
+      "plain_text": "(γFf ΔσE,2) / (ΔσC / γMf) ≤ 1,0 and (γFf ΔτE,2) / (ΔτC / γMf) ≤ 1,0",
+      "description": "Fatigue verification under fatigue loading",
+      "variables": [],
+      "clause": "8",
+      "page": 20
+    },
+    {
+      "equation_id": "(8.3)",
+      "latex": "\\left( \\frac{\\gamma_{Ff} \\Delta\\sigma_{E,2}}{\\Delta\\sigma_C / \\gamma_{Mf}} \\right)^3 + \\left( \\frac{\\gamma_{Ff} \\Delta\\tau_{E,2}}{\\Delta\\tau_C / \\gamma_{Mf}} \\right)^5 \\le 1,0",
+      "plain_text": "( (γFf ΔσE,2) / (ΔσC / γMf) )^3 + ( (γFf ΔτE,2) / (ΔτC / γMf) )^5 ≤ 1,0",
+      "description": "Fatigue verification for combined stress ranges",
+      "variables": [],
+      "clause": "8",
+      "page": 20
+    },
+    {
+      "equation_id": "(A.1)",
+      "latex": "D_d = \\sum_i^n \\frac{n_{Ei}}{N_{Ri}}",
+      "plain_text": "Dd = Σ (nEi / NRi)",
+      "description": "Calculation of damage Dd during the design life.",
+      "variables": [
+        {
+          "symbol": "nEi",
+          "meaning": "number of cycles associated with the stress range γFf Δσi for band i in the factored spectrum"
+        },
+        {
+          "symbol": "NRi",
+          "meaning": "endurance (in cycles) obtained from the factored (Δσc / γMf) - NR curve for a stress range of γFf Δσi"
+        }
+      ],
+      "clause": "A.5",
+      "page": 33
+    },
+    {
+      "equation_id": "(A.2)",
+      "latex": "D_d \\le 1,0",
+      "plain_text": "Dd ≤ 1,0",
+      "description": "Verification criterion based on damage accumulation.",
+      "variables": [
+        {
+          "symbol": "Dd",
+          "meaning": "damage during the design life"
+        }
+      ],
+      "clause": "A.6",
+      "page": 33
+    },
+    {
+      "equation_id": "(A.3)",
+      "latex": "\\gamma_{Ff} \\Delta\\sigma_{E,2} \\le \\frac{\\Delta\\sigma_c}{\\gamma_{Mf}} \\sqrt[m]{D_d}",
+      "plain_text": "γFf ΔσE,2 ≤ (Δσc / γMf) * (Dd)^(1/m)",
+      "description": "Verification criterion based on stress range.",
+      "variables": [
+        {
+          "symbol": "m",
+          "meaning": "slope of fatigue strength curve, where m = 3"
+        },
+        {
+          "symbol": "Dd",
+          "meaning": "damage during the design life"
+        },
+        {
+          "symbol": "γFf",
+          "meaning": "partial factor for equivalent constant amplitude stress ranges"
+        },
+        {
+          "symbol": "ΔσE,2",
+          "meaning": "equivalent constant amplitude stress range related to 2 million cycles"
+        },
+        {
+          "symbol": "Δσc",
+          "meaning": "reference value of the fatigue strength at Nc = 2 million cycles"
+        },
+        {
+          "symbol": "γMf",
+          "meaning": "partial factor for fatigue strength"
+        }
+      ],
+      "clause": "A.6",
+      "page": 33
+    }
+  ],
+  "annexes": [],
+  "national_annex": [],
+  "bibliography": [],
+  "_verification": {
+    "missing_tables": [
+      "Table 3.1",
+      "Table 4.1",
+      "Table 8.7",
+      "Table 8.8",
+      "Table 8.9",
+      "Table 8.10",
+      "Table B.1"
+    ],
+    "missing_figures": [
+      "Figure A.1"
+    ],
+    "missing_equations": [
+      "(A.1)",
+      "(A.2)",
+      "(A.3)"
+    ],
+    "missing_clauses": [
+      "1",
+      "1.1",
+      "1.2",
+      "1.3",
+      "1.3.1",
+      "1.3.2",
+      "1.3.3",
+      "1.4",
+      "2",
+      "3",
+      "4",
+      "A.1",
+      "A.2",
+      "A.3",
+      "A.4",
+      "A.5",
+      "A.6"
+    ],
+    "table_errors": [],
+    "overall_quality": "Poor. The extraction missed the first four main clauses, the entirety of Annex A and Annex B, along with several tables, equations, and a figure."
+  }
+}

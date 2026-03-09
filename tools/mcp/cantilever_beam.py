@@ -5,6 +5,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field, PositiveFloat
 
 from tools.mcp.cli import run_cli
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "cantilever_beam_calculator"
 
@@ -50,7 +51,7 @@ def calculate(inp: CantileverBeamInput) -> dict:
                 "delta_tip_mm": round(defl, 4) if defl is not None else "N/A (provide I_cm4)",
             },
             "clause_references": [
-                {"doc_id": "structural_mechanics", "clause_id": "cantilever_beam", "title": "Cantilever beam — point load at tip", "pointer": "structural_mechanics#cantilever"},
+                clause_ref("structural_mechanics", "cantilever_beam", "Cantilever beam — point load at tip", pointer="structural_mechanics#cantilever"),
             ],
             "notes": ["Euler-Bernoulli beam theory. Maximum moment and reaction at fixed support."],
         }
@@ -79,7 +80,7 @@ def calculate(inp: CantileverBeamInput) -> dict:
                 "delta_tip_mm": round(defl, 4) if defl is not None else "N/A (provide I_cm4)",
             },
             "clause_references": [
-                {"doc_id": "structural_mechanics", "clause_id": "cantilever_beam", "title": "Cantilever beam — full UDL", "pointer": "structural_mechanics#cantilever"},
+                clause_ref("structural_mechanics", "cantilever_beam", "Cantilever beam — full UDL", pointer="structural_mechanics#cantilever"),
             ],
             "notes": ["Euler-Bernoulli beam theory. Maximum moment and reaction at fixed support."],
         }

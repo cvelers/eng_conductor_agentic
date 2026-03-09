@@ -6,6 +6,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field, PositiveFloat
 
 from tools.mcp.cli import run_cli
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "simple_beam_calculator"
 
@@ -74,12 +75,7 @@ def calculate(inp: SimpleBeamInput) -> dict:
                 "delta_max_mm": round(defl, 4) if defl is not None else "N/A (provide I_cm4)",
             },
             "clause_references": [
-                {
-                    "doc_id": "structural_mechanics",
-                    "clause_id": "simply_supported_beam",
-                    "title": "Simply supported beam — standard formulae",
-                    "pointer": "structural_mechanics#beam_formulas",
-                },
+                clause_ref("structural_mechanics", "simply_supported_beam", "Simply supported beam — standard formulae", pointer="structural_mechanics#beam_formulas"),
             ],
             "notes": ["Standard beam theory (Euler-Bernoulli). Shear deformation neglected."],
         }
@@ -118,12 +114,7 @@ def calculate(inp: SimpleBeamInput) -> dict:
                 "delta_max_mm": round(defl, 4) if defl is not None else "N/A (provide I_cm4)",
             },
             "clause_references": [
-                {
-                    "doc_id": "structural_mechanics",
-                    "clause_id": "simply_supported_beam",
-                    "title": "Simply supported beam under UDL — standard formulae",
-                    "pointer": "structural_mechanics#beam_formulas",
-                },
+                clause_ref("structural_mechanics", "simply_supported_beam", "Simply supported beam under UDL — standard formulae", pointer="structural_mechanics#beam_formulas"),
             ],
             "notes": ["Standard beam theory (Euler-Bernoulli). Shear deformation neglected."],
         }

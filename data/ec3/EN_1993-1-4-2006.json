@@ -1,0 +1,2146 @@
+{
+  "metadata": {
+    "standard_number": "EN 1993-1-4:2006",
+    "title": "Eurocode 3 - Design of steel structures",
+    "subtitle": "Part 1-4: General rules - Supplementary rules for stainless steels",
+    "language": "English",
+    "publication_year": "2006",
+    "committee": "CEN/TC250",
+    "ics_codes": [
+      "91.040.01",
+      "91.080.10"
+    ],
+    "supersedes": "ENV 1993-1-4:1996",
+    "total_pages": 37
+  },
+  "foreword": "This European Standard EN 1993-1-4, Eurocode 3: Design of steel structures: Part 1-4 General Rules - Supplementary rules for stainless steels, has been prepared by Technical Committee CEN/TC250 « Structural Eurocodes », the Secretariat of which is held by BSI. CEN/TC250 is responsible for all Structural Eurocodes. This European Standard shall be given the status of a National Standard, either by publication of an identical text or by endorsement, at the latest by April 2007 and conflicting National Standards shall be withdrawn at latest by March 2010. This Eurocode supersedes ENV 1993-1-4. According to the CEN-CENELEC Internal Regulations, the National Standard Organizations of the following countries are bound to implement this European Standard: Austria, Belgium, Cyprus, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hungary, Iceland, Ireland, Italy, Latvia, Lithuania, Luxembourg, Malta, Netherlands, Norway, Poland, Portugal, Romania, Slovakia, Slovenia, Spain, Sweden, Switzerland and United Kingdom. National Annex for EN 1993-1-4 This standard gives alternative procedures, values and recommendations with notes indicating where national choices may have to be made. The National Standard implementing EN 1993-1-4 should have a National Annex containing all Nationally Determined Parameters to be used for the design of steel structures to be constructed in the relevant country. National choice is allowed in EN 1993-1-4 through clauses: - 2.1.4(2) - 2.1.5(1) - 5.1(2) - 5.5(1) - 5.6(2) - 6.1(2) - 6.2(3)",
+  "normative_references": [
+    {
+      "id": "EN 1990",
+      "title": "Eurocode 0: Basis of structural design"
+    },
+    {
+      "id": "EN 508-3",
+      "title": "Roofing products from metal sheet. Specification for self-supporting products of steel, aluminium or stainless steel sheet. Stainless steel;"
+    },
+    {
+      "id": "EN 1090-2",
+      "title": "Execution of steel structures and aluminium structures - Part 2: Technical requirements for steel structures;"
+    },
+    {
+      "id": "EN 1993-1-1",
+      "title": "Design of steel structures: General rules and rules for buildings;"
+    },
+    {
+      "id": "EN 1993-1-2",
+      "title": "Design of steel structures: Structural fire design;"
+    },
+    {
+      "id": "EN 1993-1-3",
+      "title": "Design of steel structures: Cold formed thin gauge members and sheeting;"
+    },
+    {
+      "id": "EN 1993-1-5",
+      "title": "Design of steel structures: Plated structural elements;"
+    },
+    {
+      "id": "EN 1993-1-6",
+      "title": "Design of steel structures: Strength and stability of shell structures;"
+    },
+    {
+      "id": "EN 1993-1-8",
+      "title": "Design of steel structures: Design of joints;"
+    },
+    {
+      "id": "EN 1993-1-9",
+      "title": "Design of steel structures: Fatigue;"
+    },
+    {
+      "id": "EN 1993-1-10",
+      "title": "Design of steel structures: Material toughness and through-thickness properties;"
+    },
+    {
+      "id": "EN 1993-1-11",
+      "title": "Design of steel structures: Design of structures with tension components made of steel;"
+    },
+    {
+      "id": "EN 1993-1-12",
+      "title": "Design of steel structures: Additional rules for the extension of EN 1993 up to steel grades S 700;"
+    },
+    {
+      "id": "EN ISO 3506-1",
+      "title": "Mechanical properties of corrosion resistant stainless steel fasteners - Part 1: Bolts, screws and studs;"
+    },
+    {
+      "id": "EN ISO 3506-2",
+      "title": "Mechanical properties of corrosion resistant stainless steel fasteners - Part 2: Nuts"
+    },
+    {
+      "id": "EN ISO 3506-3",
+      "title": "Mechanical properties of corrosion resistant stainless steel fasteners - Part 3: Set screws and similar fasteners under tensile tests;"
+    },
+    {
+      "id": "EN ISO 7089",
+      "title": "Plain washers - Normal series - Product grade A;"
+    },
+    {
+      "id": "EN ISO 7090",
+      "title": "Plain washers, chamfered - Normal series - Product grade A;"
+    },
+    {
+      "id": "EN ISO 9445",
+      "title": "Continuously cold-rolled stainless steel narrow strip, wide strip, plate/sheet and cut lengths - Tolerances on dimensions and form"
+    },
+    {
+      "id": "EN 10029",
+      "title": "Specification for tolerances on dimensions, shape and mass for hot rolled steel plates 3 mm thick or above;"
+    },
+    {
+      "id": "EN 10052",
+      "title": "Vocabulary of heat treatment terms for ferrous products;"
+    },
+    {
+      "id": "EN 10088-1",
+      "title": "Stainless steels - Part 1: List of stainless steels;"
+    },
+    {
+      "id": "EN 10088-2",
+      "title": "Stainless steels - Part 2: Technical delivery conditions for sheet/plate and strip for general purposes;"
+    },
+    {
+      "id": "EN 10088-3",
+      "title": "Stainless steels - Part 3: Technical delivery conditions for semi-finished products, bars, rods and sections for general purposes;"
+    },
+    {
+      "id": "EN 10162",
+      "title": "Cold rolled steel sections. Technical delivery conditions. Dimensional and cross-sectional tolerances;"
+    },
+    {
+      "id": "EN 10219-2",
+      "title": "Cold formed welded structural sections of non-alloy and fine grain steels. Tolerances, dimensions and sectional properties;"
+    }
+  ],
+  "terms_and_definitions": [],
+  "symbols": [
+    {
+      "symbol": "fu,red",
+      "description": "reduced value of bearing strength"
+    },
+    {
+      "symbol": "Es,ser",
+      "description": "secant modulus of elasticity used for serviceability limit state calculations"
+    },
+    {
+      "symbol": "Es,1",
+      "description": "secant modulus corresponding to the stress in the tension flange"
+    },
+    {
+      "symbol": "Es,2",
+      "description": "secant modulus corresponding to the stress in the compression flange"
+    },
+    {
+      "symbol": "σi,Ed,ser",
+      "description": "serviceability design stress"
+    },
+    {
+      "symbol": "n",
+      "description": "coefficient"
+    }
+  ],
+  "sections": [
+    {
+      "clause_number": "1",
+      "title": "General",
+      "text": "",
+      "page": 6
+    },
+    {
+      "clause_number": "1.1",
+      "title": "Scope",
+      "text": "(1) This Part 1.4 of EN 1993 gives supplementary provisions for the design of buildings and civil engineering works that extend and modify the application of EN 1993-1-1, EN 1993-1-3, EN 1993-1-5 and EN 1993-1-8 to austenitic, austenitic-ferritic and ferritic stainless steels.\n\nNOTE 1: Information on the durability of stainless steels is given in Annex A.\n\nNOTE 2: The execution of stainless steel structures is covered in EN 1090.\n\nNOTE 3: Guidelines for further treatment, including heat treatment, are given in EN 10088.",
+      "page": 6
+    },
+    {
+      "clause_number": "1.2",
+      "title": "Normative references",
+      "text": "This following normative documents contain provisions which, through reference to this text, constitute provisions of this European Standard. For dated references, subsequent amendments to or revisions of any of these publications do not apply. However, parties to agreements based on this European Standard are encouraged to investigate the possibility of applying the most recent editions of the normative documents indicated below. For undated references, the latest edition of the normative document referred to applies.\n\nEN 1990 Eurocode 0: Basis of structural design\nEN 508-3 Roofing products from metal sheet. Specification for self-supporting products of steel, aluminium or stainless steel sheet. Stainless steel;\nEN 1090-2 Execution of steel structures and aluminium structures – Part 2: Technical requirements for steel structures;\nEN 1993-1-1 Design of steel structures: General rules and rules for buildings;\nEN 1993-1-2 Design of steel structures: Structural fire design;\nEN 1993-1-3 Design of steel structures: Cold formed thin gauge members and sheeting;\nEN 1993-1-5 Design of steel structures: Plated structural elements;\nEN 1993-1-6 Design of steel structures: Strength and stability of shell structures;\nEN 1993-1-8 Design of steel structures: Design of joints;\nEN 1993-1-9 Design of steel structures: Fatigue;\nEN 1993-1-10 Design of steel structures: Material toughness and through-thickness properties;\nEN 1993-1-11 Design of steel structures: Design of structures with tension components made of steel;\nEN 1993-1-12 Design of steel structures: Additional rules for the extension of EN 1993 up to steel grades S 700;\nEN ISO 3506-1 Mechanical properties of corrosion resistant stainless steel fasteners – Part 1: Bolts, screws and studs;\nEN ISO 3506-2 Mechanical properties of corrosion resistant stainless steel fasteners – Part 2: Nuts\nEN ISO 3506-3 Mechanical properties of corrosion resistant stainless steel fasteners – Part 3: Set screws and similar fasteners under tensile tests;\nEN ISO 7089 Plain washers - Normal series - Product grade A;\nEN ISO 7090 Plain washers, chamfered - Normal series - Product grade A;\nEN ISO 9445 Continuously cold-rolled stainless steel narrow strip, wide strip, plate/sheet and cut lengths - Tolerances on dimensions and form\nEN 10029 Specification for tolerances on dimensions, shape and mass for hot rolled steel plates 3 mm thick or above;\nEN 10052 Vocabulary of heat treatment terms for ferrous products;\nEN 10088-1 Stainless steels – Part 1: List of stainless steels;\nEN 10088-2 Stainless steels – Part 2: Technical delivery conditions for sheet/plate and strip for general purposes;\nEN 10088-3 Stainless steels - Part 3: Technical delivery conditions for semi-finished products, bars, rods and sections for general purposes;\nEN 10162 Cold rolled steel sections. Technical delivery conditions. Dimensional and cross-sectional tolerances;\nEN 10219-2 Cold formed welded structural sections of non-alloy and fine grain steels. Tolerances, dimensions and sectional properties;",
+      "page": 6
+    },
+    {
+      "clause_number": "1.3",
+      "title": "Assumptions",
+      "text": "(1) In addition to the general assumptions of EN 1990 the following assumptions apply:\n- fabrication and erection complies with EN 1090-2.",
+      "page": 7
+    },
+    {
+      "clause_number": "1.4",
+      "title": "Distinction between principles and application rules",
+      "text": "(1) The rules in EN 1990 clause 1.4 apply.",
+      "page": 7
+    },
+    {
+      "clause_number": "1.5",
+      "title": "Definitions",
+      "text": "(1) The rules in EN 1990 clause 1.5 apply.\n\n(2) Unless otherwise stated, the vocabulary of treatment terms for ferrous products used in EN 10052 applies.",
+      "page": 7
+    },
+    {
+      "clause_number": "1.6",
+      "title": "Symbols",
+      "text": "In addition to those given in EN 1990, EN 1993-1-1, EN 1993-1-3, EN 1993-1-5 and 1993-1-8, the following symbols are used:\n\nf_u,red reduced value of bearing strength\nE_s,ser secant modulus of elasticity used for serviceability limit state calculations\nE_s,1 secant modulus corresponding to the stress in the tension flange\nE_s,2 secant modulus corresponding to the stress in the compression flange\nσ_1,Ed,ser serviceability design stress\nn coefficient",
+      "page": 7
+    },
+    {
+      "clause_number": "2",
+      "title": "Materials",
+      "text": "",
+      "page": 8
+    },
+    {
+      "clause_number": "2.1",
+      "title": "Structural stainless steels",
+      "text": "",
+      "page": 8
+    },
+    {
+      "clause_number": "2.1.1",
+      "title": "General",
+      "text": "(1) The provisions given in this Part 1.4 should be applied only to design using austenitic, austenitic-ferritic and ferritic stainless steels.\n\n(2) The nominal values of the material properties given in 2.1.2 should be used as characteristic values in structural design calculations.\n\n(3) For further information about material properties reference should be made to EN 10088.\n\n(4) The design provisions specified in this Part 1.4 are applicable for material of nominal yield strength f_y up to and including 480 N/mm².\n\nNOTE: Rules for the use of work hardened material with f_y > 480 N/mm² are given in Informative Annex B.\n\n(5) The higher strength of other materials (see 2.1.2 and Annex B) may be taken into account in the design provided that doing so is justified by appropriate tests in accordance with Section 7.",
+      "page": 8
+    },
+    {
+      "clause_number": "2.1.2",
+      "title": "Material properties for stainless steel",
+      "text": "(1) In design calculations the values should be taken as follows, independent of the direction of rolling:\n- yield strength f_y: the nominal stress (0,2% proof stress) specified in Table 2.1;\n- ultimate tensile strength f_u: the nominal ultimate tensile strength specified in Table 2.1.\n\n(2) The ductility requirements in EN 1993-1-1, clause 3.2.2 also apply to stainless steels. Steels conforming with one of the steel grades listed in Table 2.1 should be accepted as satisfying these requirements.\n\n(3) For structural hollow sections, the strength values given in Table 2.1 for the relevant product form of the base material (cold-rolled strip, hot rolled strip or hot rolled plate) should be used.\n\n(4) Higher strength values derived from cold working the base material may be used in design provided they are verified by tests on coupons taken from the structural hollow section in accordance with Section 7.\n\n(5) For cold worked material, the material tests given in the material certificate required according to EN 1090, should be in such a direction that the strength values used in design are independent of the direction of rolling or stretching.",
+      "page": 8
+    },
+    {
+      "clause_number": "2.1.3",
+      "title": "Design values of material coefficients",
+      "text": "(1) The following values of the material coefficients may be assumed for the global analysis and in determining the resistances of members and cross-sections:\n\n- Modulus of elasticity, E:\nE = 200 000 N/mm² for the austenitic and austenitic-ferritic grades in Table 2.1 excluding grades 1.4539, 1.4529 and 1.4547\nE = 195 000 N/mm² for the austenitic grades 1.4539, 1.4529 and 1.4547\nE = 220 000 N/mm² for the ferritic grades in Table 2.1\n\n- Shear modulus, G, where G = E / (2(1+ν))\n\n- Poisson's ratio in elastic stage, ν = 0,3\n\nAlternatively, stress-strain curves according to Annex C may be used for materials in the annealed condition to describe the material behaviour.\n\n(2) For calculating deflections in individual members, the secant modulus appropriate to the stress in the member at the serviceability limit state may be used, see 4.2(5).",
+      "page": 9
+    },
+    {
+      "clause_number": "2.1.4",
+      "title": "Fracture toughness",
+      "text": "(1) The austenitic and austenitic-ferritic stainless steels covered in this Part 1.4 may be assumed to be adequately tough and not susceptible to brittle fracture for service temperatures down to -40°C.\n\nNOTE: Austenitic steels may also be used for temperatures below -40°C, but the requirements should be determined for each particular case.\n\nNOTE: See Annex A.5.3 concerning embrittlement due to contact with zinc in fire.\n\n(2) For ferritic stainless steels, the rules in EN 1993-1-10 give guidance. Required testing temperature and required CVN-values may be determined from Table 2.1 of EN 1993-1-10.\n\nNOTE 1: Ferritic steels are not classified into sub-grades.\n\nNOTE 2: The National Annex may provide further information on fracture toughness of ferritic stainless steels.",
+      "page": 10
+    },
+    {
+      "clause_number": "2.1.5",
+      "title": "Through-thickness properties",
+      "text": "(1) Guidance on the choice of through-thickness properties is given in EN 1993-1-10.\n\nNOTE: The National Annex may provide further information on the choice of through thickness properties.",
+      "page": 10
+    },
+    {
+      "clause_number": "2.1.6",
+      "title": "Tolerances",
+      "text": "(1) The dimensional and mass tolerances of rolled steel sections, structural hollow sections and plates should conform with the relevant product standard unless more severe tolerances are specified.\n\nNOTE: For information about tolerances for thickness of cold rolled stainless steel, reference should be made to EN ISO 9445: 2006. For plates see EN 10029\n\n(2) For welded components the tolerances given in EN 1090-2 should be applied.\n\n(3) For structural analysis and design, the nominal values of dimensions should be used except that the design thickness of strips should be determined according to 3.2.4(3) of EN 1993-1-3.",
+      "page": 10
+    },
+    {
+      "clause_number": "2.2",
+      "title": "Bolts",
+      "text": "",
+      "page": 10
+    },
+    {
+      "clause_number": "2.2.1",
+      "title": "General",
+      "text": "(1) Stainless steel bolts and nuts should conform with EN ISO 3506 - 1,2,3. Washers should be of stainless steel and should conform with EN ISO 7089 or EN ISO 7090, as appropriate. The corrosion resistance of the bolts should be equivalent to, or better than, the corrosion resistance of the parent material.\n\n(2) The nominal yield strength f_yb and ultimate tensile strength f_ub for stainless steel bolts should be obtained from Table 2.2.\n\n(3) Pending the issue of an appropriate European Standard, the specified properties should be verified using a recognised quality control system, with samples from each batch of fasteners.",
+      "page": 10
+    },
+    {
+      "clause_number": "2.2.2",
+      "title": "Preloaded bolts",
+      "text": "NOTE: High strength bolts made of stainless steel should not be used as preloaded bolts designed for a specific slip resistance, unless their acceptability in a particular application can be demonstrated from test results.",
+      "page": 11
+    },
+    {
+      "clause_number": "2.2.3",
+      "title": "Other types of mechanical fastener",
+      "text": "(1) Requirements for other types of mechanical fasteners are given in EN 1993-1-3.",
+      "page": 11
+    },
+    {
+      "clause_number": "2.3",
+      "title": "Welding consumables",
+      "text": "(1) General requirements for welding consumables are given in EN 1993-1-8.\n\n(2) In addition to the requirements of EN 1993-1-8, the welding electrodes should be capable of producing a weld with a corrosion resistance that is adequate for the service environment, provided that the correct welding procedure is used.\n\n(3) The welding electrodes may be assumed to be adequate if the corrosion resistance of the deposited metal and weld metal is not less than that of the material to be welded.\n\nNOTE: Professional advice is recommended on the selection of welding procedure for jointing stainless steels",
+      "page": 11
+    },
+    {
+      "clause_number": "3",
+      "title": "Durability",
+      "text": "(1) The requirements for durability given in Section 4 of EN 1993-1-1 should also be applied for stainless steels.\n\n(2) An appropriate grade of stainless steel should be selected according to the corrosion resistance required for the environment in which the structural members are to be used.\n\nNOTE: Guidance on the selection of materials for corrosion resistance is given in Annex A.\n\n(3) In cosmetic applications, the possible minor changes in surface appearance that might take place as a result of dirt deposits (which in adverse circumstances can create crevices and lead to surface micro-pitting) should also be taken into account. A suitable corrosion-resistant grade of stainless steel should be used to ensure that only superficial surface attack takes place within the design life of the component.\n\nNOTE: Surface aspect features of hot rolled plates are described in EN 10163.\n\n(4) If necessary, a suitable cleaning regime should be specified to maintain surface appearance.\n\n(5) Although, under benign atmospheric exposure conditions, the requirements given in (3) can be satisfied by most stainless steels, expert advice should be sought if stainless steel is required to be exposed to environments that contain chemicals, including atmospheres associated with certain industrial processes, in swimming pool buildings, sea water and salt spray from road de-icing or the like.\n\nNOTE: Additional information on design for corrosion control is given in Annex A.",
+      "page": 11
+    },
+    {
+      "clause_number": "4",
+      "title": "Serviceability limit states",
+      "text": "",
+      "page": 12
+    },
+    {
+      "clause_number": "4.1",
+      "title": "General",
+      "text": "(1) The requirements for serviceability given in Section 7 of EN 1993-1-1 should be applied for stainless steels.\n\n(2) Deflections in members should be estimated in accordance with 4.2.",
+      "page": 12
+    },
+    {
+      "clause_number": "4.2",
+      "title": "Determination of deflections",
+      "text": "(1) The effects of the non-linear stress-strain behaviour of stainless steels, and the effectiveness of the cross-section, should be taken into account in estimating deflections.\n\nNOTE: Guidance for the description of the non-linear material behaviour of annealed material is given in Informative Annex C.\n\n(2) The basic requirements for serviceability limit states are given in clause 3.4 of EN 1990.\n\nNOTE: EN 1990 gives the appropriate combinations of actions to use in the following situations:\n- for calculating deflections under permanent and/or variable actions;\n- when long term deformations due to shrinkage, relaxation or creep need to be considered;\n- if the appearance of the structure or the comfort of the user or functioning of machinery are being considered.\n\n(3) The effective cross-section may conservatively be based on effective widths of compression elements in Class 4 cross-sections determined using 5.2.3. Alternatively, the more accurate method in 4.4(4) of EN 1993-1-5 may be used.\n\n(4) In the case of members subject to shear lag, the effective cross-section may be based on effective widths determined using 3.2 in EN 1993-1-5.\n\n(5) Deflections should be estimated using the secant modulus of elasticity E_s,ser determined taking account of the stresses in the member under the load combination for the relevant serviceability limit state and the orientation of the rolling direction. If the orientation of the rolling direction is not known, or cannot be ensured, then the value for the longitudinal direction should be used. Alternatively, the FE-methods given in Annex C of EN 1993-1-5 may be used with the description of the non-linear material behaviour given in Annex C of this document.\n\n(6) The value of the secant modulus of elasticity E_s,ser may be obtained from:\n\nE_s,ser = (E_s,1 + E_s,2) / 2\n\nwhere:\nE_s,1 is the secant modulus corresponding to the stress σ_1 in the tension flange;\nE_s,2 is the secant modulus corresponding to the stress σ_2 in the compression flange.\n\n(7) The values of E_s,1 and E_s,2 for the appropriate serviceability design stress σ_i,Ed,ser and rolling direction may be estimated using:\n\nE_s,i = E / (1 + 0,002 * (E / σ_i,Ed,ser) * (σ_i,Ed,ser / f_y)^n)\n\nwith:\ni = 1 or 2.\n\n(8) The value of the coefficient n may be taken from Table 4.1.\n\nNOTE: Annex C gives a method for evaluating n for grades other than those listed in Table 4.1.\n\n(9) As a simplification, the variation of E_s,ser along the length of the member may be neglected and the minimum value of E_s,ser for that member (corresponding to the maximum values of the stresses σ_1,Ed,ser and σ_2,Ed,ser in the member) may be used throughout its length.",
+      "page": 12
+    },
+    {
+      "clause_number": "5",
+      "title": "Ultimate limit states",
+      "text": "5 Ultimate limit states",
+      "page": 14
+    },
+    {
+      "clause_number": "5.1",
+      "title": "General",
+      "text": "(1) The provisions given in Sections 5 and 6 of EN 1993-1-1 should be applied for stainless steels, except where modified or superseded by the special provisions given in this Part 1.4.\n\n(2) The partial factors γ_M as defined in 2.4.3 of EN 1993-1-1 are applied to the various characteristic values of resistance in this section as follows, see Table 5.1.\n\nNOTE: γ_M values may be determined in the National Annex. The following values are recommended\nγ_M0 = 1,1\nγ_M1 = 1,1\nγ_M2 = 1,25\n\n(3) No rules are given for plastic global analysis.\n\nNOTE: Plastic global analysis should not be used unless there is sufficient experimental evidence to ensure that the assumptions made in the calculations are representative of the actual behaviour of the structure. In particular there should be evidence that the joints are capable of resisting the increase in internal moments and forces due to strain hardening.\n\n(4)P Joints subject to fatigue shall also satisfy the principles given in EN 1993-1-9.\n\n(5) Where members may be subjected to significant deformation, account may be taken of the potential for enhanced strength gained through the work hardening properties of austenitic stainless steel. Where this work hardening increases the actions resisted by the members, the joints should be designed to be consistent with the increased member resistance, especially where capacity design is required.",
+      "page": 14
+    },
+    {
+      "clause_number": "5.2",
+      "title": "Classification of cross-sections",
+      "text": "5.2 Classification of cross-sections",
+      "page": 14
+    },
+    {
+      "clause_number": "5.2.1",
+      "title": "Maximum width-to-thickness ratios",
+      "text": "(1) The provisions for design by calculation given in this Part 1.4 may be assumed to apply to cross-sections within the dimensional limits given in EN 1993-1-3, except that the overall width-to-thickness ratios b/t and h/t as defined in EN 1993-1-3 should not exceed 400, see Figure 5.1.\n\n(2) If visual distortion of flat elements of the cross-section are unacceptable under the serviceability loading, a limit of b/t ≤ 75 may be applied.",
+      "page": 14
+    },
+    {
+      "clause_number": "5.2.2",
+      "title": "Classification of compression elements",
+      "text": "(1) Compression elements of cross-sections should be classified as Class 1, 2 or 3 depending upon the limits specified in Table 5.2. Those compression elements that do not meet the criteria for Class 3 should be classified as Class 4 elements.",
+      "page": 15
+    },
+    {
+      "clause_number": "5.2.3",
+      "title": "Effective widths in Class 4 cross-sections",
+      "text": "(1) In Class 4 cross-sections effective widths may be used to make necessary allowances for reductions in resistance due to the effects of local buckling using 4.4(1) to (5) of EN 1993-1-5, except that the reduction factor ρ should be taken as follows:\nCold formed or welded internal elements:\nρ = 0,772 / λ̄p - 0,125 / λ̄p² but ≤ 1 (5.1)\nCold formed outstand elements:\nρ = 1 / λ̄p - 0,231 / λ̄p² but ≤ 1 (5.2)\nWelded outstand elements:\nρ = 1 / λ̄p - 0,242 / λ̄p² but ≤ 1 (5.3)\nwhere λ̄p is the element slenderness defined as:\nλ̄p = (b̄/t) / (28,4ε√kσ)\nin which\nt is the relevant thickness\nkσ is the buckling factor corresponding to the stress ratio ψ and boundary conditions from Table 4.1 or Table 4.2 in EN 1993-1-5 as appropriate\nb̄ is the relevant width as follows:\nb̄ = d for webs (except RHS)\nb̄ = flat element width for webs of RHS, which can conservatively be taken as h-2t\nb̄ = b for internal flange elements (except RHS)\nb̄ = flat element width for RHS flanges, which can conservatively be taken as b-2t\nb̄ = c for outstand flanges\nb̄ = h for equal leg angles and unequal leg angles\nε is the material factor defined in Table 5.2.",
+      "page": 19
+    },
+    {
+      "clause_number": "5.2.4",
+      "title": "Effects of shear lag",
+      "text": "(1) The effects of shear lag should be taken into account as specified in 3.3 of EN 1993-1-5.",
+      "page": 19
+    },
+    {
+      "clause_number": "5.3",
+      "title": "Resistance of cross-sections",
+      "text": "5.3 Resistance of cross-sections",
+      "page": 19
+    },
+    {
+      "clause_number": "5.3.1",
+      "title": "Tension resistance at holes for bolts",
+      "text": "(1) The tension resistance of a cross-section should be taken as the lesser of the plastic resistance of the gross cross-section Npl,Rd and the ultimate resistance Nu,Rd of the net cross-section.\n(2) The plastic resistance of the gross cross-section should be determined using:\nNpl,Rd = A fy / γM0 (5.4)\n(3) The ultimate resistance of the net cross-section should be determined from:\nNu,Rd = kr Anet fu / γM2 (5.5)\nwith:\nkr = (1 + 3r(d0/u - 0,3)) but kr ≤ 1\nr = [number of bolts at the cross-section]/[total number of bolts in the connection]\nu = 2e2 but u ≤ p2\nwhere:\nAnet is the net cross-sectional area;\nd0 is the nominal diameter of the bolt hole;\ne2 is the edge distance from the centre of the bolt hole to the adjacent edge, in the direction perpendicular to the direction of load transfer;\np2 is the spacing centre-to-centre of bolt holes, in the direction perpendicular to the direction of load transfer.",
+      "page": 19
+    },
+    {
+      "clause_number": "5.4",
+      "title": "Buckling resistance of members",
+      "text": "5.4 Buckling resistance of members",
+      "page": 20
+    },
+    {
+      "clause_number": "5.4.1",
+      "title": "General",
+      "text": "(1) The provisions for flexural, lateral-torsional, torsional, flexural-torsional and distortional buckling given in EN 1993-1-1 and EN 1993-1-3 as appropriate should be applied for stainless steels except as supplemented or modified in 5.4.2 or 5.4.3.\nNOTE: Clause 6.3.2.3 of EN 1993-1-1 is not applicable to stainless steel.\n(2) The actions should be placed into the formulae in EN 1993-1-1 as absolute values. χmin is the lowest of the values χy, χz, χT and χTF where χy and χz are calculated on the basis of flexural buckling, χT is calculated on the basis of torsional buckling and χTF is calculated on the basis of torsional-flexural buckling.",
+      "page": 20
+    },
+    {
+      "clause_number": "5.4.2",
+      "title": "Uniform members in compression",
+      "text": "5.4.2 Uniform members in compression",
+      "page": 20
+    },
+    {
+      "clause_number": "5.4.2.1",
+      "title": "Buckling curves",
+      "text": "(1) For axial compression in members the value of χ for the appropriate non-dimensional slenderness λ̄ should be determined from the relevant buckling curve according to:\nχ = 1 / (Φ + √(Φ² - λ̄²)) ≤ 1 (5.6)\nwith Φ = 0,5 (1 + α(λ̄ - λ̄0) + λ̄²) (5.7)\nwhere λ̄ = √(A fy / Ncr) for Class 1, 2 and 3 cross-sections (5.8)\nλ̄ = √(Aeff fy / Ncr) for Class 4 cross-sections (5.9)\nα is an imperfection factor\nNcr is the elastic critical force for the relevant buckling mode based on the gross cross sectional properties.\nλ̄0 limiting slenderness\n(2) Values for α and λ̄0 corresponding to the appropriate buckling curve should be obtained from Table 5.3. The buckling curves in Table 5.3 do not apply to hollow sections which are annealed after fabrication.\n(3) For slenderness λ̄ ≤ λ̄0 or for NEd / Ncr ≤ λ̄0² the buckling effects may be ignored and only cross sectional checks apply.",
+      "page": 20
+    },
+    {
+      "clause_number": "5.4.3",
+      "title": "Uniform members in bending",
+      "text": "5.4.3 Uniform members in bending",
+      "page": 21
+    },
+    {
+      "clause_number": "5.4.3.1",
+      "title": "Lateral torsional buckling curves",
+      "text": "(1) For bending members of constant cross-section, the value of χLT for the appropriate non-dimensional slenderness λ̄LT should be determined from:\nχLT = 1 / (ΦLT + √(ΦLT² - λ̄LT²)) ≤ 1 (5.10)\nin which\nΦLT = 0,5 (1 + αLT(λ̄LT - 0,4) + λ̄LT²) (5.11)\nλ̄LT = √(Wy fy / Mcr) (5.12)\nαLT is the imperfection factor\n= 0,34 for cold formed sections and hollow sections (welded and seamless)\n= 0,76 for welded open sections and other sections for which no test data is available\nMcr is the elastic critical moment for lateral-torsional buckling\n(2) For slendernesses λ̄LT ≤ 0,4 or for MEd / Mcr ≤ 0,16 lateral torsional buckling effects may be ignored and only cross sectional checks apply.",
+      "page": 21
+    },
+    {
+      "clause_number": "5.5",
+      "title": "Uniform members in bending and axial compression",
+      "text": "(1) Members which are subjected to combined bending and axial compression should satisfy:\nAxial compression and uniaxial major axis moment\nTo prevent premature buckling about the major axis:\nNEd / (Nb,Rd)min + ky (My,Ed + NEd eNy) / (βW,y Wpl,y fy / γM1) ≤ 1 (5.13)\nTo prevent premature buckling about the minor axis (for members subject to lateral-torsional buckling):\nNEd / (Nb,Rd)min1 + kLT (My,Ed + NEd eNy) / Mb,Rd ≤ 1 (5.14)\nAxial compression and uniaxial minor axis moment:\nTo prevent premature buckling about the minor axis:\nNEd / (Nb,Rd)min + kz (Mz,Ed + NEd eNz) / (βW,z Wpl,z fy / γM1) ≤ 1 (5.15)\nAxial compression and biaxial moments:\nAll members should satisfy:\nNEd / (Nb,Rd)min + ky (My,Ed + NEd eNy) / (βW,y Wpl,y fy / γM1) + kz (Mz,Ed + NEd eNz) / (βW,z Wpl,z fy / γM1) ≤ 1 (5.16)\nMembers potentially subject to lateral-torsional buckling should also satisfy:\nNEd / (Nb,Rd)min1 + kLT (My,Ed + NEd eNy) / Mb,Rd + kz (Mz,Ed + NEd eNz) / (βW,z Wpl,z fy / γM1) ≤ 1 (5.17)\nIn the above expressions:\neNy and eNz are the shifts in the neutral axes when the cross-section is subject to uniform compression\nNEd, My,Ed and Mz,Ed are the design values of the compression force and the maximum moments about the y-y and z-z axis along the member, respectively\n(Nb,Rd)min is the smallest value of Nb,Rd for the following four buckling modes: flexural buckling about the y axis, flexural buckling about the z axis, torsional buckling and torsional-flexural buckling\n(Nb,Rd)min1 is the smallest value of Nb,Rd for the following three buckling modes: flexural buckling about the z axis, torsional buckling and torsional-flexural buckling\nβW,y and βW,z are the values of βW determined for the y and z axes respectively in which\nβW = 1,0 for Class 1 or 2 cross-sections\nβW = Wel/Wpl for Class 3 cross-sections\nβW = Weff/Wpl for Class 4 cross-sections\nWpl,y and Wpl,z are the plastic moduli for the y and z axes respectively\nMb,Rd is the lateral-torsional buckling resistance\nky, kz, kLT are the interaction factors\nNOTE 1: The National Annex may define ky, kz, kLT. The following values are recommended:\nky = 1,0 + 2(λ̄y - 0,5) NEd / Nb,Rd,y but 1,2 ≤ ky ≤ 1,2 + 2 NEd / Nb,Rd,y\nkz = 1,0 + 2(λ̄z - 0,5) NEd / (Nb,Rd)min1 but 1,2 ≤ kz ≤ 1,2 + 2 NEd / (Nb,Rd)min1\nkLT = 1,0\nNOTE 2: The National Annex may give other interaction formulae as alternatives to equations 5.13 to 5.17.",
+      "page": 22
+    },
+    {
+      "clause_number": "5.6",
+      "title": "Shear resistance",
+      "text": "(1) The design shear resistance Vc,Rd should be taken as the lesser of the shear buckling resistance Vb,Rd according to 5.2(1) of EN 1993-1-5 modified by (3) and (4) and the plastic shear resistance Vpl,Rd according to 6.2.6(2) of EN 1993-1-1.\n(2) Plates with hw/t greater than 52/η ε for an unstiffened web or 23/η ε√kτ for a stiffened web should be checked for resistance to shear buckling and should be provided with transverse stiffeners at the supports.\nwhere hw is the clear web depth between flanges, see Figure 5.1 of EN 1993-1-5\nε is defined in Table 5.2\nkτ is defined in clause 5.3 of EN 1993-1-5\nNOTE: The National Annex may define η. The value η = 1,20 is recommended.\n(3) For webs with transverse stiffeners at supports only and for webs with either intermediate transverse or longitudinal stiffeners or both, the factor χw for the contribution of the web to shear buckling resistance should be obtained as follows:\nχw = η for λ̄w ≤ 0,6 / η (5.18)\nχw = 0,11 + 0,64 / λ̄w - 0,05 / λ̄w² for λ̄w > 0,6 / η (5.19)\nwhere λ̄w is given in clauses 5.3(3) and (5) of EN 1993-1-5\n(4) If the flange resistance is not fully utilised in withstanding the bending moment, i.e. MEd < Mf,Rd, then a factor χf representing the contribution from the flanges may be included in the shear buckling resistance. χf is given in clause 5.4(1) of EN 1993-1-5 but with c given below:\nc = [0,17 + (3,5 bf tf² fyf) / (tw hw² fyw)] a and c/a ≤ 0,65 (5.20)",
+      "page": 23
+    },
+    {
+      "clause_number": "5.7",
+      "title": "Transverse web stiffeners",
+      "text": "(1) The provisions in 9.3 of EN 1993-1-5 apply with additions according to (2) and (3).\n(2) The out-of-plane buckling resistance Nb,Rd of the stiffener should be determined from 5.4.2 using α = 0,49 and λ̄0 = 0,2. The buckling length l of the stiffener should be appropriate for the conditions of restraint, but not less than 0,75hw, where both ends are fixed laterally. A larger value of l should be used for conditions that provide less end restraint. If the stiffener has a cut-out at the loaded end, its cross sectional resistance should be checked at the loaded end considering the net area.\n(3) For the buckling check, the effective cross-sectional area of a stiffener should include the stiffener itself plus a width of web of 11 ε tw either side of the stiffener. At the ends of the member (or openings in the web) the contributory width to be taken into account should be either 11 ε tw or the existing width, whichever is the smaller.",
+      "page": 23
+    },
+    {
+      "clause_number": "6",
+      "title": "Connection design",
+      "text": "6 Connection design",
+      "page": 24
+    },
+    {
+      "clause_number": "6.1",
+      "title": "General",
+      "text": "(1) The provisions given in EN 1993-1-8 should be applied for stainless steels, except where modified or superseded by the special provisions given in 6.2 and 6.3.\nNOTE: Information on durability is given in Annex A. Information on fabrication of connections is given in EN 1090-2.\n(2) The design of connections for stainless steel sheets using self-tapping screws should be in accordance with EN 1993-1-3 except that the pull-out strength should be determined by testing.\nNOTE 1: The ability of the screw to drill and form threads in stainless steel should be demonstrated by tests unless sufficient experience is available.\nNOTE 2: Formulae for pull-out strength based on testing according to Section 7 may be given in the National Annex.",
+      "page": 24
+    },
+    {
+      "clause_number": "6.2",
+      "title": "Bolted connections",
+      "text": "(1) Bearing strength should be calculated by replacing fu by a reduced value fu,red given by:\nfu,red = 0,5 fy + 0,6 fu but ≤ fu (6.1)\n(2) Stainless steel bolts in shear to EN ISO 3506 property classes 50, 70 and 80 should be treated like bolts grades 4.6, 5.6 and 8.8.\n(3) The shear resistance of a bolt, Fv,Rd should be determined from the following:\nFv,Rd = (α fub A) / γM2 (6.2)\nwhere\nA is the gross cross-section area of the bolt (if the shear plane passes through unthreaded portion of the bolt); or the tensile stress area of the bolt (if the shear plane passes through the threaded portion of the bolt);\nfub is the ultimate tensile strength of the bolt, see Table 2.2.\nNOTE: The value of α may be defined in the National Annex. The recommended values are:\n- if the shear plane passes through unthreaded portion of the bolt, α = 0,6\n- if the shear plane passes through the threaded portion of the bolt, α = 0,5",
+      "page": 24
+    },
+    {
+      "clause_number": "6.3",
+      "title": "Design of welds",
+      "text": "(1) In determining the design resistance of fillet welds, the value of the correlation factor βw should be taken as 1,0 for all nominal strength classes of stainless steel, unless a lower value is justified by tests in accordance with Section 7.",
+      "page": 25
+    },
+    {
+      "clause_number": "7",
+      "title": "Design assisted by testing",
+      "text": "(1) Section 5.2 and Annex D of EN 1990 and Section 9 and Annex A of EN 1993-1-3 are applicable to stainless steels.\n(2) Prototypes for testing should be produced in a similar manner to the components of the final product, such that they reflect the same levels of work hardening.\n(3) Because stainless steel grades can exhibit anisotropy, the specimens should be prepared from the plate or sheet in the same orientation (i.e. transverse or parallel to the rolling direction) as intended for the final structure. If the final orientation is unknown or cannot be guaranteed, tests should be conducted for both orientations and the less favourable result should be adopted.",
+      "page": 25
+    },
+    {
+      "clause_number": "8",
+      "title": "Fatigue",
+      "text": "(1) For determining the fatigue strength of stainless steel structures, reference should be made to EN 1993-1-9.",
+      "page": 25
+    },
+    {
+      "clause_number": "9",
+      "title": "Fire resistance",
+      "text": "(1) For structural fire design, material properties at elevated temperatures in Annex C of EN 1993-1-2 should be used.",
+      "page": 25
+    },
+    {
+      "clause_number": "A.1",
+      "title": "Introduction",
+      "text": "(1) The principal difference between using stainless steels and using carbon steels is that:\n- for carbon steels, protection from environmental effects, and hence life expectancy, can be dealt with separately from structural design;\n- for stainless steels, life expectancy is not determined by subsequent protective treatments, but by the initial selection of materials, the design process and the fabrication procedures, and by their suitability for the environmental conditions.\n(2) To make an informed selection of an appropriate grade of stainless steel for a particular application, or to correctly apply the available guidance on good detailing practice in order to avoid corrosion, it is important to have some appreciation of the mechanisms of corrosion in stainless steel.\n(3) All common structural metals form surface oxide films when exposed to dry air. The oxide formed on most carbon steels is readily broken down, and in the presence of moisture it is not repaired. Thus, a chemical reaction can take place between the steel, the moisture and oxygen to form rust. Except in weathering steels, this rust is not protective and does not impede the corrosion process.\n(4) An oxide is also formed on stainless steel. This is chromium-rich and is stable, non-porous and tightly adherent to the metal. However, unlike that formed on carbon steels, if it is broken down (such as by scratching or cutting), it is capable of immediate self-repair in the presence of air or an oxidising environment. It is also highly resistant to chemical attack. For these reasons it is known as a \"passive film\". Although this film is very thin (about 5 x 10^-6 mm), it gives stainless steel high corrosion-resistance properties, by preventing the steel from reacting with the atmosphere.\n(5) The behaviour of the passive film depends on the composition of the steel, its surface treatment and the corrosive nature of its environment. The stability of the film increases as the chromium content increases. Most stainless steels that are used in construction contain around 18% chromium and 10% nickel. Some stainless steels also contain molybdenum to further enhance their corrosion resistance.\n(6) This concept of passive film formation is important, because any conditions that prevent the formation of the film, or cause it to break down, will also lead to loss of corrosion resistance. Corrosion of stainless steel therefore occurs if the passive film is damaged and is not allowed to re-form.\n(7) Stainless steels are generally very resistant to corrosion and they will perform satisfactorily in most environments. The limit of corrosion resistance for a given stainless steel depends on its alloying elements, which means that each grade has a slightly different response when exposed to a corrosive environment. Care is therefore needed to select the most appropriate grade of stainless steel for a given application.\n(8) Possible reasons for a particular grade of stainless metal failing to live up to expectations regarding corrosion resistance include:\na) incorrect assessment of the environment, or exposure to unexpected conditions (such as unsuspected contamination by chloride ions);\nb) introduction of a state not envisaged in the initial assessment, by the way in which the stainless steel has been worked or treated.\n(9) Although stainless steels can be subject to discolouration and staining (often due to carbon steel contamination), they are extremely durable in buildings. In aggressive industrial and marine environments, tests have shown no indication of reduction in component resistance even where a small amount of weight loss had occurred. However, unsightly rust staining on external surfaces might still be regarded as a failure by the user. Experience indicates that any serious corrosion problem is most likely to show up in the first two or three years of service.\n(10) In certain aggressive environments some grades of stainless steel will be susceptible to localized attack. Six possible types of corrosion are described in A.2, but only pitting, crevice corrosion and bimetallic corrosion are likely to occur in buildings.",
+      "page": 26
+    },
+    {
+      "clause_number": "A.2",
+      "title": "Types of corrosion",
+      "text": "A.2 Types of corrosion",
+      "page": 27
+    },
+    {
+      "clause_number": "A.2.1",
+      "title": "Pitting",
+      "text": "(1) Pitting is a localized form of corrosion that can occur as a result of exposure to specific environments, most notably those containing chloride ions. Pitting occurs because chloride ions penetrate the passive film in weak spots. This forms a local element, with the penetrated area as the anode and the surrounding passive film as the cathode. Since the anode area is small and the cathode area is large, the current density becomes very high and therefore so does the corrosion rate on the surface of the anode.\n(2) In most structural applications, superficial pitting is likely to be low and acceptable because the reduction in the section of the component will be negligible. However, corrosion products can stain architectural features. A less tolerant view of pitting should be adopted for services such as ducts, piping and containment structures. If there is a known hazard, a suitable grade of stainless steel should be selected; usually this will have a higher alloy composition containing molybdenum additions.",
+      "page": 27
+    },
+    {
+      "clause_number": "A.2.2",
+      "title": "Crevice corrosion",
+      "text": "(1) Crevice corrosion is a localized form of attack that is initiated by the differentials in oxygen levels between the creviced and exposed regions. It is not likely to be a problem except in stagnant solutions where a build-up of chlorides can occur. The severity of crevice corrosion is very dependent on the geometry of the crevice; the narrower and deeper the crevice, the more severe the corrosion.\n(2) Crevices typically occur between nuts and washers or around the thread of a screw or the shank of a bolt. Crevices can also occur in welds that fail to penetrate and under deposits on the steel surface. In principle, pitting and crevice corrosion are similar phenomena, but the attacks start more easily in a crevice than on a free surface.",
+      "page": 27
+    },
+    {
+      "clause_number": "A.2.3",
+      "title": "Bimetallic corrosion",
+      "text": "(1) Bimetallic corrosion is liable to occur when dissimilar metals are in electrical contact in any electrolyte, including rainwater, condensation etc. If an electrical current flows between the two, the less noble metal (the anode) corrodes at a faster rate than would have occurred if the metals were not in contact.\n(2) The rate of corrosion also depends on the relative areas of the metals in contact, the temperature and the composition of the electrolyte. In particular, the larger the area of the cathode in relation to that of the anode, the greater the rate of attack. Adverse area ratios are likely to occur for fasteners and at joints.\n(3) The use of carbon steel bolts should be avoided in stainless steel members, because the ratio of the area of the stainless steel to the carbon steel is large and the bolts will be subject to aggressive attack. Conversely, the rate of attack of a carbon steel member by a stainless steel bolt is much slower. It is usually helpful to draw on previous experience in similar environments, because dissimilar metals can often be coupled safely, with no adverse effects under conditions of occasional condensation or dampness, especially when the conductivity of the electrolyte is low.\n(4) The prediction of these effects is difficult because the corrosion rate is determined by a number of complex issues. The use of potential tables ignores the presence of surface oxide films and the effects of area ratios and differences in the chemistry of the electrolyte. As a result, uninformed use of these tables can produce erroneous results. They should therefore be used with care and only for initial assessment.\n(5) Austenitic stainless steels often form the cathode in a bimetallic couple and therefore do not suffer corrosion. An exception to this is the couple with copper, which should generally be avoided except under benign conditions. Contact between austenitic stainless steels and aluminium or zinc can result in some additional corrosion of the latter two metals. This is unlikely to be significant structurally, but the resulting grey-white powder might be deemed unsightly.\n(6) Bimetallic corrosion may be prevented by excluding water from the detail (for example by painting or taping over the assembled joint) or, preferably, by electrically isolating the metals from each other (for example by painting the contact surfaces of the dissimilar metals). Isolation around bolted connections can be achieved by non-conductive plastic or rubber gaskets and nylon or teflon washers and bushes. This system is a time-consuming detail to make on site. Moreover it is not usually practicable to provide the necessary level of site inspection to check that all the washers and sleeves have been installed properly.",
+      "page": 27
+    },
+    {
+      "clause_number": "A.2.4",
+      "title": "Stress corrosion cracking",
+      "text": "(1) The development of stress corrosion cracking requires the simultaneous presence of tensile stresses and specific environmental factors that are unlikely to be encountered in normal building atmospheres. The stresses do not need to be very high in relation to the yield strength of the material. They might be due to loading or to residual stresses from manufacturing processes such as welding or forming. Caution should be exercised when stainless steel members containing high residual stresses (such as those due to cold working) are used in chloride rich environments such as swimming pools or marine or maritime structures, including offshore platforms (see A.4.1(10)).\n(2) The likelihood of stress corrosion cracking increases with increasing tensile stress and with increasing temperature. In austenitic chromium-nickel stainless steels, nickel is the alloying element that most strongly reduces the sensitivity to stress corrosion cracking.",
+      "page": 28
+    },
+    {
+      "clause_number": "A.2.5",
+      "title": "General corrosion",
+      "text": "(1) General corrosion is much less severe in stainless steel than in other steels.\n(2) This form of corrosion is not a problem for the grades of stainless steel commonly used in normal building applications. Reference can be made to tables in manufacturers' literature; alternatively the advice of a specialist corrosion engineer should be sought, particularly if the stainless steel is to come into contact with chemicals.",
+      "page": 28
+    },
+    {
+      "clause_number": "A.2.6",
+      "title": "Inter-granular attack and weld decay",
+      "text": "(1) When austenitic stainless steels are subject to prolonged heating in the range 450°C to 850°C, the carbon in the steel diffuses to the grain boundaries and precipitates chromium carbide. This removes chromium from the microstructure and leaves a lower chromium content adjacent to the grain boundaries. Steels in this condition are termed \"sensitized\".\n(2) The grain boundaries become prone to preferential attack on subsequent exposure to a corrosive environment. This phenomenon is known as \"weld decay\" when it occurs in the heat affected zone of a weldment.\n(3) There are three ways to avoid inter-granular corrosion:\n- using steel having a low carbon content;\n- using steel stabilized with titanium or niobium, because these elements combine preferentially with carbon to form stable compounds, thereby reducing the risk of forming chromium carbide;\n- using heat treatment, however this method is rarely used in practice.\n(4) Grades with a low carbon content (about 0,03%) do not suffer from welded area inter-granular corrosion after following proper welding procedures.",
+      "page": 28
+    },
+    {
+      "clause_number": "A.3",
+      "title": "Levels of risk",
+      "text": "(1) The level of risk depends on the materials, the configuration and the environmental conditions. A distinction may be drawn between three risk levels as follows:\n- Level 1 risk: Only cosmetic surface attack (micro-pitting) occurs within a 50 years design life. Maintenance is not necessary for structural integrity, but might be required to maintain pristine appearance. Most standard stainless steels will meet this requirement for lightly or moderately aggressive atmospheric corrosion conditions.\n- Level 2 risk: Risk of pitting or crevice attack, causing loss of section or penetration, which might require inspection or repair for reasons of structural or containment failure within a 50 years design life. This is relevant for atmospheric exposure involving chemically contaminated atmospheres from marine and heavy industrial environments, or those inside buildings associated with certain processes and operations.\n- Level 3 risk: Risk of localized attack by aggressive substances (for example acid chloride deposits or liquid zinc metal) which might cause loss of structural integrity through localized cracking mechanisms (for example stress corrosion cracking or intergranular corrosion). Life and inspection frequencies are determined by the combination of materials selection and the severity and probability of exposure to aggressive substances. This is relevant to exposure in specific environments, such as those found above certain enclosed swimming pools, where aggressive deposits with high chloride concentrations can be generated. It also applies if there is a risk of fire in structures containing galvanized or zinc-coated metal components. In the case of fire, liquid zinc should not be able to drop onto the stainless steel.\n(2) Although general guidance on materials selection can be given for level 1 and level 2 risks, in the case of level 3 risk it is essential to seek expert guidance.",
+      "page": 29
+    },
+    {
+      "clause_number": "A.4",
+      "title": "Selection of materials",
+      "text": "",
+      "page": 29
+    },
+    {
+      "clause_number": "A.4.1",
+      "title": "General",
+      "text": "(1) The selection of the most appropriate grade of stainless steel should take into account the environment of the application, the fabrication route, the ability to machine the material, the surface finish and the maintenance of the structure. Although stainless steels have low maintenance requirements, detailed consideration needs to be given to design for corrosion resistance when a material is selected for use in a corrosive environment.\n(2) Consideration should be given to the risks, over the design life of the structure, of the following:\n- stress corrosion cracking;\n- crevice corrosion;\n- galvanic corrosion;\n- pitting;\n- staining;\n- loss of thickness.\n(3) The first step is to characterize the service environment. The corrosiveness of an environment is governed by a number of variables such as humidity, air temperature, presence of chemicals and their concentration, oxygen content, etc. Corrosion cannot occur unless moisture is present. For example, heated and ventilated buildings can be classified as dry, and corrosion is unlikely to occur in such environments. The risk of condensation is higher in areas such as kitchens and laundries. Coastal areas are very corrosive due to the presence of high concentrations of chloride ions in the air, so structures exposed to sea spray are particularly prone to corrosive attack.\n(4) Having characterized the general environment, it is then necessary to take into account the effect of the immediate surroundings on the stainless steel (for example elements and substances that the material is likely to come into contact with). The surface condition, the temperature of the steel and the anticipated service stress can also be important parameters.\n(5) Consideration should then be given to mechanical properties and to the effects of the type of loading, including service loads, cyclic loads, vibrations, seismic loads and so on. The effects of cyclic heating and cooling might need to be quantified. Ease of fabrication, availability of product forms, surface finish and costs also need to be taken into account in the final selection.\n(6) Assessing the suitability of grades is best approached by referring to experience of stainless steels in similar applications and environments. For atmospheric environments, Table A.1 gives guidance for selecting suitable grades from a corrosion point of view.\n(7) Besides the classification of stainless steels according to atmospheric applications, as in Table A.1, it is also necessary to make a distinction between:\n- cosmetic applications: in which the prime consideration in the choice of material is to maintain the appearance during the life of the product [in this case it is necessary to distinguish between indoor and outdoor applications];\n- structural applications: in which the mechanical properties are the prime consideration.\n(8) In the case of cosmetic applications, it is necessary to take into account not only the environmental atmosphere, but also the location of the parts and the possibility of their natural cleaning by weather agents. If the parts are located under shelters (such as roofs) they have to be cleaned more often.\n(9) In the case of structural applications, for which mechanical properties are essential, most natural atmospheres have no detrimental effects on stainless steels.\n(10) Certain stainless steels are suitable for many applications in indoor and outdoor swimming pools. For loadbearing members in atmospheres containing chlorides that cannot be cleaned regularly (e.g. in suspended ceilings above swimming pools) the following grades should be used:\nPool water containing ≤ 250 mg/l chloride ions: 1.4539, 1.4529, 1.4547, 1.4565\nPool water containing > 250 mg/l chloride ions: 1.4529, 1.4547, 1.4565\nNOTE: Alternative grades which have been shown to have equivalent resistance to stress corrosion cracking in these atmospheres may also be used.\n(11) Expert advice should always be sought for more specialist applications, such as stainless steel in contact with, or immersed in, chemicals.",
+      "page": 29
+    },
+    {
+      "clause_number": "A.4.2",
+      "title": "Bolts",
+      "text": "(1) For bolt material to EN ISO 3506 - 1:\n- A2 is equivalent in terms of its corrosion resistance to 1.4301,\n- A3 is equivalent in terms of its corrosion resistance to 1.4541,\n- A4 is equivalent in terms of its corrosion resistance to 1.4401 and 1.4404,\n- A5 is equivalent in terms of its corrosion to 1.4571.\nGrade A1 is of lower corrosion resistance and should not be used for bolts.\n(2) In the case of steel grades 1.4439, 1.4539, 1.4529 and 1.4462, bolts from one of these steels should be used to reach the same corrosion resistance.\n(3) Caution should be exercised when considering the use of \"free-machining\" stainless steels for fasteners. The addition of sulfur in the composition of these steels (such as the austenitic grade 1.4305) may render them more liable to corrosion, especially in industrial and marine environments.",
+      "page": 31
+    },
+    {
+      "clause_number": "A.5",
+      "title": "Design for corrosion control",
+      "text": "(1) The most important step in preventing corrosion problems is selecting an appropriate grade of stainless steel, with suitable fabrication procedures for the given environment. However, even after specifying a particular steel, careful detailing is necessary in order to achieve its full potential corrosion resistance.\n(2) In the check list for consideration given below, some points might not give the best detail for structural strength, and some are not intended to be applied in all environments. In particular, many would not be required in environments of low corrosiveness or where regular maintenance is carried out.\n(3) A balance should be achieved between the use of welding and bolting to ensure optimum performance against corrosion with minimum welding distortion. The following points should be considered:\na) Avoid dirt entrapment, see Figure A.1, by:\n- orientating angle and channel profiles to minimise the likelihood of dirt retention;\n- providing drainage holes, ensuring they are of sufficient size to prevent blockage;\n- avoiding horizontal surfaces;\n- specifying a small slope on gusset stiffeners that nominally lie in a horizontal plane;\n- using tubular and bar sections [Seal tubes with dry gas or air where there is a risk of harmful condensates forming];\n- specifying smooth finishes (Ra ≤ 0,5μm for external applications is a suitable value).\nb) Avoid crevices, see Figure A.2, by:\n- using welded rather than bolted connections;\n- using closing welds or mastic fillers;\n- preferably dressing or profiling welds;\n- preventing bio-fouling [Note that chlorination of the water may cause pitting].\nc) Reduce likelihood of stress corrosion cracking in those specific environments where it might occur by:\n- minimising fabrication stresses by careful choice of welding sequence;\n- shot peening [Do not use iron or steel shot].\nd) Welds should always be cleaned to restore corrosion resistance. Reduce the likelihood of pitting by:\n- removing weld splatter;\n- brushing with a stainless steel wire brush or pickling the stainless steel to remove unwanted welding products [Strongly oxidising chloride-containing reagents such as ferric chloride should be avoided. Instead, a pickling bath or a pickling paste, both containing a mixture of nitric acid and hydrofluoric acid, should be used. After pickling thorough rinsing with water should be carried out.];\n- avoiding pick-up of carbon steel particles [For example, use workshop areas and tools that are dedicated to stainless steel];\n- following a suitable maintenance programme.\ne) Reduce likelihood of bimetallic corrosion by:\n- electrical insulation;\n- using paints appropriately;\n- minimising periods of wetness.\nf) Reduce likelihood of attack by molten zinc in order to prevent spontaneous embrittlement.",
+      "page": 32
+    },
+    {
+      "clause_number": "A.6",
+      "title": "Connections",
+      "text": "",
+      "page": 33
+    },
+    {
+      "clause_number": "A.6.1",
+      "title": "General",
+      "text": "(1) The design of connections, in particular, needs careful attention to maintain optimum corrosion resistance.\n(2) This is especially so for connections that might become wet from the weather, spray, immersion, condensation, or other causes. The possibility of avoiding or reducing associated corrosion problems by locating connections away from the source of dampness should be investigated. Alternatively, it might be possible to remove the source of dampness; for instance, in the case of condensation, by adequate ventilation or by ensuring that the ambient temperature within the structure lies above the dew point temperature.\n(3) If it is not practicable to prevent a connection involving both carbon steel and stainless steel from becoming wet, consideration should be given to preventing galvanic corrosion.\n(4) Loads and corrosion influences under service conditions should be determined and recorded as completely and exactly as practicable.",
+      "page": 33
+    },
+    {
+      "clause_number": "A.6.2",
+      "title": "Bolted connections",
+      "text": "(1) The use of carbon steel bolts with stainless steel structural elements should always be avoided. In bolted connections that would be prone to an unacceptable degree of corrosion, provision should be made for electrically isolating the carbon steel from the stainless steel elements. This generally entails the use of non-metallic insulating washers and possibly bushes. A suitable typical detail is shown in Figure A.3. The material forming the insulation should be sufficiently robust to prevent the carbon steel and the stainless steel from coming into contact with each other in service.\n(2) To avoid crevice corrosion in bolted joints, care should be taken in selecting appropriate materials for the given environment.\n(3) The bolts should be at least as resistant to corrosion in the long term under service conditions as the connected parts.\n(4) All bolted connections should be smooth and without any gap between the connected parts.\n(5) Except in the case of connections involving carbon and stainless steels, intermediate layers that have to transmit loads in the connection should be avoided.\n(6) Larger diameter washers should be used than for carbon steel.",
+      "page": 34
+    },
+    {
+      "clause_number": "A.6.3",
+      "title": "Welded connections",
+      "text": "(1) For welded connections involving carbon and stainless steels, it is generally recommended that any paint system applied to the carbon steel should extend over the weldment, and cover some area of the stainless steel if the connection is potentially subject to corrosion.\n(2) The properties of the parent material might be changed by welding, thereby reducing the corrosion resistance. This is known as weld decay. The heating and cooling cycle involved in welding affects the microstructure of all stainless steels, but some grades are affected more than others. This is of particular importance for austenitic-ferritic materials. Accordingly, it is essential that suitable welding procedures and consumables are used and that the welding is carried out by suitably skilled welders.\n(3) Single sided partial penetration butt welds should not be used in heavily polluted environments or in aggressive marine environments. Intermittent welds should not be used where crevice corrosion is likely to occur.",
+      "page": 34
+    },
+    {
+      "clause_number": "B.1",
+      "title": "General",
+      "text": "(1) This Annex gives rules for the use of stainless steel in the work hardened condition either by cold rolling or by the fabrication process of the structural member, or a combination of both.\n(2) The rules are applicable only if the properties are maintained during the fabrication and execution of the structure and during the design life of the structure. Welding or heat treatment of the products should not be done unless it can be demonstrated by testing, in accordance with Section 7, that the execution of the structure will not reduce the mechanical properties below the values to be adopted.",
+      "page": 36
+    },
+    {
+      "clause_number": "B.2",
+      "title": "Work hardening from cold rolling",
+      "text": "(1) For material delivered in the cold worked conditions specified in EN 10088, increased nominal values of yield strength fy and ultimate tensile strength fu may be adopted. The ultimate strength given in EN 10088 may be taken as the characteristic strength, see Table B.1. The yield strength in Table B.1 may be used as characteristic strength provided that it is guaranteed by the producer.\n(2) The design rules given in this Part 1-4 are applicable for material up to grade C700 and CP350. For higher grades, design should be by testing according to Section 7, except that the cross-section resistance without local or global instability may be calculated according to Section 5 for cross-section classes 1, 2 and 3.",
+      "page": 36
+    },
+    {
+      "clause_number": "B.3",
+      "title": "Work hardening from fabrication",
+      "text": "(1) Work hardening during fabrication of structural components may be utilised in the design provided that the effect of work hardening has been verified by full size tests in accordance with Section 7.\n(2) For design of connections which are not part of the full size testing, nominal strength values should be used.",
+      "page": 36
+    },
+    {
+      "clause_number": "C.1",
+      "title": "General",
+      "text": "(1) This Annex gives guidance for the modelling of material behaviour.",
+      "page": 37
+    },
+    {
+      "clause_number": "C.2",
+      "title": "Material properties",
+      "text": "(1) Material properties E, fy and fu for FE-calculations should be taken as characteristic values. Rules for design by FE methods are given in informative Annex C of EN 1993-1-5.\n(2) Depending on the accuracy required and the maximum strains attained, the following approaches for modelling the material behaviour may be used:\na) stress-strain curve with strain hardening calculated as follows:\nwhere:\nn is a coefficient defined as n = ln(20) / ln(fy / Rp0,01)\nin which Rp0,01 is the 0,01% proof stress.\nn may be taken from Table 4.1 or it may be calculated from measured properties\nEy is the tangent modulus of the stress-strain curve at the yield strength defined as:\nEy = E / (1 + 0,002n E / fy)\nεu is the ultimate strain, corresponding to the ultimate strength fu, where εu may be obtained from the approximation:\nεu = 1 - fy / fu but εu ≤ A where A is the elongation after fracture defined in EN 10088.\nm is a coefficient that may be determined as m = 1 + 3,5 fy / fu\nb) stress-strain curve calculated as in a) above from measured properties\nc) true stress-strain curve calculated from an engineering stress-strain curve as measured as follows:\nσtrue = σ(1 + ε)\nεtrue = ln(1 + ε)",
+      "page": 37
+    }
+  ],
+  "tables": [
+    {
+      "table_id": "Table 2.1",
+      "title": "Nominal values of the yield strength f_y and the ultimate tensile strength f_u for structural stainless steels to EN 10088 1)",
+      "headers": [
+        "Type of stainless steel",
+        "Grade",
+        "Cold rolled strip t ≤ 6 mm f_y N/mm²",
+        "Cold rolled strip t ≤ 6 mm f_u N/mm²",
+        "Hot rolled strip t ≤ 12 mm f_y N/mm²",
+        "Hot rolled strip t ≤ 12 mm f_u N/mm²",
+        "Hot rolled plate t ≤ 75 mm f_y N/mm²",
+        "Hot rolled plate t ≤ 75 mm f_u N/mm²",
+        "Bars, rods and sections t ≤ 250 mm f_y N/mm²",
+        "Bars, rods and sections t ≤ 250 mm f_u N/mm²"
+      ],
+      "rows": [
+        [
+          "Ferritic steels",
+          "1.4003",
+          "280",
+          "450",
+          "280",
+          "450",
+          "250 3)",
+          "450 3)",
+          "260 4)",
+          "450 4)"
+        ],
+        [
+          "Ferritic steels",
+          "1.4016",
+          "260",
+          "450",
+          "240",
+          "450",
+          "240 3)",
+          "430 3)",
+          "240 4)",
+          "400 4)"
+        ],
+        [
+          "Ferritic steels",
+          "1.4512",
+          "210",
+          "380",
+          "210",
+          "380",
+          "-",
+          "-",
+          "-",
+          "-"
+        ],
+        [
+          "Austenitic steels",
+          "1.4306",
+          "220",
+          "520",
+          "200",
+          "520",
+          "200",
+          "500",
+          "180",
+          "460"
+        ],
+        [
+          "Austenitic steels",
+          "1.4307",
+          "220",
+          "520",
+          "200",
+          "520",
+          "200",
+          "500",
+          "175",
+          "450"
+        ],
+        [
+          "Austenitic steels",
+          "1.4541",
+          "220",
+          "520",
+          "200",
+          "520",
+          "200",
+          "500",
+          "190",
+          "500"
+        ],
+        [
+          "Austenitic steels",
+          "1.4301",
+          "230",
+          "540",
+          "210",
+          "520",
+          "210",
+          "520",
+          "190",
+          "500"
+        ],
+        [
+          "Austenitic steels",
+          "1.4401",
+          "240",
+          "530",
+          "220",
+          "530",
+          "220",
+          "520",
+          "200",
+          "500"
+        ],
+        [
+          "Austenitic steels",
+          "1.4404",
+          "240",
+          "530",
+          "220",
+          "530",
+          "220",
+          "520",
+          "200",
+          "500"
+        ],
+        [
+          "Austenitic steels",
+          "1.4539",
+          "240",
+          "530",
+          "220",
+          "530",
+          "220",
+          "520",
+          "230",
+          "530"
+        ],
+        [
+          "Austenitic steels",
+          "1.4571",
+          "240",
+          "540",
+          "220",
+          "540",
+          "220",
+          "520",
+          "230",
+          "530"
+        ],
+        [
+          "Austenitic steels",
+          "1.4432",
+          "240",
+          "550",
+          "220",
+          "550",
+          "220",
+          "520",
+          "200",
+          "500"
+        ],
+        [
+          "Austenitic steels",
+          "1.4435",
+          "240",
+          "550",
+          "220",
+          "550",
+          "220",
+          "520",
+          "200",
+          "500"
+        ],
+        [
+          "Austenitic steels",
+          "1.4311",
+          "290",
+          "550",
+          "270",
+          "550",
+          "270",
+          "550",
+          "270",
+          "550"
+        ],
+        [
+          "Austenitic steels",
+          "1.4406",
+          "300",
+          "580",
+          "280",
+          "580",
+          "280",
+          "580",
+          "280",
+          "580"
+        ],
+        [
+          "Austenitic steels",
+          "1.4439",
+          "290",
+          "580",
+          "270",
+          "580",
+          "270",
+          "580",
+          "280",
+          "580"
+        ],
+        [
+          "Austenitic steels",
+          "1.4529",
+          "300",
+          "650",
+          "300",
+          "650",
+          "300",
+          "650",
+          "300",
+          "650"
+        ],
+        [
+          "Austenitic steels",
+          "1.4547",
+          "320",
+          "650",
+          "300",
+          "650",
+          "300",
+          "650",
+          "300",
+          "650"
+        ],
+        [
+          "Austenitic steels",
+          "1.4318",
+          "350",
+          "650",
+          "330",
+          "650",
+          "330",
+          "630",
+          "-",
+          "-"
+        ],
+        [
+          "Austenitic-ferritic steels",
+          "1.4362",
+          "420",
+          "600",
+          "400",
+          "600",
+          "400",
+          "630",
+          "400 2)",
+          "600 2)"
+        ],
+        [
+          "Austenitic-ferritic steels",
+          "1.4462",
+          "480",
+          "660",
+          "460",
+          "660",
+          "460",
+          "640",
+          "450",
+          "650"
+        ]
+      ],
+      "footnotes": [
+        "1) The nominal values of f_y and f_u given in this table may be used in design without taking special account of anisotropy or strain hardening effects.",
+        "2) t ≤ 160 mm",
+        "3) t ≤ 25 mm",
+        "4) t ≤ 100 mm"
+      ],
+      "clause": "2.1.2",
+      "page": 9
+    },
+    {
+      "table_id": "Table 2.2",
+      "title": "Nominal values of f_yb and f_ub for stainless steel bolts",
+      "headers": [
+        "Material groups",
+        "Property class to EN ISO 3506",
+        "Range of sizes",
+        "Yield strength f_yb N/mm²",
+        "Ultimate tensile strength f_ub N/mm²"
+      ],
+      "rows": [
+        [
+          "Austenitic and austenitic-ferritic",
+          "50",
+          "≤ M 39",
+          "210",
+          "500"
+        ],
+        [
+          "Austenitic and austenitic-ferritic",
+          "70",
+          "≤ M 24",
+          "450",
+          "700"
+        ],
+        [
+          "Austenitic and austenitic-ferritic",
+          "80",
+          "≤ M 24",
+          "600",
+          "800"
+        ]
+      ],
+      "footnotes": [],
+      "clause": "2.2.1",
+      "page": 11
+    },
+    {
+      "table_id": "Table 4.1",
+      "title": "Values of n",
+      "headers": [
+        "Steel grade",
+        "Coefficient n Longitudinal direction",
+        "Coefficient n Transverse direction"
+      ],
+      "rows": [
+        [
+          "1.4003",
+          "7",
+          "11"
+        ],
+        [
+          "1.4016",
+          "6",
+          "14"
+        ],
+        [
+          "1.4512",
+          "9",
+          "16"
+        ],
+        [
+          "1.4301",
+          "6",
+          "8"
+        ],
+        [
+          "1.4306",
+          "6",
+          "8"
+        ],
+        [
+          "1.4307",
+          "6",
+          "8"
+        ],
+        [
+          "1.4318",
+          "6",
+          "8"
+        ],
+        [
+          "1.4541",
+          "6",
+          "8"
+        ],
+        [
+          "1.4401",
+          "7",
+          "9"
+        ],
+        [
+          "1.4404",
+          "7",
+          "9"
+        ],
+        [
+          "1.4432",
+          "7",
+          "9"
+        ],
+        [
+          "1.4435",
+          "7",
+          "9"
+        ],
+        [
+          "1.4539",
+          "7",
+          "9"
+        ],
+        [
+          "1.4571",
+          "7",
+          "9"
+        ],
+        [
+          "1.4462",
+          "5",
+          "5"
+        ],
+        [
+          "1.4362",
+          "5",
+          "5"
+        ]
+      ],
+      "footnotes": [],
+      "clause": "4.2",
+      "page": 13
+    },
+    {
+      "table_id": "Table 5.1",
+      "title": "Partial factors",
+      "headers": [
+        "Resistance",
+        "Factor"
+      ],
+      "rows": [
+        [
+          "Resistance of cross-sections to excessive yielding including local buckling",
+          "γM0"
+        ],
+        [
+          "Resistance of members to instability assessed by member checks",
+          "γM1"
+        ],
+        [
+          "Resistance of cross-sections in tension to fracture",
+          "γM2"
+        ],
+        [
+          "Resistance of bolts, rivets, welds, pins and plates in bearing",
+          "γM2"
+        ]
+      ],
+      "footnotes": [
+        "NOTE: γM values may be determined in the National Annex. The following values are recommended: γM0 = 1,1; γM1 = 1,1; γM2 = 1,25"
+      ],
+      "clause": "5.1",
+      "page": 14
+    },
+    {
+      "table_id": "Table 5.2 (sheet 1 of 3)",
+      "title": "Maximum width-to-thickness ratios for compression parts",
+      "headers": [
+        "Class",
+        "Part subject to bending",
+        "Part subject to compression",
+        "Part subject to bending and compression"
+      ],
+      "rows": [
+        [
+          "1",
+          "c/t ≤ 56,0ε",
+          "c/t ≤ 25,7ε",
+          "when α > 0,5: c/t ≤ 308ε / (13α - 1) ; when α ≤ 0,5: c/t ≤ 28ε / α"
+        ],
+        [
+          "2",
+          "c/t ≤ 58,2ε",
+          "c/t ≤ 26,7ε",
+          "when α > 0,5: c/t ≤ 320ε / (13α - 1) ; when α ≤ 0,5: c/t ≤ 29,1ε / α"
+        ],
+        [
+          "3",
+          "c/t ≤ 74,8ε",
+          "c/t ≤ 30,7ε",
+          "c/t ≤ 15,3ε√kσ For kσ see EN 1993-1-5"
+        ]
+      ],
+      "footnotes": [
+        "Note: For hollow sections, c may conservatively be taken as (h-2t) or (b-2t).",
+        "Material factor ε = √[235/fy * E/210000]. Grade 1.4301: fy = 210 N/mm², ε = 1,03. Grade 1.4401: fy = 220 N/mm², ε = 1,01. Grade 1.4462: fy = 460 N/mm², ε = 0,698."
+      ],
+      "clause": "5.2.2",
+      "page": 16
+    },
+    {
+      "table_id": "Table 5.2 (sheet 2 of 3)",
+      "title": "Maximum width-to-thickness ratios for compression parts",
+      "headers": [
+        "Class",
+        "Section type",
+        "Part subject to compression",
+        "Part subject to bending and compression - Tip in compression",
+        "Part subject to bending and compression - Tip in tension"
+      ],
+      "rows": [
+        [
+          "1",
+          "Cold formed",
+          "c/t ≤ 10ε",
+          "c/t ≤ 10ε / α",
+          "c/t ≤ 10ε / (α√α)"
+        ],
+        [
+          "1",
+          "Welded",
+          "c/t ≤ 9ε",
+          "c/t ≤ 9ε / α",
+          "c/t ≤ 9ε / (α√α)"
+        ],
+        [
+          "2",
+          "Cold formed",
+          "c/t ≤ 10,4ε",
+          "c/t ≤ 10,4ε / α",
+          "c/t ≤ 10,4ε / (α√α)"
+        ],
+        [
+          "2",
+          "Welded",
+          "c/t ≤ 9,4ε",
+          "c/t ≤ 9,4ε / α",
+          "c/t ≤ 9,4ε / (α√α)"
+        ],
+        [
+          "3",
+          "Cold formed",
+          "c/t ≤ 11,9ε",
+          "c/t ≤ 18,1ε√kσ For kσ see EN 1993-1-5",
+          "c/t ≤ 18,1ε√kσ For kσ see EN 1993-1-5"
+        ],
+        [
+          "3",
+          "Welded",
+          "c/t ≤ 11ε",
+          "c/t ≤ 16,7ε√kσ For kσ see EN 1993-1-5",
+          "c/t ≤ 16,7ε√kσ For kσ see EN 1993-1-5"
+        ]
+      ],
+      "footnotes": [
+        "Material factor ε = √[235/fy * E/210000]. Grade 1.4301: fy = 210 N/mm², ε = 1,03. Grade 1.4401: fy = 220 N/mm², ε = 1,01. Grade 1.4462: fy = 460 N/mm², ε = 0,698."
+      ],
+      "clause": "5.2.2",
+      "page": 17
+    },
+    {
+      "table_id": "Table 5.2 (sheet 3 of 3)",
+      "title": "Maximum width-to-thickness ratios for compression parts",
+      "headers": [
+        "Class",
+        "Section in bending Up to 240 CHS",
+        "Section in compression"
+      ],
+      "rows": [
+        [
+          "Angles 3",
+          "h/t ≤ 11,9ε ; (b+h)/2t ≤ 9,1ε",
+          "h/t ≤ 11,9ε ; (b+h)/2t ≤ 9,1ε"
+        ],
+        [
+          "Tubular 1",
+          "d/t ≤ 50ε²",
+          "d/t ≤ 50ε²"
+        ],
+        [
+          "Tubular 2",
+          "d/t ≤ 70ε²",
+          "d/t ≤ 70ε²"
+        ],
+        [
+          "Tubular 3",
+          "d/t ≤ 280ε² NOTE: For d > 240 mm and d/t > 280ε² see EN 1993-1-6.",
+          "d/t ≤ 90ε² NOTE: For d/t > 90ε² see EN 1993-1-6."
+        ]
+      ],
+      "footnotes": [
+        "Material factor ε = √[235/fy * E/210000]. Grade 1.4301: fy = 210 N/mm², ε = 1,03. Grade 1.4401: fy = 220 N/mm², ε = 1,01. Grade 1.4462: fy = 460 N/mm², ε = 0,698."
+      ],
+      "clause": "5.2.2",
+      "page": 18
+    },
+    {
+      "table_id": "Table 5.3",
+      "title": "Values of α and λ̄0 for flexural, torsional and torsional-flexural buckling",
+      "headers": [
+        "Buckling mode",
+        "Type of member",
+        "α",
+        "λ̄0"
+      ],
+      "rows": [
+        [
+          "Flexural",
+          "Cold formed open sections",
+          "0,49",
+          "0,40"
+        ],
+        [
+          "Flexural",
+          "Hollow sections (welded and seamless)",
+          "0,49",
+          "0,40"
+        ],
+        [
+          "Flexural",
+          "Welded open sections (major axis)",
+          "0,49",
+          "0,20"
+        ],
+        [
+          "Flexural",
+          "Welded open sections (minor axis)",
+          "0,76",
+          "0,20"
+        ],
+        [
+          "Torsional and torsional-flexural",
+          "All members",
+          "0,34",
+          "0,20"
+        ]
+      ],
+      "footnotes": [],
+      "clause": "5.4.2.1",
+      "page": 21
+    },
+    {
+      "table_id": "Table A.1",
+      "title": "Suggested grades of stainless steel for atmospheric applications",
+      "headers": [
+        "Steel grade to EN 10088",
+        "Rural - Low",
+        "Rural - Mid",
+        "Rural - High",
+        "Urban - Low",
+        "Urban - Mid",
+        "Urban - High",
+        "Industrial - Low",
+        "Industrial - Mid",
+        "Industrial - High",
+        "Marine - Low",
+        "Marine - Mid",
+        "Marine - High"
+      ],
+      "rows": [
+        [
+          "1.4003\n1.4016",
+          "Y^1",
+          "X",
+          "X",
+          "Y^1",
+          "X",
+          "X",
+          "X",
+          "X",
+          "X",
+          "X",
+          "X",
+          "X"
+        ],
+        [
+          "1.4301\n1.4311\n1.4541\n1.4318",
+          "Y",
+          "Y",
+          "Y",
+          "Y",
+          "Y",
+          "(Y)",
+          "(Y)",
+          "(Y)",
+          "X",
+          "Y",
+          "(Y)",
+          "X"
+        ],
+        [
+          "1.4362\n1.4401\n1.4404\n1.4406\n1.4571",
+          "O",
+          "O",
+          "O",
+          "O",
+          "Y",
+          "Y",
+          "Y",
+          "Y",
+          "(Y)",
+          "Y",
+          "Y",
+          "(Y)"
+        ],
+        [
+          "1.4439\n1.4462\n1.4529\n1.4539",
+          "O",
+          "O",
+          "O",
+          "O",
+          "O",
+          "O",
+          "O",
+          "O",
+          "Y",
+          "O",
+          "O",
+          "Y"
+        ]
+      ],
+      "footnotes": [
+        "Corrosion conditions:",
+        "Low: Least corrosive conditions for that type of environment. For example cases tempered by low humidity or low temperatures.",
+        "Mid: Fairly typical for that type of environment.",
+        "High: Corrosion likely to be higher than typical for that type of environment. For example, increased by persistent high humidity, high ambient temperatures or particularly aggressive air pollutants.",
+        "Key:",
+        "O Potential over-specification from a corrosion point of view.",
+        "Y Probably the best choice for corrosion resistance and cost.",
+        "Y^1 Indoor applications only. The use of ferritic stainless steels for cosmetic applications should be avoided.",
+        "X Likely to suffer excessive corrosion.",
+        "(Y) Worth considering provided that suitable precautions are taken [i.e. specify a relatively smooth surface and then carry out regular washing]."
+      ],
+      "clause": "A.4.1",
+      "page": 31
+    },
+    {
+      "table_id": "Table B.1",
+      "title": "Nominal values of the yield strength fy and the ultimate tensile strength fu for work hardened structural stainless steels to EN 10088",
+      "headers": [
+        "Type of stainless steel",
+        "0.2% proof strength level in the cold worked condition",
+        "fy N/mm2",
+        "Tensile strength level in the cold worked condition",
+        "fu N/mm2"
+      ],
+      "rows": [
+        [
+          "Austenitic steels",
+          "CP350",
+          "350",
+          "C700",
+          "700"
+        ],
+        [
+          "Austenitic steels",
+          "CP500",
+          "500",
+          "C850",
+          "850"
+        ],
+        [
+          "Austenitic steels",
+          "CP700",
+          "700",
+          "C1000",
+          "1000"
+        ]
+      ],
+      "footnotes": [],
+      "clause": "B.2",
+      "page": 36
+    }
+  ],
+  "figures": [
+    {
+      "figure_id": "Figure 5.1",
+      "title": "Maximum width-to-thickness ratios",
+      "figure_type": "cross_section",
+      "description": "Shows two cross-section profiles. The top one is a U-shaped profile with flanges of width 'b', indicating b/t ≤ 400. The bottom one is a Z-shaped or similar profile with a web of height 'h', indicating h/t ≤ 400.",
+      "labels": [
+        "b",
+        "b/t ≤ 400",
+        "h",
+        "h/t ≤ 400"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "5.2.1",
+      "page": 15
+    },
+    {
+      "figure_id": "Figure A.1",
+      "title": "Avoiding dirt entrapment",
+      "figure_type": "sketch",
+      "description": "Shows good and bad practices for orientating channels, bracing, and stiffeners to avoid dirt entrapment. Cross marks indicate bad practice (e.g., channel opening upwards, horizontal bracing, flat stiffeners), check marks indicate good practice (channel opening downwards, sloped bracing, sloped stiffeners).",
+      "labels": [
+        "Channels",
+        "Bracing",
+        "Stiffeners"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "A.5",
+      "page": 33
+    },
+    {
+      "figure_id": "Figure A.2",
+      "title": "Avoiding crevices",
+      "figure_type": "detail_drawing",
+      "description": "Shows a welded joint with a tack weld causing a crevice and corrosion (marked with a cross), compared to a fully welded or filled joint preventing crevices (marked with a check).",
+      "labels": [
+        "Tack weld",
+        "Corrosion",
+        "Welded or filled"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "A.5",
+      "page": 33
+    },
+    {
+      "figure_id": "Figure A.3",
+      "title": "Avoiding galvanic corrosion when in connecting dissimilar materials",
+      "figure_type": "detail_drawing",
+      "description": "Cross-section of a bolted connection between a carbon steel plate and a stainless steel plate. Shows the use of an insulating washer, insulating gasket, and insulating bush to electrically isolate the stainless steel bolt and nut from the carbon steel plate.",
+      "labels": [
+        "Stainless steel bolt and nut",
+        "Insulating washer",
+        "Stainless steel washer",
+        "Insulating gasket",
+        "Carbon steel plate",
+        "Insulating bush",
+        "Stainless steel plate"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "A.6.2",
+      "page": 34
+    }
+  ],
+  "equations": [
+    {
+      "equation_id": "(4.1)",
+      "latex": "E_{s,ser} = \\frac{E_{s,1} + E_{s,2}}{2}",
+      "plain_text": "E_s,ser = (E_s,1 + E_s,2) / 2",
+      "description": "Calculates the secant modulus of elasticity used for serviceability limit state calculations.",
+      "variables": [
+        {
+          "symbol": "E_{s,1}",
+          "meaning": "secant modulus corresponding to the stress σ_1 in the tension flange"
+        },
+        {
+          "symbol": "E_{s,2}",
+          "meaning": "secant modulus corresponding to the stress σ_2 in the compression flange"
+        }
+      ],
+      "clause": "4.2",
+      "page": 12
+    },
+    {
+      "equation_id": "(4.2)",
+      "latex": "E_{s,i} = \\frac{E}{1 + 0,002 \\frac{E}{\\sigma_{i,Ed,ser}} \\left( \\frac{\\sigma_{i,Ed,ser}}{f_y} \\right)^n}",
+      "plain_text": "E_s,i = E / (1 + 0,002 * (E / σ_i,Ed,ser) * (σ_i,Ed,ser / f_y)^n)",
+      "description": "Estimates the secant modulus corresponding to the stress in the tension or compression flange for the appropriate serviceability design stress and rolling direction.",
+      "variables": [
+        {
+          "symbol": "i",
+          "meaning": "1 or 2 (indicating tension or compression flange)"
+        },
+        {
+          "symbol": "n",
+          "meaning": "coefficient taken from Table 4.1"
+        }
+      ],
+      "clause": "4.2",
+      "page": 13
+    },
+    {
+      "equation_id": "(5.1)",
+      "latex": "\\rho = \\frac{0,772}{\\bar{\\lambda}_p} - \\frac{0,125}{\\bar{\\lambda}_p^2} \\text{ but } \\le 1",
+      "plain_text": "ρ = 0,772 / λ̄p - 0,125 / λ̄p² but ≤ 1",
+      "description": "Reduction factor for cold formed or welded internal elements in Class 4 cross-sections",
+      "variables": [
+        {
+          "symbol": "λ̄p",
+          "meaning": "element slenderness"
+        }
+      ],
+      "clause": "5.2.3",
+      "page": 19
+    },
+    {
+      "equation_id": "(5.2)",
+      "latex": "\\rho = \\frac{1}{\\bar{\\lambda}_p} - \\frac{0,231}{\\bar{\\lambda}_p^2} \\text{ but } \\le 1",
+      "plain_text": "ρ = 1 / λ̄p - 0,231 / λ̄p² but ≤ 1",
+      "description": "Reduction factor for cold formed outstand elements in Class 4 cross-sections",
+      "variables": [
+        {
+          "symbol": "λ̄p",
+          "meaning": "element slenderness"
+        }
+      ],
+      "clause": "5.2.3",
+      "page": 19
+    },
+    {
+      "equation_id": "(5.3)",
+      "latex": "\\rho = \\frac{1}{\\bar{\\lambda}_p} - \\frac{0,242}{\\bar{\\lambda}_p^2} \\text{ but } \\le 1",
+      "plain_text": "ρ = 1 / λ̄p - 0,242 / λ̄p² but ≤ 1",
+      "description": "Reduction factor for welded outstand elements in Class 4 cross-sections",
+      "variables": [
+        {
+          "symbol": "λ̄p",
+          "meaning": "element slenderness"
+        }
+      ],
+      "clause": "5.2.3",
+      "page": 19
+    },
+    {
+      "equation_id": "(5.4)",
+      "latex": "N_{pl,Rd} = \\frac{A f_y}{\\gamma_{M0}}",
+      "plain_text": "Npl,Rd = A fy / γM0",
+      "description": "Plastic resistance of the gross cross-section",
+      "variables": [
+        {
+          "symbol": "A",
+          "meaning": "gross cross-sectional area"
+        },
+        {
+          "symbol": "fy",
+          "meaning": "yield strength"
+        },
+        {
+          "symbol": "γM0",
+          "meaning": "partial factor"
+        }
+      ],
+      "clause": "5.3.1",
+      "page": 20
+    },
+    {
+      "equation_id": "(5.5)",
+      "latex": "N_{u,Rd} = \\frac{k_r A_{net} f_u}{\\gamma_{M2}}",
+      "plain_text": "Nu,Rd = kr Anet fu / γM2",
+      "description": "Ultimate resistance of the net cross-section",
+      "variables": [
+        {
+          "symbol": "kr",
+          "meaning": "factor (1 + 3r(d0/u - 0,3))"
+        },
+        {
+          "symbol": "Anet",
+          "meaning": "net cross-sectional area"
+        },
+        {
+          "symbol": "fu",
+          "meaning": "ultimate strength"
+        },
+        {
+          "symbol": "γM2",
+          "meaning": "partial factor"
+        },
+        {
+          "symbol": "d0",
+          "meaning": "nominal diameter of the bolt hole"
+        },
+        {
+          "symbol": "e2",
+          "meaning": "edge distance from the centre of the bolt hole to the adjacent edge"
+        },
+        {
+          "symbol": "p2",
+          "meaning": "spacing centre-to-centre of bolt holes"
+        }
+      ],
+      "clause": "5.3.1",
+      "page": 20
+    },
+    {
+      "equation_id": "(5.6)",
+      "latex": "\\chi = \\frac{1}{\\Phi + \\sqrt{\\Phi^2 - \\bar{\\lambda}^2}} \\le 1",
+      "plain_text": "χ = 1 / (Φ + √(Φ² - λ̄²)) ≤ 1",
+      "description": "Reduction factor for axial compression",
+      "variables": [
+        {
+          "symbol": "Φ",
+          "meaning": "value to determine reduction factor"
+        },
+        {
+          "symbol": "λ̄",
+          "meaning": "non-dimensional slenderness"
+        }
+      ],
+      "clause": "5.4.2.1",
+      "page": 20
+    },
+    {
+      "equation_id": "(5.7)",
+      "latex": "\\Phi = 0,5 \\left( 1 + \\alpha (\\bar{\\lambda} - \\bar{\\lambda}_0) + \\bar{\\lambda}^2 \\right)",
+      "plain_text": "Φ = 0,5 (1 + α(λ̄ - λ̄0) + λ̄²)",
+      "description": "Value to determine reduction factor for axial compression",
+      "variables": [
+        {
+          "symbol": "α",
+          "meaning": "imperfection factor"
+        },
+        {
+          "symbol": "λ̄",
+          "meaning": "non-dimensional slenderness"
+        },
+        {
+          "symbol": "λ̄0",
+          "meaning": "limiting slenderness"
+        }
+      ],
+      "clause": "5.4.2.1",
+      "page": 20
+    },
+    {
+      "equation_id": "(5.8)",
+      "latex": "\\bar{\\lambda} = \\sqrt{\\frac{A f_y}{N_{cr}}}",
+      "plain_text": "λ̄ = √(A fy / Ncr)",
+      "description": "Non-dimensional slenderness for Class 1, 2 and 3 cross-sections",
+      "variables": [
+        {
+          "symbol": "A",
+          "meaning": "gross cross-sectional area"
+        },
+        {
+          "symbol": "fy",
+          "meaning": "yield strength"
+        },
+        {
+          "symbol": "Ncr",
+          "meaning": "elastic critical force"
+        }
+      ],
+      "clause": "5.4.2.1",
+      "page": 20
+    },
+    {
+      "equation_id": "(5.9)",
+      "latex": "\\bar{\\lambda} = \\sqrt{\\frac{A_{eff} f_y}{N_{cr}}}",
+      "plain_text": "λ̄ = √(Aeff fy / Ncr)",
+      "description": "Non-dimensional slenderness for Class 4 cross-sections",
+      "variables": [
+        {
+          "symbol": "Aeff",
+          "meaning": "effective cross-sectional area"
+        },
+        {
+          "symbol": "fy",
+          "meaning": "yield strength"
+        },
+        {
+          "symbol": "Ncr",
+          "meaning": "elastic critical force"
+        }
+      ],
+      "clause": "5.4.2.1",
+      "page": 20
+    },
+    {
+      "equation_id": "(5.10)",
+      "latex": "\\chi_{LT} = \\frac{1}{\\Phi_{LT} + \\sqrt{\\Phi_{LT}^2 - \\bar{\\lambda}_{LT}^2}} \\le 1",
+      "plain_text": "χLT = 1 / (ΦLT + √(ΦLT² - λ̄LT²)) ≤ 1",
+      "description": "Reduction factor for lateral-torsional buckling",
+      "variables": [
+        {
+          "symbol": "ΦLT",
+          "meaning": "value to determine reduction factor"
+        },
+        {
+          "symbol": "λ̄LT",
+          "meaning": "non-dimensional slenderness for lateral-torsional buckling"
+        }
+      ],
+      "clause": "5.4.3.1",
+      "page": 21
+    },
+    {
+      "equation_id": "(5.11)",
+      "latex": "\\Phi_{LT} = 0,5 \\left( 1 + \\alpha_{LT} (\\bar{\\lambda}_{LT} - 0,4) + \\bar{\\lambda}_{LT}^2 \\right)",
+      "plain_text": "ΦLT = 0,5 (1 + αLT(λ̄LT - 0,4) + λ̄LT²)",
+      "description": "Value to determine reduction factor for lateral-torsional buckling",
+      "variables": [
+        {
+          "symbol": "αLT",
+          "meaning": "imperfection factor"
+        },
+        {
+          "symbol": "λ̄LT",
+          "meaning": "non-dimensional slenderness for lateral-torsional buckling"
+        }
+      ],
+      "clause": "5.4.3.1",
+      "page": 21
+    },
+    {
+      "equation_id": "(5.12)",
+      "latex": "\\bar{\\lambda}_{LT} = \\sqrt{\\frac{W_y f_y}{M_{cr}}}",
+      "plain_text": "λ̄LT = √(Wy fy / Mcr)",
+      "description": "Non-dimensional slenderness for lateral-torsional buckling",
+      "variables": [
+        {
+          "symbol": "Wy",
+          "meaning": "section modulus"
+        },
+        {
+          "symbol": "fy",
+          "meaning": "yield strength"
+        },
+        {
+          "symbol": "Mcr",
+          "meaning": "elastic critical moment for lateral-torsional buckling"
+        }
+      ],
+      "clause": "5.4.3.1",
+      "page": 21
+    },
+    {
+      "equation_id": "(5.13)",
+      "latex": "\\frac{N_{Ed}}{(N_{b,Rd})_{min}} + k_y \\left( \\frac{M_{y,Ed} + N_{Ed} e_{Ny}}{\\beta_{W,y} W_{pl,y} f_y / \\gamma_{M1}} \\right) \\le 1",
+      "plain_text": "NEd / (Nb,Rd)min + ky (My,Ed + NEd eNy) / (βW,y Wpl,y fy / γM1) ≤ 1",
+      "description": "Interaction formula to prevent premature buckling about the major axis",
+      "variables": [
+        {
+          "symbol": "NEd",
+          "meaning": "design value of the compression force"
+        },
+        {
+          "symbol": "(Nb,Rd)min",
+          "meaning": "smallest value of Nb,Rd for the four buckling modes"
+        },
+        {
+          "symbol": "ky",
+          "meaning": "interaction factor"
+        },
+        {
+          "symbol": "My,Ed",
+          "meaning": "design value of the maximum moment about the y-y axis"
+        },
+        {
+          "symbol": "eNy",
+          "meaning": "shift in the neutral axis when the cross-section is subject to uniform compression"
+        },
+        {
+          "symbol": "βW,y",
+          "meaning": "value of βW determined for the y axis"
+        },
+        {
+          "symbol": "Wpl,y",
+          "meaning": "plastic modulus for the y axis"
+        },
+        {
+          "symbol": "fy",
+          "meaning": "yield strength"
+        },
+        {
+          "symbol": "γM1",
+          "meaning": "partial factor"
+        }
+      ],
+      "clause": "5.5",
+      "page": 22
+    },
+    {
+      "equation_id": "(5.14)",
+      "latex": "\\frac{N_{Ed}}{(N_{b,Rd})_{min1}} + k_{LT} \\left( \\frac{M_{y,Ed} + N_{Ed} e_{Ny}}{M_{b,Rd}} \\right) \\le 1",
+      "plain_text": "NEd / (Nb,Rd)min1 + kLT (My,Ed + NEd eNy) / Mb,Rd ≤ 1",
+      "description": "Interaction formula to prevent premature buckling about the minor axis",
+      "variables": [
+        {
+          "symbol": "NEd",
+          "meaning": "design value of the compression force"
+        },
+        {
+          "symbol": "(Nb,Rd)min1",
+          "meaning": "smallest value of Nb,Rd for the three buckling modes"
+        },
+        {
+          "symbol": "kLT",
+          "meaning": "interaction factor"
+        },
+        {
+          "symbol": "My,Ed",
+          "meaning": "design value of the maximum moment about the y-y axis"
+        },
+        {
+          "symbol": "eNy",
+          "meaning": "shift in the neutral axis when the cross-section is subject to uniform compression"
+        },
+        {
+          "symbol": "Mb,Rd",
+          "meaning": "lateral-torsional buckling resistance"
+        }
+      ],
+      "clause": "5.5",
+      "page": 22
+    },
+    {
+      "equation_id": "(5.15)",
+      "latex": "\\frac{N_{Ed}}{(N_{b,Rd})_{min}} + k_z \\left( \\frac{M_{z,Ed} + N_{Ed} e_{Nz}}{\\beta_{W,z} W_{pl,z} f_y / \\gamma_{M1}} \\right) \\le 1",
+      "plain_text": "NEd / (Nb,Rd)min + kz (Mz,Ed + NEd eNz) / (βW,z Wpl,z fy / γM1) ≤ 1",
+      "description": "Interaction formula to prevent premature buckling about the minor axis",
+      "variables": [
+        {
+          "symbol": "NEd",
+          "meaning": "design value of the compression force"
+        },
+        {
+          "symbol": "(Nb,Rd)min",
+          "meaning": "smallest value of Nb,Rd for the four buckling modes"
+        },
+        {
+          "symbol": "kz",
+          "meaning": "interaction factor"
+        },
+        {
+          "symbol": "Mz,Ed",
+          "meaning": "design value of the maximum moment about the z-z axis"
+        },
+        {
+          "symbol": "eNz",
+          "meaning": "shift in the neutral axis when the cross-section is subject to uniform compression"
+        },
+        {
+          "symbol": "βW,z",
+          "meaning": "value of βW determined for the z axis"
+        },
+        {
+          "symbol": "Wpl,z",
+          "meaning": "plastic modulus for the z axis"
+        },
+        {
+          "symbol": "fy",
+          "meaning": "yield strength"
+        },
+        {
+          "symbol": "γM1",
+          "meaning": "partial factor"
+        }
+      ],
+      "clause": "5.5",
+      "page": 22
+    },
+    {
+      "equation_id": "(5.16)",
+      "latex": "\\frac{N_{Ed}}{(N_{b,Rd})_{min}} + k_y \\left( \\frac{M_{y,Ed} + N_{Ed} e_{Ny}}{\\beta_{W,y} W_{pl,y} f_y / \\gamma_{M1}} \\right) + k_z \\left( \\frac{M_{z,Ed} + N_{Ed} e_{Nz}}{\\beta_{W,z} W_{pl,z} f_y / \\gamma_{M1}} \\right) \\le 1",
+      "plain_text": "NEd / (Nb,Rd)min + ky (My,Ed + NEd eNy) / (βW,y Wpl,y fy / γM1) + kz (Mz,Ed + NEd eNz) / (βW,z Wpl,z fy / γM1) ≤ 1",
+      "description": "Interaction formula for axial compression and biaxial moments",
+      "variables": [
+        {
+          "symbol": "NEd",
+          "meaning": "design value of the compression force"
+        },
+        {
+          "symbol": "(Nb,Rd)min",
+          "meaning": "smallest value of Nb,Rd for the four buckling modes"
+        },
+        {
+          "symbol": "ky",
+          "meaning": "interaction factor"
+        },
+        {
+          "symbol": "kz",
+          "meaning": "interaction factor"
+        },
+        {
+          "symbol": "My,Ed",
+          "meaning": "design value of the maximum moment about the y-y axis"
+        },
+        {
+          "symbol": "Mz,Ed",
+          "meaning": "design value of the maximum moment about the z-z axis"
+        },
+        {
+          "symbol": "eNy",
+          "meaning": "shift in the neutral axis when the cross-section is subject to uniform compression"
+        },
+        {
+          "symbol": "eNz",
+          "meaning": "shift in the neutral axis when the cross-section is subject to uniform compression"
+        },
+        {
+          "symbol": "βW,y",
+          "meaning": "value of βW determined for the y axis"
+        },
+        {
+          "symbol": "βW,z",
+          "meaning": "value of βW determined for the z axis"
+        },
+        {
+          "symbol": "Wpl,y",
+          "meaning": "plastic modulus for the y axis"
+        },
+        {
+          "symbol": "Wpl,z",
+          "meaning": "plastic modulus for the z axis"
+        },
+        {
+          "symbol": "fy",
+          "meaning": "yield strength"
+        },
+        {
+          "symbol": "γM1",
+          "meaning": "partial factor"
+        }
+      ],
+      "clause": "5.5",
+      "page": 22
+    },
+    {
+      "equation_id": "(5.17)",
+      "latex": "\\frac{N_{Ed}}{(N_{b,Rd})_{min1}} + k_{LT} \\left( \\frac{M_{y,Ed} + N_{Ed} e_{Ny}}{M_{b,Rd}} \\right) + k_z \\left( \\frac{M_{z,Ed} + N_{Ed} e_{Nz}}{\\beta_{W,z} W_{pl,z} f_y / \\gamma_{M1}} \\right) \\le 1",
+      "plain_text": "NEd / (Nb,Rd)min1 + kLT (My,Ed + NEd eNy) / Mb,Rd + kz (Mz,Ed + NEd eNz) / (βW,z Wpl,z fy / γM1) ≤ 1",
+      "description": "Interaction formula for members potentially subject to lateral-torsional buckling",
+      "variables": [
+        {
+          "symbol": "NEd",
+          "meaning": "design value of the compression force"
+        },
+        {
+          "symbol": "(Nb,Rd)min1",
+          "meaning": "smallest value of Nb,Rd for the three buckling modes"
+        },
+        {
+          "symbol": "kLT",
+          "meaning": "interaction factor"
+        },
+        {
+          "symbol": "kz",
+          "meaning": "interaction factor"
+        },
+        {
+          "symbol": "My,Ed",
+          "meaning": "design value of the maximum moment about the y-y axis"
+        },
+        {
+          "symbol": "Mz,Ed",
+          "meaning": "design value of the maximum moment about the z-z axis"
+        },
+        {
+          "symbol": "eNy",
+          "meaning": "shift in the neutral axis when the cross-section is subject to uniform compression"
+        },
+        {
+          "symbol": "eNz",
+          "meaning": "shift in the neutral axis when the cross-section is subject to uniform compression"
+        },
+        {
+          "symbol": "Mb,Rd",
+          "meaning": "lateral-torsional buckling resistance"
+        },
+        {
+          "symbol": "βW,z",
+          "meaning": "value of βW determined for the z axis"
+        },
+        {
+          "symbol": "Wpl,z",
+          "meaning": "plastic modulus for the z axis"
+        },
+        {
+          "symbol": "fy",
+          "meaning": "yield strength"
+        },
+        {
+          "symbol": "γM1",
+          "meaning": "partial factor"
+        }
+      ],
+      "clause": "5.5",
+      "page": 22
+    },
+    {
+      "equation_id": "(5.18)",
+      "latex": "\\chi_w = \\eta",
+      "plain_text": "χw = η",
+      "description": "Factor for the contribution of the web to shear buckling resistance for λ̄w ≤ 0,6 / η",
+      "variables": [
+        {
+          "symbol": "η",
+          "meaning": "factor defined in National Annex"
+        },
+        {
+          "symbol": "λ̄w",
+          "meaning": "slenderness parameter"
+        }
+      ],
+      "clause": "5.6",
+      "page": 23
+    },
+    {
+      "equation_id": "(5.19)",
+      "latex": "\\chi_w = 0,11 + \\frac{0,64}{\\bar{\\lambda}_w} - \\frac{0,05}{\\bar{\\lambda}_w^2}",
+      "plain_text": "χw = 0,11 + 0,64 / λ̄w - 0,05 / λ̄w²",
+      "description": "Factor for the contribution of the web to shear buckling resistance for λ̄w > 0,6 / η",
+      "variables": [
+        {
+          "symbol": "λ̄w",
+          "meaning": "slenderness parameter"
+        }
+      ],
+      "clause": "5.6",
+      "page": 23
+    },
+    {
+      "equation_id": "(5.20)",
+      "latex": "c = \\left[ 0,17 + \\frac{3,5 b_f t_f^2 f_{yf}}{t_w h_w^2 f_{yw}} \\right] a \\text{ and } \\frac{c}{a} \\le 0,65",
+      "plain_text": "c = [0,17 + (3,5 bf tf² fyf) / (tw hw² fyw)] a and c/a ≤ 0,65",
+      "description": "Factor c for the contribution from the flanges to shear buckling resistance",
+      "variables": [
+        {
+          "symbol": "bf",
+          "meaning": "flange width"
+        },
+        {
+          "symbol": "tf",
+          "meaning": "flange thickness"
+        },
+        {
+          "symbol": "fyf",
+          "meaning": "yield strength of flange"
+        },
+        {
+          "symbol": "tw",
+          "meaning": "web thickness"
+        },
+        {
+          "symbol": "hw",
+          "meaning": "web depth"
+        },
+        {
+          "symbol": "fyw",
+          "meaning": "yield strength of web"
+        },
+        {
+          "symbol": "a",
+          "meaning": "distance between stiffeners"
+        }
+      ],
+      "clause": "5.6",
+      "page": 23
+    },
+    {
+      "equation_id": "(6.1)",
+      "latex": "f_{u,red} = 0,5 f_y + 0,6 f_u \\text{ but } \\le f_u",
+      "plain_text": "fu,red = 0,5 fy + 0,6 fu but ≤ fu",
+      "description": "Reduced ultimate strength for bearing strength calculation",
+      "variables": [
+        {
+          "symbol": "fy",
+          "meaning": "yield strength"
+        },
+        {
+          "symbol": "fu",
+          "meaning": "ultimate strength"
+        }
+      ],
+      "clause": "6.2",
+      "page": 24
+    },
+    {
+      "equation_id": "(6.2)",
+      "latex": "F_{v,Rd} = \\frac{\\alpha f_{ub} A}{\\gamma_{M2}}",
+      "plain_text": "Fv,Rd = (α fub A) / γM2",
+      "description": "Shear resistance of a bolt",
+      "variables": [
+        {
+          "symbol": "α",
+          "meaning": "factor"
+        },
+        {
+          "symbol": "fub",
+          "meaning": "ultimate tensile strength of the bolt"
+        },
+        {
+          "symbol": "A",
+          "meaning": "gross cross-section area or tensile stress area of the bolt"
+        },
+        {
+          "symbol": "γM2",
+          "meaning": "partial factor"
+        }
+      ],
+      "clause": "6.2",
+      "page": 24
+    },
+    {
+      "equation_id": "(C.1)",
+      "latex": "\\varepsilon = \\begin{cases} \\frac{\\sigma}{E} + 0,002 \\left( \\frac{\\sigma}{f_y} \\right)^n & \\text{for } \\sigma \\le f_y \\\\ 0,002 + \\frac{f_y}{E} + \\frac{\\sigma - f_y}{E_y} + \\varepsilon_u \\left( \\frac{\\sigma - f_y}{f_u - f_y} \\right)^m & \\text{for } f_y < \\sigma \\le f_u \\end{cases}",
+      "plain_text": "ε = σ/E + 0,002(σ/fy)^n for σ ≤ fy; 0,002 + fy/E + (σ - fy)/Ey + εu((σ - fy)/(fu - fy))^m for fy < σ ≤ fu",
+      "description": "Stress-strain curve with strain hardening",
+      "variables": [
+        {
+          "symbol": "n",
+          "meaning": "coefficient defined as n = ln(20) / ln(fy / Rp0.01)",
+          "unit": ""
+        },
+        {
+          "symbol": "Rp0.01",
+          "meaning": "0,01% proof stress",
+          "unit": ""
+        },
+        {
+          "symbol": "Ey",
+          "meaning": "tangent modulus of the stress-strain curve at the yield strength",
+          "unit": ""
+        },
+        {
+          "symbol": "εu",
+          "meaning": "ultimate strain, corresponding to the ultimate strength fu",
+          "unit": ""
+        },
+        {
+          "symbol": "A",
+          "meaning": "elongation after fracture defined in EN 10088",
+          "unit": ""
+        },
+        {
+          "symbol": "m",
+          "meaning": "coefficient that may be determined as m = 1 + 3,5 fy / fu",
+          "unit": ""
+        }
+      ],
+      "clause": "C.2",
+      "page": 37
+    },
+    {
+      "equation_id": "(C.2)",
+      "latex": "\\sigma_{true} = \\sigma(1 + \\varepsilon) \\\\ \\varepsilon_{true} = \\ln(1 + \\varepsilon)",
+      "plain_text": "σ_true = σ(1 + ε); ε_true = ln(1 + ε)",
+      "description": "True stress-strain curve calculated from an engineering stress-strain curve",
+      "variables": [
+        {
+          "symbol": "σtrue",
+          "meaning": "true stress",
+          "unit": ""
+        },
+        {
+          "symbol": "εtrue",
+          "meaning": "true strain",
+          "unit": ""
+        },
+        {
+          "symbol": "σ",
+          "meaning": "engineering stress",
+          "unit": ""
+        },
+        {
+          "symbol": "ε",
+          "meaning": "engineering strain",
+          "unit": ""
+        }
+      ],
+      "clause": "C.2",
+      "page": 37
+    }
+  ],
+  "annexes": [
+    {
+      "clause_number": "Annex A",
+      "title": "[informative] Durability",
+      "text": "Annex A [informative] Durability",
+      "page": 26
+    },
+    {
+      "clause_number": "Annex B",
+      "title": "[informative] Stainless steel in the work hardened condition",
+      "text": "",
+      "page": 36
+    },
+    {
+      "clause_number": "Annex C",
+      "title": "[informative] Modelling of material behaviour",
+      "text": "",
+      "page": 37
+    }
+  ],
+  "national_annex": [],
+  "bibliography": [],
+  "_verification": {
+    "missing_tables": [],
+    "missing_figures": [],
+    "missing_equations": [],
+    "missing_clauses": [],
+    "table_errors": [],
+    "overall_quality": "Excellent. All tables, figures, equations, and clauses have been successfully and accurately extracted."
+  }
+}

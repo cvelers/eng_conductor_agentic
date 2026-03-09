@@ -1,0 +1,4893 @@
+{
+  "metadata": {
+    "standard_number": "EN 1993-1-7:2007",
+    "title": "Eurocode 3 - Design of steel structures - Part 1-7: Plated structures subject to out of plane loading",
+    "subtitle": "Strength and stability of planar plated structures subject to out of plane loading",
+    "language": "English",
+    "publication_year": "2007",
+    "committee": "CEN/TC250",
+    "ics_codes": [
+      "91.010.30",
+      "91.080.10"
+    ],
+    "supersedes": "ENV 1993-1-7:1999",
+    "total_pages": 39
+  },
+  "foreword": "This European Standard EN 1993-1-7, Eurocode 3: Design of steel structures: Part 1-7 Plated structures subject to out of plane loading, has been prepared by Technical Committee CEN/TC250 « Structural Eurocodes », the Secretariat of which is held by BSI. CEN/TC250 is responsible for all Structural Eurocodes. This European Standard shall be given the status of a National Standard, either by publication of an identical text or by endorsement, at the latest by October 2007, and conflicting National Standards shall be withdrawn at latest by March 2010. This Eurocode supersedes ENV 1993-1-7. According to the CEN-CENELEC Internal Regulations, the National Standard Organizations of the following countries are bound to implement this European Standard: Austria, Belgium, Bulgaria Cyprus, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hungary, Iceland, Ireland, Italy, Latvia, Lithuania, Luxembourg, Malta, Netherlands, Norway, Poland, Portugal, Romania, Slovakia, Slovenia, Spain, Sweden, Switzerland and United Kingdom. National annex for EN 1993-1-7 This standard gives alternative procedures, values and recommendations with notes indicating where national choices may have to be made. The National Standard implementing EN 1993-1-7 should have a National Annex containing all Nationally Determined Parameters to be used for the design of steel structures to be constructed in the relevant country. National choice is allowed in EN 1993-1-7 through: - 6.3.2(4)",
+  "normative_references": [
+    {
+      "id": "EN 1993-1-1",
+      "title": "Eurocode 3: Design of steel structures: Part 1.1: General rules and rules for buildings"
+    },
+    {
+      "id": "EN 1993-1-3",
+      "title": "Eurocode 3: Design of steel structures: Part 1.3: Cold-formed members and sheeting"
+    },
+    {
+      "id": "EN 1993-1-4",
+      "title": "Eurocode 3: Design of steel structures: Part 1.4: Stainless steels"
+    },
+    {
+      "id": "EN 1993-1-5",
+      "title": "Eurocode 3: Design of steel structures: Part 1.5: Plated structural elements"
+    },
+    {
+      "id": "EN 1993-1-6",
+      "title": "Eurocode 3: Design of steel structures: Part 1.6: Strength and stability of shell structures"
+    },
+    {
+      "id": "EN 1993-1-8",
+      "title": "Eurocode 3: Design of steel structures: Part 1.8: Design of joints"
+    },
+    {
+      "id": "EN 1993-1-9",
+      "title": "Eurocode 3: Design of steel structures: Part 1.9: Fatigue strength of steel structures"
+    },
+    {
+      "id": "EN 1993-1-10",
+      "title": "Eurocode 3: Design of steel structures: Part 1.10: Selection of steel for fracture toughness and through-thickness properties"
+    },
+    {
+      "id": "EN 1993-1-12",
+      "title": "Eurocode 3: Design of steel structures: Part 1.12: Additional rules for the extension of EN 1993 up to steel grades S700"
+    },
+    {
+      "id": "EN 1993-4-1",
+      "title": "Eurocode 3: Design of steel structures: Part 4.1: Silos"
+    },
+    {
+      "id": "EN 1993-4-2",
+      "title": "Eurocode 3: Design of steel structures: Part 4.2: Tanks"
+    }
+  ],
+  "terms_and_definitions": [
+    {
+      "term": "Plated structure",
+      "definition": "A structure that is built up from nominally flat plates which are joined together. The plates may be stiffened or unstiffened, see Figure 1.1.",
+      "clause": "1.3.1.1"
+    },
+    {
+      "term": "Plate segment",
+      "definition": "A plate segment is a flat plate which may be unstiffened or stiffened. A plate segment should be regarded as an individual part of a plated structure.",
+      "clause": "1.3.1.2"
+    },
+    {
+      "term": "Stiffener",
+      "definition": "A plate or a section attached to the plate with the purpose of preventing buckling of the plate or reinforcing it against local loads. A stiffener is denoted: longitudinal if its longitudinal direction is in the main direction of load transfer of the member of which it forms a part. transverse if its longitudinal direction is perpendicular to the main direction of load transfer of the member of which it forms a part.",
+      "clause": "1.3.1.3"
+    },
+    {
+      "term": "Stiffened plate",
+      "definition": "Plate with transverse and/or longitudinal stiffeners.",
+      "clause": "1.3.1.4"
+    },
+    {
+      "term": "Sub-panel",
+      "definition": "Unstiffened plate surrounded by stiffeners or, on a web, by flanges and/or stiffeners or, on a flange, by webs and/or stiffeners.",
+      "clause": "1.3.1.5"
+    },
+    {
+      "term": "Plastic collapse",
+      "definition": "A failure mode at the ultimate limit state where the structure loses its ability to resist increased loading due to the development of a plastic mechanism.",
+      "clause": "1.3.2.1"
+    },
+    {
+      "term": "Tensile rupture",
+      "definition": "A failure mode in the ultimate limit state where failure of the plate occurs due to tension.",
+      "clause": "1.3.2.2"
+    },
+    {
+      "term": "Cyclic plasticity",
+      "definition": "Where repeated yielding is caused by cycles of loading and unloading.",
+      "clause": "1.3.2.3"
+    },
+    {
+      "term": "Buckling",
+      "definition": "Where the structure looses its stability under compression and/or shear.",
+      "clause": "1.3.2.4"
+    },
+    {
+      "term": "Fatigue",
+      "definition": "Where cyclic loading causes cracking or failure.",
+      "clause": "1.3.2.5"
+    },
+    {
+      "term": "Out of plane loading",
+      "definition": "The load applied normal to the middle surface of a plate segment.",
+      "clause": "1.3.3.1"
+    },
+    {
+      "term": "In-plane forces",
+      "definition": "Forces applied parallel to the surface of the plate segment. They are induced by in-plane effects (for example temperature and friction effects) or by global loads applied at the plated structure.",
+      "clause": "1.3.3.2"
+    }
+  ],
+  "symbols": [
+    {
+      "symbol": "σmx",
+      "description": "is the membrane normal stress in the x-direction due to membrane normal stress resultant per unit width nx"
+    },
+    {
+      "symbol": "σmy",
+      "description": "is the membrane normal stress in the y-direction due to membrane normal stress resultant per unit width ny"
+    },
+    {
+      "symbol": "τmxy",
+      "description": "is the membrane shear stress due to membrane shear stress resultant per unit width nxy"
+    },
+    {
+      "symbol": "σbx",
+      "description": "is the stress in the x-direction due to bending moment per unit width mx"
+    },
+    {
+      "symbol": "σby",
+      "description": "is the stress in the y-direction due to bending moment per unit width my"
+    },
+    {
+      "symbol": "τbxy",
+      "description": "is the shear stress due to the twisting moment per unit width mxy"
+    },
+    {
+      "symbol": "τbxz",
+      "description": "is the shear stress due to transverse shear forces per unit width qx associated with bending"
+    },
+    {
+      "symbol": "τbyz",
+      "description": "is the shear stress due to transverse shear forces qy associated with bending"
+    },
+    {
+      "symbol": "α",
+      "description": "aspect ratio of a plate segment (a/b)"
+    },
+    {
+      "symbol": "ε",
+      "description": "strain"
+    },
+    {
+      "symbol": "αR",
+      "description": "load amplification factor"
+    },
+    {
+      "symbol": "ρ",
+      "description": "reduction factor for plate buckling"
+    },
+    {
+      "symbol": "σi",
+      "description": "Normal stress in the direction i, see Figure 1.2 and Figure 1.3"
+    },
+    {
+      "symbol": "τ",
+      "description": "Shear stress, see Figure 1.2 and Figure 1.3"
+    },
+    {
+      "symbol": "ν",
+      "description": "Poisson's ratio"
+    },
+    {
+      "symbol": "γM",
+      "description": "partial factor"
+    },
+    {
+      "symbol": "E",
+      "description": "Modulus of elasticity"
+    },
+    {
+      "symbol": "a",
+      "description": "length of a plate segment, see Figure 1.4 and Figure 1.5"
+    },
+    {
+      "symbol": "b",
+      "description": "width of a plate segment, see Figure 1.4 and Figure 1.5"
+    },
+    {
+      "symbol": "fyk",
+      "description": "yield stress or 0,2% proof stress for material with non linear stress-strain curve"
+    },
+    {
+      "symbol": "ni",
+      "description": "membrane normal force in the direction i",
+      "unit": "kN/m"
+    },
+    {
+      "symbol": "nxy",
+      "description": "membrane shear force",
+      "unit": "kN/m"
+    },
+    {
+      "symbol": "m",
+      "description": "bending moment",
+      "unit": "kNm/m"
+    },
+    {
+      "symbol": "qz",
+      "description": "transverse shear force in the z direction",
+      "unit": "kN/m"
+    },
+    {
+      "symbol": "t",
+      "description": "thickness of a plate segment, see figure 1.4 and 1.5"
+    }
+  ],
+  "sections": [
+    {
+      "clause_number": "Foreword",
+      "title": "Foreword",
+      "text": "This European Standard EN 1993-1-7, Eurocode 3: Design of steel structures: Part 1-7 Plated structures subject to out of plane loading, has been prepared by Technical Committee CEN/TC250 «Structural Eurocodes», the Secretariat of which is held by BSI. CEN/TC250 is responsible for all Structural Eurocodes.\n\nThis European Standard shall be given the status of a National Standard, either by publication of an identical text or by endorsement, at the latest by October 2007, and conflicting National Standards shall be withdrawn at latest by March 2010.\n\nThis Eurocode supersedes ENV 1993-1-7.\n\nAccording to the CEN-CENELEC Internal Regulations, the National Standard Organizations of the following countries are bound to implement this European Standard: Austria, Belgium, Bulgaria Cyprus, Czech Republic, Denmark, Estonia, Finland, France, Germany, Greece, Hungary, Iceland, Ireland, Italy, Latvia, Lithuania, Luxembourg, Malta, Netherlands, Norway, Poland, Portugal, Romania, Slovakia, Slovenia, Spain, Sweden, Switzerland and United Kingdom.",
+      "page": 5
+    },
+    {
+      "clause_number": "National annex for EN 1993-1-7",
+      "title": "National annex for EN 1993-1-7",
+      "text": "This standard gives alternative procedures, values and recommendations with notes indicating where national choices may have to be made. The National Standard implementing EN 1993-1-7 should have a National Annex containing all Nationally Determined Parameters to be used for the design of steel structures to be constructed in the relevant country.\n\nNational choice is allowed in EN 1993-1-7 through:\n- 6.3.2(4)",
+      "page": 5
+    },
+    {
+      "clause_number": "1",
+      "title": "General",
+      "text": "",
+      "page": 6
+    },
+    {
+      "clause_number": "1.1",
+      "title": "Scope",
+      "text": "(1)P EN 1993-1-7 provides basic design rules for the structural design of unstiffened and stiffened plates which form part of plated structures such as silos, tanks or containers, that are loaded by out of plane actions. It is intended to be used in conjunction with EN 1993-1-1 and the relevant application standards.\n\n(2) This document defines the design values of the resistances: the partial factor for resistances may be taken from National Annexes of the relevant application standards. Recommended values are given in the relevant application standards.\n\n(3) This Standard is concerned with the requirements for design against the ultimate limit state of:\n- plastic collapse;\n- cyclic plasticity;\n- buckling;\n- fatigue.\n\n(4) Overall equilibrium of the structure (sliding, uplifting, overturning) is not included in this Standard, but is treated in EN 1993-1-1. Special considerations for specific applications may be found in the relevant applications parts of EN 1993.\n\n(5) The rules in this Standard refer to plate segments in plated structures which may be stiffened or unstiffened. These plate segments may be individual plates or parts of a plated structure. They are loaded by out of plane actions.\n\n(6) For the verification of unstiffened and stiffened plated structures loaded only by in-plane effects see EN 1993-1-5. In EN 1993-1-7 rules for the interaction between the effects of inplane and out of plane loading are given.\n\n(7) For the design rules for cold formed members and sheeting see EN 1993-1-3.\n\n(8) The temperature range within which the rules of this Standard are allowed to be applied are defined in the relevant application parts of EN 1993.\n\n(9) The rules in this Standard refer to structures constructed in compliance with the execution specification of EN 1090-2.\n\n(10) Wind loading and bulk solids flow should be treated as quasi-static actions. For fatigue, the dynamic effects must be taken into account according to EN 1993-1-9. The stress resultants arising from the dynamic behaviour are treated in this part as quasi-static.",
+      "page": 6
+    },
+    {
+      "clause_number": "1.2",
+      "title": "Normative references",
+      "text": "(1) This European Standard incorporates, by dated or undated reference, provisions from other publications. These normative references are cited at the appropriate places in the text and the publications are listed hereafter. For dated references, subsequent amendments to or revisions of any of these publications apply to this European Standard only when incorporated in it by amendment or revision. For undated references the latest edition of the publication referred to applies.\n\nEN 1993 Eurocode 3: Design of steel structures:\nPart 1.1: General rules and rules for buildings\nPart 1.3: Cold-formed members and sheeting\nPart 1.4: Stainless steels\nPart 1.5: Plated structural elements\nPart 1.6: Strength and stability of shell structures\nPart 1.8: Design of joints\nPart 1.9: Fatigue strength of steel structures\nPart 1.10: Selection of steel for fracture toughness and through-thickness properties\nPart 1.12: Additional rules for the extension of EN 1993 up to steel grades S700\nPart 4.1: Silos\nPart 4.2: Tanks",
+      "page": 6
+    },
+    {
+      "clause_number": "1.3",
+      "title": "Terms and definitions",
+      "text": "(1) The rules in EN 1990, clause 1.5 apply.\n\n(2) The following terms and definitions are supplementary to those used in EN 1993-1-1:",
+      "page": 7
+    },
+    {
+      "clause_number": "1.3.1",
+      "title": "Structural forms and geometry",
+      "text": "",
+      "page": 7
+    },
+    {
+      "clause_number": "1.3.1.1",
+      "title": "Plated structure",
+      "text": "A structure that is built up from nominally flat plates which are joined together. The plates may be stiffened or unstiffened, see Figure 1.1.",
+      "page": 7
+    },
+    {
+      "clause_number": "1.3.1.2",
+      "title": "Plate segment",
+      "text": "A plate segment is a flat plate which may be unstiffened or stiffened. A plate segment should be regarded as an individual part of a plated structure.",
+      "page": 7
+    },
+    {
+      "clause_number": "1.3.1.3",
+      "title": "Stiffener",
+      "text": "A plate or a section attached to the plate with the purpose of preventing buckling of the plate or reinforcing it against local loads. A stiffener is denoted:\n- longitudinal if its longitudinal direction is in the main direction of load transfer of the member of which it forms a part.\n- transverse if its longitudinal direction is perpendicular to the main direction of load transfer of the member of which it forms a part.",
+      "page": 7
+    },
+    {
+      "clause_number": "1.3.1.4",
+      "title": "Stiffened plate",
+      "text": "Plate with transverse and/or longitudinal stiffeners.",
+      "page": 8
+    },
+    {
+      "clause_number": "1.3.1.5",
+      "title": "Sub-panel",
+      "text": "Unstiffened plate surrounded by stiffeners or, on a web, by flanges and/or stiffeners or, on a flange, by webs and/or stiffeners.",
+      "page": 8
+    },
+    {
+      "clause_number": "1.3.2",
+      "title": "Terminology",
+      "text": "",
+      "page": 8
+    },
+    {
+      "clause_number": "1.3.2.1",
+      "title": "Plastic collapse",
+      "text": "A failure mode at the ultimate limit state where the structure loses its ability to resist increased loading due to the development of a plastic mechanism.",
+      "page": 8
+    },
+    {
+      "clause_number": "1.3.2.2",
+      "title": "Tensile rupture",
+      "text": "A failure mode in the ultimate limit state where failure of the plate occurs due to tension.",
+      "page": 8
+    },
+    {
+      "clause_number": "1.3.2.3",
+      "title": "Cyclic plasticity",
+      "text": "Where repeated yielding is caused by cycles of loading and unloading.",
+      "page": 8
+    },
+    {
+      "clause_number": "1.3.2.4",
+      "title": "Buckling",
+      "text": "Where the structure looses its stability under compression and/or shear.",
+      "page": 8
+    },
+    {
+      "clause_number": "1.3.2.5",
+      "title": "Fatigue",
+      "text": "Where cyclic loading causes cracking or failure.",
+      "page": 8
+    },
+    {
+      "clause_number": "1.3.3",
+      "title": "Actions",
+      "text": "",
+      "page": 8
+    },
+    {
+      "clause_number": "1.3.3.1",
+      "title": "Out of plane loading",
+      "text": "The load applied normal to the middle surface of a plate segment.",
+      "page": 8
+    },
+    {
+      "clause_number": "1.3.3.2",
+      "title": "In-plane forces",
+      "text": "Forces applied parallel to the surface of the plate segment. They are induced by in-plane effects (for example temperature and friction effects) or by global loads applied at the plated structure.",
+      "page": 8
+    },
+    {
+      "clause_number": "1.4",
+      "title": "Symbols",
+      "text": "(1) In addition to those given in EN 1990 and EN 1993-1-1, the following symbols are used:\n\n(2) Membrane stresses in rectangular plate, see Figure 1.2:\nσmx is the membrane normal stress in the x-direction due to membrane normal stress resultant per unit width nx;\nσmy is the membrane normal stress in the y-direction due to membrane normal stress resultant per unit width ny;\nτmxy is the membrane shear stress due to membrane shear stress resultant per unit width nxy.\n\n(3) Bending and shear stresses in rectangular plates due to bending, see Figure 1.3:\nσbx is the stress in the x-direction due to bending moment per unit width mx;\nσby is the stress in the y-direction due to bending moment per unit width my;\nτbxy is the shear stress due to the twisting moment per unit width mxy;\nτbxz is the shear stress due to transverse shear forces per unit width qx associated with bending;\nτbyz is the shear stress due to transverse shear forces qy associated with bending.\n\nNOTE: In general, there are eight stress resultants in a plate at any point. The shear stresses τbxz and τbyz due to qx and qy are in most practical cases insignificant compared to the other components of stress, and therefore they may normally be disregarded for the design.\n\n(4) Greek lower case letters:\nα aspect ratio of a plate segment (a/b);\nε strain;\nαR load amplification factor;\nρ reduction factor for plate buckling;\nσi Normal stress in the direction i, see Figure 1.2 and Figure 1.3;\nτ Shear stress, see Figure 1.2 and Figure 1.3;\nν Poisson's ratio;\nγM partial factor.\n\n(5) Latin upper case letter:\nE Modulus of elasticity\n\n(6) Latin lower case letters:\na length of a plate segment, see Figure 1.4 and Figure 1.5;\nb width of a plate segment, see Figure 1.4 and Figure 1.5;\nfyk yield stress or 0,2% proof stress for material with non linear stress-strain curve;\nni membrane normal force in the direction i [kN/m];\nnxy membrane shear force [kN/m];\nm bending moment [kNm/m];\nqz transverse shear force in the z direction [kN/m];\nt thickness of a plate segment, see figure 1.4 and 1.5.\n\nNOTE: Symbols and notations which are not listed above are explained in the text where they first appear.",
+      "page": 8
+    },
+    {
+      "clause_number": "2",
+      "title": "Basis of design",
+      "text": "",
+      "page": 11
+    },
+    {
+      "clause_number": "2.1",
+      "title": "Requirements",
+      "text": "(1)P The basis of design shall be in accordance with EN 1990.\n\n(2)P The following ultimate limit states shall be checked for a plated structure:\n- plastic collapse, see 2.2.2;\n- cyclic plasticity, see 2.2.3;\n- buckling, see 2.2.4;\n- fatigue, see 2.2.5.\n\n(3) The design of a plated structure should satisfy the serviceability requirements set out in the appropriate application standards.",
+      "page": 11
+    },
+    {
+      "clause_number": "2.2",
+      "title": "Principles of limit state design",
+      "text": "",
+      "page": 11
+    },
+    {
+      "clause_number": "2.2.1",
+      "title": "General",
+      "text": "(1)P The principles for ultimate limit state given in section 2 of EN 1993-1-1 and EN 1993-1-6 shall also be applied to plated structures.",
+      "page": 11
+    },
+    {
+      "clause_number": "2.2.2",
+      "title": "Plastic collapse",
+      "text": "(1) Plastic collapse is defined as the condition in which a part of the structure develops excessive plastic deformations, associated with development of a plastic mechanism. The plastic collapse load is usually derived from a mechanism based on small deflection theory.",
+      "page": 11
+    },
+    {
+      "clause_number": "2.2.3",
+      "title": "Cyclic plasticity",
+      "text": "(1) Cyclic plasticity should be taken as the limit condition for repeated cycles of loading and unloading produce yielding in tension or in compression or both at the same point, thus causing plastic work to be repeatedly done on the structure. This alternative yielding may lead to local cracking by exhaustion of the material's energy absorption capacity, and is thus a low cycle fatigue restriction. The stresses which are associated with this limit state develop under a combination of all actions and the compatibility conditions for the structure.",
+      "page": 11
+    },
+    {
+      "clause_number": "2.2.4",
+      "title": "Buckling",
+      "text": "(1) Buckling should be taken as the condition in which all or parts of the structure develop large displacements, caused by instability under compressive and/or shear stresses in the plate. It leads eventually to inability to sustain an increase in the stress resultants.\n\n(2) Local plate buckling, see EN 1993-1-5.\n\n(3) For flexural, lateral torsional and distortional stability of stiffeners, see EN 1993-1-5",
+      "page": 11
+    },
+    {
+      "clause_number": "2.2.5",
+      "title": "Fatigue",
+      "text": "(1) Fatigue should be taken as the limit condition caused by the development and / or growth of cracks by repeated cycles of increasing and decreasing stresses.",
+      "page": 11
+    },
+    {
+      "clause_number": "2.3",
+      "title": "Actions",
+      "text": "(1) The characteristic values of actions should be determined from the appropriate parts of EN 1991.",
+      "page": 11
+    },
+    {
+      "clause_number": "2.4",
+      "title": "Design assisted by testing",
+      "text": "(1) For design assisted by testing reference should be made to section 2.5 of EN 1993-1-1 and where relevant, Section 9 of EN 1993-1-3.",
+      "page": 12
+    },
+    {
+      "clause_number": "3",
+      "title": "Material properties",
+      "text": "(1) This Standard covers the design of plated structures fabricated from steel material conforming to the product standards listed in EN 1993-1-1 and EN 1993-1-12.\n\n(2) The material properties of cold formed members and sheeting should be obtained from EN 1993-1-3.\n\n(3) The material properties of stainless steels should be obtained from EN 1993-1-4.",
+      "page": 12
+    },
+    {
+      "clause_number": "4",
+      "title": "Durability",
+      "text": "(1) For durability see section 4 of EN 1993-1-1.",
+      "page": 12
+    },
+    {
+      "clause_number": "5",
+      "title": "Structural analysis",
+      "text": "",
+      "page": 12
+    },
+    {
+      "clause_number": "5.1",
+      "title": "General",
+      "text": "(1)P The models used for calculations shall be appropriate for predicting the structural behaviour and the limit states considered.\n\n(2) If the boundary conditions can be conservatively defined, i.e. restrained or unrestrained, a plated structure may be subdivided into individual plate segments that may be analysed independently.\n\n(3)P The overall stability of the complete structure shall be checked following the relevant parts of EN 1993.",
+      "page": 12
+    },
+    {
+      "clause_number": "5.2",
+      "title": "Stress resultants in the plate",
+      "text": "",
+      "page": 12
+    },
+    {
+      "clause_number": "5.2.1",
+      "title": "General",
+      "text": "(1) The calculation model and basic assumptions for determining internal stresses or stress resultants should correspond to the assumed structural response for the ultimate limit state loading.\n\n(2) Structural models may be simplified such that it can be shown that the simplifications used will give conservative estimates of the effects of actions.\n\n(3) Elastic global analysis should generally be used for plated structures. Where fatigue is likely to occur, plastic global analysis should not be used.\n\n(4) Possible deviations from the assumed directions or positions of actions should be considered.\n\n(5) Yield line analysis may be used in the ultimate limit state when inplane compression or shear is less than 10% of the corresponding resistance. The bending resistance in a yield line should be taken as\nmRd = (0.25 · fy · t^2) / γM0",
+      "page": 12
+    },
+    {
+      "clause_number": "5.2.2",
+      "title": "Plate boundary conditions",
+      "text": "(1) Boundary conditions assumed in analyses should be appropriate to the limit states considered.\n\n(2)P If a plated structure is subdivided into individual plate segments the boundary conditions assumed for stiffeners in individual plate segments in the design calculations shall be recorded in the drawings and project specification.",
+      "page": 12
+    },
+    {
+      "clause_number": "5.2.3",
+      "title": "Design models for plated structures",
+      "text": "",
+      "page": 13
+    },
+    {
+      "clause_number": "5.2.3.1",
+      "title": "General",
+      "text": "(1) The internal stresses of a plate segment should be determined as follows:\n- standard formulae, see 5.2.3.2;\n- global analysis, see 5.2.3.3;\n- simplified models, see 5.2.3.4.\n\n(2) The design methods given in (1) should take into account a linear or non linear bending theory for plates as appropriate.\n\n(3) A linear bending theory is based on small-deflection assumptions and relates loads to deformations in a proportional manner. This may be used if inplane compression or shear is less than 10% of the corresponding resistance.\n\n(4) A non-linear bending theory is based on large-deflection assumptions and the effects of deformation on equilibrium are taken into account.\n\n(5) The design models given in (1) may be based on the types of analysis given in Table 5.1.\n\nNOTE 1: A definition of the different types of analysis is given in Annex A.\nNOTE 2: The type of analysis appropriate to a structure should be stated in the project specification.\nNOTE 3: The use of a model with perfect geometry implies that geometrical imperfections are either not relevant or included through other design provisions.\nNOTE 4: Amplitudes for geometrical imperfections for imperfect geometries are chosen such that in comparisons with results from tests using test specimens fabricated with tolerances according to EN 1090-2 the calculative results are reliable, therefore these amplitudes in general differ from the tolerances given in EN 1090-2.",
+      "page": 13
+    },
+    {
+      "clause_number": "5.2.3.2",
+      "title": "Use of standard formulas",
+      "text": "(1) For an individual plate segment of a plated structure the internal stresses may be calculated for the relevant combination of design actions with appropriate design formulae based on the types of analysis given in 5.2.3.1.\n\nNOTE: Annex B and Annex C provide tabulated values for rectangular unstiffened plates which are loaded transversely. For circular plates design formulas are given in EN 1993-1-6. Further design formulas may be used, if the reliability of the design formulas is in accordance with the requirements given in EN 1991-1.\n\n(2) In case of a two dimensional stress field resulting from a membrane theory analysis the equivalent Von Mises stress σeq,Ed may be determined by\n\nσeq,Ed = (1/t) √(n^2_x,Ed + n^2_y,Ed - n_x,Ed n_y,Ed + 3 n^2_xy,Ed)\n\n(3) In case of a two dimensional stress field resulting from an elastic plate theory the equivalent Von Mises stress σeq,Ed may be determined, as follows:\n\nσeq,Ed = √(σ^2_x,Ed + σ^2_y,Ed - σ_x,Ed σ_y,Ed + 3 τ^2_xy,Ed)\n\nwhere σx,Ed = nx,Ed / t ± mx,Ed / (t^2 / 4)\nσy,Ed = ny,Ed / t ± my,Ed / (t^2 / 4)\nτxy,Ed = nxy,Ed / t ± mxy,Ed / (t^2 / 4)\nand nx,Ed, ny,Ed, nxy,Ed, mx,Ed, my,Ed and mxy,Ed are defined in 1.4(1) and (2).\n\nNOTE: The above expressions give a simplified conservative equivalent stress for design",
+      "page": 13
+    },
+    {
+      "clause_number": "5.2.3.3",
+      "title": "Use of a global analysis: numerical analysis",
+      "text": "(1) If the internal stresses of a plated structure are determined by a numerical analysis which is based on a materially linear analysis, the maximum equivalent Von Mises stress σeq,Ed of the plated structure should be calculated for the relevant combination of design actions.\n\n(2) The equivalent Von Mises stress σeq,Ed is defined by the stress components which occurred at one point in the plated structure.\n\nσeq,Ed = √(σ^2_x,Ed + σ^2_y,Ed - σ_x,Ed σ_y,Ed + 3 τ^2_xy,Ed)\n\nwhere σx,Ed and σy,Ed are positive in case of tension.\n\n(3) If a numerical analysis is used for the verification of buckling, the effects of imperfections should be taken into account. These imperfections may be:\n\n(a) geometrical imperfections:\n- deviations from the nominal geometric shape of the plate (initial deformation, out of plane deflections);\n- irregularities of welds (minor eccentricities);\n- deviations from nominal thickness.\n\n(b) material imperfections:\n- residual stresses because of rolling, pressing, welding, straightening;\n- non-homogeneities and anisotropies.\n\n(4) The geometrical and material imperfections should be taken into account by an initial equivalent geometric imperfection of the perfect plate. The shape of the initial equivalent geometric imperfection should be derived from the relevant buckling mode.\n\n(5) The amplitude of the initial equivalent geometric imperfection e0 of a rectangular plate segment may be derived by numerical calibrations with test results from test pieces that may be considered as representative for fabrication from the plate buckling curve of EN 1993-1-5, as follows:\n\ne0 = ((1 - ρ λp)(1 - ρ)) / (ρ ζ)\n\nwhere ζ = (6b^2 (b^2 + νa^2)) / (t (a^2 + b^2)^2) and α < √2\nρ is the reduction factor for plate buckling as defined in 4.4 of EN 1993-1-5;\na, b are geometric properties of the plate, see Figure 5.1;\nt is the thickness of the plate;\nα is the aspect ratio a/b < √2;\nλp is the relative slenderness of the plate, see EN 1993-1-5.\n\n(6) As a conservative assumption the amplitude may be taken as e0 = a/200 where b ≤ a.\n\n(7) The pattern of the equivalent geometric imperfections should, if relevant, be adapted to the constructional detailing and to imperfections expected from fabricating or manufacturing.\n\n(8)P In all cases the reliability of a numerical analysis shall be checked with known results from tests or compared analysis.",
+      "page": 14
+    },
+    {
+      "clause_number": "5.2.3.4",
+      "title": "Use of simplified design methods",
+      "text": "",
+      "page": 15
+    },
+    {
+      "clause_number": "5.2.3.4.1",
+      "title": "General",
+      "text": "(1) The internal forces or stresses of a plated structure loaded by out of plane loads and in-plane loads may be determined using a simplified design model that gives conservative estimates.\n\n(2) Therefore the plated structure may be subdivided into individual plate segments, which may be stiffened or unstiffened.",
+      "page": 15
+    },
+    {
+      "clause_number": "5.2.3.4.2",
+      "title": "Unstiffened plate segments",
+      "text": "(1) An unstiffened rectangular plate under out of plane loads may be modeled as an equivalent beam in the direction of the dominant load transfer, if the following conditions are fulfilled:\n- the aspect ratio a/b of the plate is greater than 2;\n- the plate is subjected to out of plane distributed loads which may be either linear or vary linearly;\n- the strength, stability and stiffness of the frame or beam on which the plate segment is supported fulfil the assumed boundary conditions of the equivalent beam.\n(2) The internal forces and moments of the equivalent beam should be determined using an elastic or plastic analysis as defined in EN 1993-1-1.\n(3) If the first order deflections due to the out of plane loads is similar to the (plate) buckling mode due to the in plane compression forces, the interaction between both phenomena need to be taken into account.\n(4) In cases where the situation as described in (3) is present the interaction formula specified in EN 1993-1-1, section 6.3.3 may be applied to the equivalent beam.",
+      "page": 15
+    },
+    {
+      "clause_number": "5.2.3.4.3",
+      "title": "Stiffened plate segments",
+      "text": "(1) A stiffened plate or a stiffened plate segment may be modeled as a grillage if it is regularly stiffened in the transverse and longitudinal direction.\n(2) In determining the cross-sectional area Ai of the cooperating plate of an individual member i of the grillage the effects of shear lag should be taken into account by the reduction factor β according to EN 1993-1-5.\n(3) For a member i of the grillage which is arranged in parallel to the direction of inplane compression forces, the cross-sectional area Ai should also be determined taking account of the effective width of the adjacent subpanels due to plate buckling according to EN 1993-1-5.\n(4) The interaction between shear lag effects and plate buckling effects, see Figure 5.2, should be considered by the effective area Ai from the following equation:\n(5) The verification of a member i of the grillage may be performed using the interaction formula in EN 1993-1-1, section 6.3.3 taking into account the following loading conditions:\n- effects of out of plane loadings;\n- equivalent axial force in the cross section Ai due to normal stresses in the plate;\n- eccentricity e of the equivalent axial force NEd with respect to the centre of gravity of the cross-sectional area Ai.\n(6) If the stiffeners of a plate or a plate segment are only arranged in parallel to the direction of inplane compression forces, the stiffened plate may be modeled as an equivalent beam on elastic springs, see EN 1993-1-5.\n(7) If the stiffeners of a stiffened plate segment are positioned in the transverse direction to the compression forces, the interaction between the compression forces and bending moments in the unstiffened plate segments between the stiffeners should be verified according to 5.2.3.4.2(4).\n(8) The longitudinal stiffeners should fulfill the requirements given in section 9 of EN 1993-1-5.\n(9) The transverse stiffeners should fulfill the requirements given in section 9 of EN 1993-1-5.",
+      "page": 16
+    },
+    {
+      "clause_number": "6",
+      "title": "Ultimate limit state",
+      "text": "",
+      "page": 17
+    },
+    {
+      "clause_number": "6.1",
+      "title": "General",
+      "text": "(1)P All parts of a plated structure shall be so proportioned that the basic design requirements for ultimate limit states given in section 2 are satisfied.\n(2) For the partial factor γM for resistance of plated structures see the relevant application parts of EN 1993.\n(3) For partial factor γM of connections of plated structures see EN 1993-1-8.",
+      "page": 17
+    },
+    {
+      "clause_number": "6.2",
+      "title": "Plastic limit",
+      "text": "",
+      "page": 17
+    },
+    {
+      "clause_number": "6.2.1",
+      "title": "General",
+      "text": "(1) At every point in a plated structure the design stress σeq,Ed should satisfy the condition:\nwhere σeq,Ed is the largest value of Von Mises equivalent stress as defined in 5.2.3.\n(2) In an elastic design the resistance of a plate segment against plastic collapse or tensile rupture under combined axial forces and bending is defined by the Von Mises equivalent stress σeq,Rd as:\nNOTE: For the numerical value of γM0 see 1.1(2).",
+      "page": 17
+    },
+    {
+      "clause_number": "6.2.2",
+      "title": "Supplementary rules for the design by global analysis",
+      "text": "(1) If a numerical analysis is based on materially linear analysis the resistance against plastic collapse or tensile rupture should be checked for the requirement given in 6.2.1.\n(2) If a materially nonlinear analysis is based on a design stress-strain relationship with fyd (=fy/γM0) the plated structure should be subject to a load arrangement FEd that is taken from the design values of actions, and the load may be incrementally increased to determine the load amplification factor αR of the plastic limit state FRd.\n(3) The result of the numerical analysis should satisfy the condition:\nwhere FRd = αR FEd\nαR is the load amplification factor for the loads FEd for reaching the ultimate limit state.",
+      "page": 17
+    },
+    {
+      "clause_number": "6.2.3",
+      "title": "Supplementary rules for the design by simplified design methods",
+      "text": "",
+      "page": 18
+    },
+    {
+      "clause_number": "6.2.3.1",
+      "title": "Unstiffened plates",
+      "text": "(1) If an unstiffened plate is designed as an equivalent beam, its cross-sectional resistance should be checked for the combination of inplane loading and out of plane loading effects with the design rules given in EN 1993-1-1.",
+      "page": 18
+    },
+    {
+      "clause_number": "6.2.3.2",
+      "title": "Stiffened plates",
+      "text": "(1) If a stiffened plate segment is modeled as a grillage as described in section 5.2.3.4 the cross-section resistance and the buckling resistance of the individual members i of the grillage should be checked for the combination of inplane and out of plane loading effects using the interaction formula in EN 1993-1-1, section 6.3.3.\n(2) If a stiffened plate segment is designed as an equivalent beam as described in section 5.2.3.4 the cross-section resistance and the buckling resistance of the equivalent beam should be checked for the combination of inplane and out of plane loading effects using the interaction formula in EN 1993-1-1, section 6.3.3.\n(3) The stress resultants or stresses of a subpanel should be verified against tensile rupture or plastic collapse with the design rules given in 5.2.3.2, 5.2.3.3 or 5.2.3.4.",
+      "page": 18
+    },
+    {
+      "clause_number": "6.3",
+      "title": "Cyclic plasticity",
+      "text": "",
+      "page": 18
+    },
+    {
+      "clause_number": "6.3.1",
+      "title": "General",
+      "text": "(1) At every point in a plated structure the design stress range ΔσEd should satisfy the condition:\nwhere ΔσEd is the largest value of the Von Mises equivalent stress range\nat the relevant point of the plate segment due to the relevant combination of design actions.\n(2) In a materially linear design the resistance of a plate segment against cyclic plasticity / low cycle fatigue may be verified by the Von Mises stress range limitation ΔσRd.\nNOTE: For the numerical value of γM0 see 1.1(2).",
+      "page": 18
+    },
+    {
+      "clause_number": "6.3.2",
+      "title": "Supplementary rules for the design by global analysis",
+      "text": "(1) Where a materially nonlinear computer analysis is carried out, the plate should be subject to the design values of the actions.\n(2) The total accumulated Von Mises equivalent strain εeq,Ed at the end of the design life of the structure should be assessed using an analysis that models all cycles of loading.\n(3) Unless a more refined analysis is carried out the total accumulated Von Mises equivalent plastic strain εeq,Ed may be determined from:\n(4) Unless a more sophisticated low cycle fatigue assessment is undertaken, the design value of the total accumulated Von Mises equivalent plastic strain εp,eq,Ed should satisfy the condition\nNOTE 1: The National Annex may choose the value of neq. The value neq = 25 is recommended.\nNOTE 2: For the numerical value of γM0 see 1.1(2)",
+      "page": 18
+    },
+    {
+      "clause_number": "6.4",
+      "title": "Buckling resistance",
+      "text": "",
+      "page": 19
+    },
+    {
+      "clause_number": "6.4.1",
+      "title": "General",
+      "text": "(1) If a plate segment of a plated structure is loaded by in-plane compression or shear, its resistance to plate buckling should be verified with the design rules given in EN 1993-1-5.\n(2) Flexural, lateral torsional or distortional stability of the stiffness should be verified according to EN 1993-1-5, see also 5.2.3.4 (8) and (9)\n(3) For the interaction between the effects of in-plane and out of plane loading, see section 5.",
+      "page": 19
+    },
+    {
+      "clause_number": "6.4.2",
+      "title": "Supplementary rules for the design by global analysis.",
+      "text": "(1) If the plate buckling resistance for combined in plane and out of plane loading is checked by a numerical analysis, the design actions FEd should satisfy the condition:\n(2) The plate buckling resistance FRd of a plated structure is defined as:\nwhere FRk is the characteristic buckling resistance of the plated structure\nk is the calibration factor, see (6).\nNOTE: For the numerical value of γM1 see 1.1(2).\n(3) The characteristic buckling resistance FRk should be derived from a load-deformation curve which is calculated for the relevant point of the structure taking into account the relevant combination of design actions FEd. In addition, the analysis should take into account the imperfections as described in 5.2.3.2.\n(4) The characteristic buckling resistance FRk is defined by either of the two following criterion:\n- maximum load of the load-deformation-curve (limit load);\n- maximum tolerable deformation in the load deformation curve before reaching the bifurcation load or the limit load, if relevant.\n(5) The reliability of the numerically determined critical buckling resistance should be checked:\n(a) either by calculating other plate buckling cases, for which characteristic buckling resistance values FRk,known are known, with the same basically similar imperfection assumptions. The check cases should be similar in their buckling controlling parameters (e.g. non-dimensional plate slenderness, post buckling behaviour, imperfection-sensitivity, material behaviour);\n(b) or by comparison of calculated values with test results FRk,known.\n(6) Depending on the results of the reliability checks a calibration factor k should be evaluated from:\nwhere FRk,known,check as follows from prior knowledge;\nFRk,check are the results of the numerical calculations.",
+      "page": 19
+    },
+    {
+      "clause_number": "6.4.3",
+      "title": "Supplementary rules for the design by simplified design methods",
+      "text": "(1) If a stiffened plate segment is subdivided into subpanels and equivalent effective stiffeners as described in section 5.2.3.4 the buckling resistance of the stiffened plate segment may be checked with the design rules given in EN 1993-1-5. Lateral buckling of free stiffener-flanges may be checked according to EN 1993-1-1, section 6.3.3.\n(2) The buckling resistance of the equivalent effective stiffener which is defined in section 5.2.3.4 of the plate may be checked with the design rules given in EN 1993-1-1.",
+      "page": 20
+    },
+    {
+      "clause_number": "7",
+      "title": "Fatigue",
+      "text": "(1) For plated structures the requirements for fatigue should be obtained from the relevant application standard of EN 1993.\n(2) The fatigue assessment should be carried out according to the procedure given in EN 1993-1-9.",
+      "page": 20
+    },
+    {
+      "clause_number": "8",
+      "title": "Serviceability limit state",
+      "text": "",
+      "page": 20
+    },
+    {
+      "clause_number": "8.1",
+      "title": "General",
+      "text": "(1) The principles for serviceability limit state given in section 7 of EN 1993-1-1 should also be applied to plated structures.\n(2) For plated structures especially the limit state criteria given in 8.2 and 8.3 should be verified.",
+      "page": 20
+    },
+    {
+      "clause_number": "8.2",
+      "title": "Out of plane deflection",
+      "text": "(1) The limit of the out of plane deflection w should be defined as the condition in which the effective use of a plate segment is ended.\nNOTE For limiting values of out of plane deflection w see application standard.",
+      "page": 20
+    },
+    {
+      "clause_number": "8.3",
+      "title": "Excessive vibrations",
+      "text": "(1) Excessive vibrations should be defined as the limit condition in which either the failure of a plated structure occurs by fatigue caused by excessive vibrations of the plate or serviceability limits apply.\nNOTE: For limiting values of slenderness to prevent excessive vibrations see application standard.",
+      "page": 20
+    },
+    {
+      "clause_number": "A.1",
+      "title": "General",
+      "text": "(1) The internal stresses of stiffened and unstiffened plates may be determined with the following types of analysis:\n- LA: Linear elastic analysis;\n- GNA: Geometrically nonlinear analysis;\n- MNA: Materially nonlinear analysis;\n- GMNA: Geometrically and materially nonlinear analysis;\n- GNIA: Geometrically nonlinear analysis elastic with imperfections included;\n- GMNIA: Geometrically and materially nonlinear analysis with imperfections included.",
+      "page": 21
+    },
+    {
+      "clause_number": "A.2",
+      "title": "Linear elastic plate analysis (LA)",
+      "text": "(1) The linear elastic analysis models the behaviour of thin plate structures on the basis of the plate bending theory, related to the perfect geometry of the plate. The linearity of the theory results from the assumptions of the linear elastic material law and the linear small deflection theory.\n(2) The LA analysis satisfies the equilibrium as well as the compatibility of the deflections. The stresses and deformations vary linear with the out of plane loading.\n(3) As an example for the LA analysis the following fourth-order partial differential equation is given for an isotropic thin plate that subject only to a out of plane load p(x,y):",
+      "page": 21
+    },
+    {
+      "clause_number": "A.3",
+      "title": "Geometrically nonlinear analysis (GNA)",
+      "text": "(1) The geometrically nonlinear elastic analysis is based on the principles of the plate bending theory of the perfect structure using the linear elastic material law and the nonlinear, large deflection theory.\n(2) The GNA analysis satisfies the equilibrium as well as the compatibility of the deflections under consideration of the deformation of the structure.\n(3) The large deflection theory takes into account the interaction between flexural and membrane actions. The deflections and stresses vary in a non linear manner with the magnitude of the out of plane pressure.\n(4) As an example for the GNA analysis the following fourth-order partial differential equation system is given for an isotropic thin plate subjected only to a out of plane load p(x,y).",
+      "page": 21
+    },
+    {
+      "clause_number": "A.4",
+      "title": "Materially nonlinear analysis (MNA)",
+      "text": "(1) The materially nonlinear analysis is based on the plate bending theory of the perfect structure with the assumption of small deflections - like in A.2 -, however, it takes into account the nonlinear behaviour of the material.",
+      "page": 22
+    },
+    {
+      "clause_number": "A.5",
+      "title": "Geometrically and materially nonlinear analysis (GMNA)",
+      "text": "(1) The geometrically and materially nonlinear analysis is based on the plate bending theory of the perfect structure with the assumptions of the nonlinear, large deflection theory and the nonlinear, elasto-plastic material law.",
+      "page": 22
+    },
+    {
+      "clause_number": "A.6",
+      "title": "Geometrically nonlinear analysis elastic with imperfections included (GNIA)",
+      "text": "(1) The geometrically nonlinear analysis with imperfections included is equivalent to the GNA analysis defined in A.3, however, the geometrical model used the geometrically imperfect structure, for instance a predeformation applies at the plate which is governed by the relevant buckling mode.\n(2) The GNIA analysis is used in cases of dominating compression or shear stresses in some of the plated structures due to in-plane effects. It delivers the elastic buckling resistance of the \"real\" imperfect plated structure.",
+      "page": 22
+    },
+    {
+      "clause_number": "A.7",
+      "title": "Geometrically and materially nonlinear analysis with imperfections included (GMNIA)",
+      "text": "(1) The geometrically and materially nonlinear analysis with imperfections included is equivalent to the GMNA analysis defined in A.5, however, the geometrical model used the geometrically imperfect structure, for instance a pre-deformation applies at the plate which is governed by the relevant buckling mode.\n(2) The GMNIA analysis is used in cases of dominating compression or shear stresses in a plate due to in-plane effects. It delivers the elasto-plastic buckling resistance of the \"real\" imperfect structure.",
+      "page": 22
+    },
+    {
+      "clause_number": "B.1",
+      "title": "General",
+      "text": "(1) This annex provides design formulae for the calculation of internal stresses of unstiffened rectangular plates based on the small deflection theory for plates. Therefore the effects of membrane forces are not taken into account in the design formulae given in this annex.\n(2) Design formulae are provided for the following load cases:\n- uniformly distributed loading on the entire plate, see B.3;\n- central patch loading distributed uniformly over a patch area, see B.4.\n(3) The deflection w of a plate segment and the bending stresses σbx and σby in a plate segment may be calculated with the coefficients given in the tables of section B.3 and B.4. The coefficients take into account a Poisson's ratio ν of 0,3.",
+      "page": 23
+    },
+    {
+      "clause_number": "B.2",
+      "title": "Symbols",
+      "text": "(1) The symbols used are:\nqEd is the design value of the distributed load;\npEd is the design value of the patch loading;\na is the smaller side of the plate;\nb is the longer side of the plate;\nt is the thickness of the plate;\nE is the Elastic modulus;\nkw is the coefficient for the deflection of the plate appropriate to the boundary conditions of the plate specified in the data tables;\nkσbx is the coefficient for the bending stress σbx of the plate appropriate to the boundary conditions of the plate specified in the data tables;\nkσby is the coefficient for the bending stress σby of the plate appropriate to the boundary conditions of the plate specified in the data tables.",
+      "page": 23
+    },
+    {
+      "clause_number": "B.3",
+      "title": "Uniformly distributed loading",
+      "text": "",
+      "page": 23
+    },
+    {
+      "clause_number": "B.3.1",
+      "title": "Out of plane deflection",
+      "text": "(1) The deflection w of a plate segment which is loaded by uniformly distributed loading may be calculated as follows:\nNOTE: Expression (B.1) is only valid where w is small compared with t.",
+      "page": 23
+    },
+    {
+      "clause_number": "B.3.2",
+      "title": "Internal stresses",
+      "text": "(1) The bending stresses σbx and σby in a plate segment may be determined with the following equations:\n(2) For a plate segment the equivalent stress may be calculated with the bending stresses given in (1) as follows:\nNOTE: The points for which the state of stress are defined in the data tables are located either on the centre lines or on the boundaries, so that due to symmetry or the postulated boundary conditions, the bending shear stresses τb are zero.",
+      "page": 23
+    },
+    {
+      "clause_number": "B.3.3",
+      "title": "Coefficients k for uniformly distributed loadings",
+      "text": "",
+      "page": 24
+    },
+    {
+      "clause_number": "B.4",
+      "title": "Central patch loading",
+      "text": "",
+      "page": 26
+    },
+    {
+      "clause_number": "B.4.1",
+      "title": "Out of plane deflection",
+      "text": "(1) The deflection w of a plate segment which is loaded by a central patch loading may be calculated as follows:",
+      "page": 26
+    },
+    {
+      "clause_number": "B.4.2",
+      "title": "Internal stresses",
+      "text": "(1) The bending stresses σbx and σby in a plate segment may be determined by the following formulas:\n(2) For a plate segment the equivalent stress may be calculated with the bending stresses given in (1) as follows:",
+      "page": 26
+    },
+    {
+      "clause_number": "B.4.3",
+      "title": "Coefficients k for patch loading",
+      "text": "Table B.7: Coefficients k",
+      "page": 27
+    },
+    {
+      "clause_number": "C.1",
+      "title": "General",
+      "text": "(1) This annex provides design formulas for the calculation of internal stresses of unstiffened rectangular plates based on the large deflection theory for plates.\n(2) The following loading conditions are considered:\n- uniformly distributed loading on the entire plate, see C.3;\n- central patch loading distributed uniformly over the patch area, see C.4.\n(3) The bending and membrane stresses in a plate and the deflection w of a plate may be calculated with the coefficients given in the tables of section C.3 and C.4. The coefficients take into account a Poisson's ratio ν of 0,3.",
+      "page": 28
+    },
+    {
+      "clause_number": "C.2",
+      "title": "Symbols",
+      "text": "(1) The symbols used are:\nqEd is the design value of the load uniformly distributed over the total surface;\npEd is the design value of the patch loading uniformly distributed over the surface u × v;\na is the smaller side of the plate;\nb is the longer side of the plate;\nt is the thickness of the plate;\nE is the Elastic modulus;\nFBC flexural boundary conditions;\nMBC membrane boundary conditions;\nkw is the coefficient for the deflection of the plate appropriate to the boundary conditions specified in the data tables;\nkσbx is the coefficient for the bending stress σbx of the plate appropriate to the boundary conditions specified in of the plate in the data tables;\nkσby is the coefficient for the bending stress σby of the plate appropriate to the boundary conditions specified in the data tables;\nkσmx is the coefficient for the membrane stress σmx of the plate appropriate to the boundary conditions specified in the data tables;\nkσmy is the coefficient for the membrane stress σmy of the plate appropriate to the boundary conditions specified in the data tables.",
+      "page": 28
+    },
+    {
+      "clause_number": "C.3",
+      "title": "Uniformly distributed loading on the total surface of the plate",
+      "text": "",
+      "page": 28
+    },
+    {
+      "clause_number": "C.3.1",
+      "title": "Out of plane deflection",
+      "text": "(1) The deflection w of a plate segment which is loaded by uniformly distributed loading may be calculated as follows:\nw = kw (qEd a^4) / (E t^3) (C.1)",
+      "page": 28
+    },
+    {
+      "clause_number": "C.3.2",
+      "title": "Internal stresses",
+      "text": "(1) The bending stresses σbx and σby in a plate segment may be determined with the following equations:\nσbx,Ed = kσbx (qEd a^2) / t^2 (C.2)\nσby,Ed = kσby (qEd a^2) / t^2 (C.3)\n(2) The membrane stresses σmx and σmy in a plate segment may be determined as follows:\nσmx,Ed = kσmx (qEd a^2) / t^2 (C.4)\nσmy,Ed = kσmy (qEd a^2) / t^2 (C.5)\n(3) At the loaded surface of a plate the total stresses are calculated with the bending and membrane stresses given in (1) and (2) as follows:\nσx,Ed = - σbx,Ed + σmx,Ed (C.6)\nσy,Ed = - σby,Ed + σmy,Ed (C.7)\n(4) At the no-loaded surface of a plate the total stresses are determined with the bending and membrane stresses given in (1) and (2) as follows:\nσx,Ed = σbx,Ed + σmx,Ed (C.8)\nσy,Ed = σby,Ed + σmy,Ed (C.9)\n(5) For a plate the equivalent stress σv,Ed may be calculated with the stresses given in (4) as follows:\nσeq,Ed = √(σx,Ed^2 + σy,Ed^2 - σx,Ed σy,Ed) (C.10)\nNOTE: The points for which the state of stress are defined in the data tables are located either on the centre lines or on the boundaries, so that due to symmetry or the postulated boundary conditions, membrane shearing stresses τm as well as bending shear stresses τb are zero. The algebraic sum of the appropriate bending and membrane stresses at the points considered in the data tables gives the values of maximum and minimum surface stresses at these points.",
+      "page": 29
+    },
+    {
+      "clause_number": "C.3.3",
+      "title": "Coefficients k for uniformly distributed loadings",
+      "text": "Table C.1: Coefficients k",
+      "page": 30
+    },
+    {
+      "clause_number": "C.4",
+      "title": "Central patch loading",
+      "text": "",
+      "page": 34
+    },
+    {
+      "clause_number": "C.4.1",
+      "title": "General",
+      "text": "(1) The deflection w and the stresses should be determined with the formulas provided for a plate which is loaded by a central patch loading pEd, distributed over an area of u long and v wide:\nw = kw (pEd a^4) / (E t^3) (C.11)",
+      "page": 34
+    },
+    {
+      "clause_number": "C.4.2",
+      "title": "Internal stresses",
+      "text": "(1) The bending stresses σbx and σby in a plate segment may be determined with the following equations:\nσbx,Ed = kσbx (pEd a^2) / t^2 (C.12)\nσby,Ed = kσby (pEd a^2) / t^2 (C.13)\n(2) The membrane stresses σmx and σmy in a plate segment may be determined as follows:\nσmx,Ed = kσmx (pEd a^2) / t^2 (C.14)\nσmy,Ed = kσmy (pEd a^2) / t^2 (C.15)\n(3) At the loaded surface of a plate the total stresses are calculated with the bending and membrane stresses given in (1) and (2) as follows:\nσx,Ed = - σbx,Ed + σmx,Ed (C.16)\nσy,Ed = - σby,Ed + σmy,Ed (C.17)\n(4) At the no-loaded surface of a plate the total stresses are determined with the bending and membrane stresses given in (1) and (2) as follows:\nσx,Ed = σbx,Ed + σmx,Ed (C.18)\nσy,Ed = σby,Ed + σmy,Ed (C.19)\n(5) For a plate the equivalent stress σv,Ed may be calculated with the stresses given in (4) as follows:\nσeq,Ed = √(σx,Ed^2 + σy,Ed^2 - σx,Ed σy,Ed) (C.20)\nNOTE: The points for which the state of stress are defined in the data tables are located either on the centre lines or on the boundaries, so that due to symmetry or the postulated boundary conditions, membrane shearing stresses τm as well as bending shear stresses τb are zero. The algebraic sum of the appropriate bending and membrane stresses at the points considered in the data tables gives the values of maximum and minimum surface stresses at these points.",
+      "page": 34
+    },
+    {
+      "clause_number": "C.4.3",
+      "title": "Coefficients k for patch loading",
+      "text": "Table C.5: Coefficients k",
+      "page": 35
+    }
+  ],
+  "tables": [
+    {
+      "table_id": "Table 5.1",
+      "title": "Types of analysis",
+      "headers": [
+        "Type of analysis",
+        "Bending theory",
+        "Material law",
+        "Plate geometry"
+      ],
+      "rows": [
+        [
+          "Linear elastic plate analysis (LA)",
+          "linear",
+          "linear",
+          "perfect"
+        ],
+        [
+          "Geometrically non-linear elastic analysis (GNA)",
+          "non-linear",
+          "linear",
+          "perfect"
+        ],
+        [
+          "Materially non-linear analysis (MNA)",
+          "linear",
+          "non-linear",
+          "perfect"
+        ],
+        [
+          "Geometrically and materially non-linear analysis (GMNA)",
+          "non-linear",
+          "non-linear",
+          "perfect"
+        ],
+        [
+          "Geometrically non-linear elastic analysis with imperfections (GNIA)",
+          "non-linear",
+          "linear",
+          "imperfect"
+        ],
+        [
+          "Geometrically and materially non-linear analysis with imperfections (GMNIA)",
+          "non-linear",
+          "non-linear",
+          "imperfect"
+        ]
+      ],
+      "footnotes": [],
+      "clause": "5.2.3.1",
+      "page": 13
+    },
+    {
+      "table_id": "Table B.1",
+      "title": "Coefficients k",
+      "headers": [
+        "b/a",
+        "kw1",
+        "kσbx1",
+        "kσby1"
+      ],
+      "rows": [
+        [
+          "1,0",
+          "0,04434",
+          "0,286",
+          "0,286"
+        ],
+        [
+          "1,5",
+          "0,08438",
+          "0,486",
+          "0,299"
+        ],
+        [
+          "2,0",
+          "0,11070",
+          "0,609",
+          "0,278"
+        ],
+        [
+          "3,0",
+          "0,13420",
+          "0,712",
+          "0,244"
+        ]
+      ],
+      "footnotes": [
+        "Loading: Uniformly distributed loading",
+        "Boundary conditions: All edges are rigidly supported and rotationally free"
+      ],
+      "clause": "B.3.3",
+      "page": 24
+    },
+    {
+      "table_id": "Table B.2",
+      "title": "Coefficients k",
+      "headers": [
+        "b/a",
+        "kw1",
+        "kσbx1",
+        "kσby1",
+        "kσbx2"
+      ],
+      "rows": [
+        [
+          "1,0",
+          "0,01375",
+          "0,1360",
+          "0,1360",
+          "-0,308"
+        ],
+        [
+          "1,5",
+          "0,02393",
+          "0,2180",
+          "0,1210",
+          "-0,454"
+        ],
+        [
+          "2,0",
+          "0,02763",
+          "0,2450",
+          "0,0945",
+          "-0,498"
+        ],
+        [
+          "3,0",
+          "0,02870",
+          "0,2480",
+          "0,0754",
+          "-0,505"
+        ]
+      ],
+      "footnotes": [
+        "Loading: Uniformly distributed loading",
+        "Boundary conditions: All edges are rigidly supported and rotationally fixed."
+      ],
+      "clause": "B.3.3",
+      "page": 24
+    },
+    {
+      "table_id": "Table B.3",
+      "title": "Coefficients k",
+      "headers": [
+        "b/a",
+        "kw1",
+        "kσbx1",
+        "kσby1",
+        "kσbx4"
+      ],
+      "rows": [
+        [
+          "1,5",
+          "0,04894",
+          "0,330",
+          "0,177",
+          "-0,639"
+        ],
+        [
+          "2,0",
+          "0,05650",
+          "0,368",
+          "0,146",
+          "-0,705"
+        ]
+      ],
+      "footnotes": [
+        "Loading: Uniformly distributed loading",
+        "Boundary conditions: Three edges are rigidly supported and rotationally free and one edge is rigidly supported and rotationally fixed."
+      ],
+      "clause": "B.3.3",
+      "page": 25
+    },
+    {
+      "table_id": "Table B.4",
+      "title": "Coefficients k",
+      "headers": [
+        "b/a",
+        "kw1",
+        "kσbx1",
+        "kσby1",
+        "kσbx4"
+      ],
+      "rows": [
+        [
+          "1,0",
+          "0,02449",
+          "0,185",
+          "0,185",
+          "-0,375"
+        ],
+        [
+          "1,5",
+          "0,04411",
+          "0,302",
+          "0,180",
+          "-0,588"
+        ],
+        [
+          "2,0",
+          "0,05421",
+          "0,355",
+          "0,152",
+          "-0,683"
+        ]
+      ],
+      "footnotes": [
+        "Loading: Uniformly distributed loading",
+        "Boundary conditions: Two edges are rigidly supported and rotationally free and two edges are rigidly supported and rotationally fixed."
+      ],
+      "clause": "B.3.3",
+      "page": 25
+    },
+    {
+      "table_id": "Table B.5",
+      "title": "Coefficients k",
+      "headers": [
+        "b/a",
+        "kw1",
+        "kσbx1",
+        "kσby1",
+        "kσby3"
+      ],
+      "rows": [
+        [
+          "1,0",
+          "0,02089",
+          "0,145",
+          "0,197",
+          "-0,420"
+        ],
+        [
+          "1,5",
+          "0,05803",
+          "0,348",
+          "0,274",
+          "-0,630"
+        ],
+        [
+          "2,0",
+          "0,09222",
+          "0,519",
+          "0,284",
+          "-0,717"
+        ]
+      ],
+      "footnotes": [
+        "Loading: Uniformly distributed loading",
+        "Boundary conditions: Two opposite short edges are clamped, the other two edges are simply supported."
+      ],
+      "clause": "B.3.3",
+      "page": 25
+    },
+    {
+      "table_id": "Table B.6",
+      "title": "Coefficients k",
+      "headers": [
+        "b/a",
+        "kw1",
+        "kσbx1",
+        "kσby1",
+        "kσbx2"
+      ],
+      "rows": [
+        [
+          "1,5",
+          "0,02706",
+          "0,240",
+          "0,106",
+          "-0,495"
+        ],
+        [
+          "2,0",
+          "0,02852",
+          "0,250",
+          "0,0848",
+          "-0,507"
+        ]
+      ],
+      "footnotes": [
+        "Loading: Uniformly distributed loading",
+        "Boundary conditions: Two opposite long edges are clamped, the other two edges are simply supported."
+      ],
+      "clause": "B.3.3",
+      "page": 26
+    },
+    {
+      "table_id": "Table B.7",
+      "title": "Coefficients k",
+      "headers": [
+        "b/a",
+        "α × β",
+        "kw1",
+        "kσbx1",
+        "kσby1"
+      ],
+      "rows": [
+        [
+          "1",
+          "0,1 × 0,1",
+          "0,1254",
+          "1,72",
+          "1,72"
+        ],
+        [
+          "1",
+          "0,2 × 0,2",
+          "0,1210",
+          "1,32",
+          "1,32"
+        ],
+        [
+          "1",
+          "0,3 × 0,3",
+          "0,1126",
+          "1,04",
+          "1,04"
+        ],
+        [
+          "1",
+          "0,2 × 0,3",
+          "0,1167",
+          "1,20",
+          "1,12"
+        ],
+        [
+          "1",
+          "0,2 × 0,4",
+          "0,1117",
+          "1,10",
+          "0,978"
+        ],
+        [
+          "1,5",
+          "0,1 × 0,1",
+          "0,1664",
+          "1,92",
+          "1,70"
+        ],
+        [
+          "1,5",
+          "0,2 × 0,2",
+          "0,1616",
+          "1,51",
+          "1,29"
+        ],
+        [
+          "1,5",
+          "0,3 × 0,3",
+          "0,1528",
+          "1,22",
+          "1,01"
+        ],
+        [
+          "1,5",
+          "0,2 × 0,3",
+          "0,1577",
+          "1,39",
+          "1,09"
+        ],
+        [
+          "1,5",
+          "0,2 × 0,4",
+          "0,1532",
+          "1,29",
+          "0,953"
+        ],
+        [
+          "2,0",
+          "0,1 × 0,1",
+          "0,1795",
+          "1,97",
+          "1,67"
+        ],
+        [
+          "2,0",
+          "0,2 × 0,2",
+          "0,1746",
+          "1,56",
+          "1,26"
+        ],
+        [
+          "2,0",
+          "0,3 × 0,3",
+          "0,1657",
+          "1,28",
+          "0,985"
+        ],
+        [
+          "2,0",
+          "0,2 × 0,3",
+          "0,1708",
+          "1,45",
+          "1,07"
+        ],
+        [
+          "2,0",
+          "0,2 × 0,4",
+          "0,1665",
+          "1,35",
+          "0,929"
+        ],
+        [
+          "3,0",
+          "0,1 × 0,1",
+          "0,1840",
+          "1,99",
+          "1,66"
+        ],
+        [
+          "3,0",
+          "0,2 × 0,2",
+          "0,1791",
+          "1,58",
+          "1,25"
+        ],
+        [
+          "3,0",
+          "0,3 × 0,3",
+          "0,1701",
+          "1,30",
+          "0,975"
+        ],
+        [
+          "3,0",
+          "0,2 × 0,3",
+          "0,1753",
+          "1,47",
+          "1,06"
+        ],
+        [
+          "3,0",
+          "0,2 × 0,4",
+          "0,1711",
+          "1,37",
+          "0,918"
+        ]
+      ],
+      "footnotes": [
+        "Loading: Central patch loading",
+        "Boundary conditions: All edges are rigidly supported and rotationally free.",
+        "Parameters: α = u/a, β = v/a"
+      ],
+      "clause": "B.4.3",
+      "page": 27
+    },
+    {
+      "table_id": "Table C.1",
+      "title": "Coefficients k",
+      "headers": [
+        "b/a",
+        "Q",
+        "kw1",
+        "kσbx1",
+        "kσby1",
+        "kσmx1",
+        "kσmy1",
+        "kσmy2"
+      ],
+      "rows": [
+        [
+          "1,0",
+          "20",
+          "0,0396",
+          "0,2431",
+          "0,2431",
+          "0,0302",
+          "0,0302",
+          "-0,0589"
+        ],
+        [
+          "1,0",
+          "40",
+          "0,0334",
+          "0,1893",
+          "0,1893",
+          "0,0403",
+          "0,0403",
+          "-0,0841"
+        ],
+        [
+          "1,0",
+          "120",
+          "0,0214",
+          "0,0961",
+          "0,0961",
+          "0,0411",
+          "0,0411",
+          "-0,1024"
+        ],
+        [
+          "1,0",
+          "200",
+          "0,0166",
+          "0,0658",
+          "0,0658",
+          "0,0372",
+          "0,0372",
+          "-0,1004"
+        ],
+        [
+          "1,0",
+          "300",
+          "0,0135",
+          "0,0480",
+          "0,0480",
+          "0,0335",
+          "0,0335",
+          "-0,0958"
+        ],
+        [
+          "1,0",
+          "400",
+          "0,0116",
+          "0,0383",
+          "0,0383",
+          "0,0306",
+          "0,0306",
+          "-0,0915"
+        ],
+        [
+          "1,5",
+          "20",
+          "0,0685",
+          "0,3713",
+          "0,2156",
+          "0,0243",
+          "0,0694",
+          "-0,1244"
+        ],
+        [
+          "1,5",
+          "40",
+          "0,0546",
+          "0,2770",
+          "0,1546",
+          "0,0238",
+          "0,0822",
+          "-0,1492"
+        ],
+        [
+          "1,5",
+          "120",
+          "0,0332",
+          "0,1448",
+          "0,0807",
+          "0,0170",
+          "0,0789",
+          "-0,1468"
+        ],
+        [
+          "1,5",
+          "200",
+          "0,0257",
+          "0,1001",
+          "0,0583",
+          "0,0141",
+          "0,0715",
+          "-0,1363"
+        ],
+        [
+          "1,5",
+          "300",
+          "0,0207",
+          "0,0724",
+          "0,0440",
+          "0,0126",
+          "0,0646",
+          "-0,1271"
+        ],
+        [
+          "1,5",
+          "400",
+          "0,0176",
+          "0,0569",
+          "0,0359",
+          "0,0117",
+          "0,0595",
+          "-0,1205"
+        ],
+        [
+          "2,0",
+          "20",
+          "0,0921",
+          "0,4909",
+          "0,2166",
+          "0,0085",
+          "0,0801",
+          "-0,1346"
+        ],
+        [
+          "2,0",
+          "40",
+          "0,0746",
+          "0,3837",
+          "0,1687",
+          "0,0079",
+          "0,0984",
+          "-0,1657"
+        ],
+        [
+          "2,0",
+          "120",
+          "0,0462",
+          "0,2138",
+          "0,0959",
+          "0,0073",
+          "0,0992",
+          "-0,1707"
+        ],
+        [
+          "2,0",
+          "200",
+          "0,0356",
+          "0,1516",
+          "0,0695",
+          "0,0067",
+          "0,0914",
+          "-0,1610"
+        ],
+        [
+          "2,0",
+          "300",
+          "0,0287",
+          "0,1121",
+          "0,0528",
+          "0,0061",
+          "0,0840",
+          "-0,1510"
+        ],
+        [
+          "2,0",
+          "400",
+          "0,0245",
+          "0,0883",
+          "0,0428",
+          "0,0061",
+          "0,0781",
+          "-0,1434"
+        ]
+      ],
+      "footnotes": [
+        "Loading: Uniformly distributed loading",
+        "Boundary conditions: FBC: All edges are simply supported. MBC: Zero direct stresses, zero shear stresses",
+        "Parameters: Q = (qEd a^4) / (E t^4)"
+      ],
+      "clause": "C.3.3",
+      "page": 30
+    },
+    {
+      "table_id": "Table C.2",
+      "title": "Coefficients k",
+      "headers": [
+        "b/a",
+        "Q",
+        "kw1",
+        "kσbx1",
+        "kσby1",
+        "kσmx1",
+        "kσmy1",
+        "kσmx2",
+        "kσmy2"
+      ],
+      "rows": [
+        [
+          "1",
+          "20",
+          "0,0369",
+          "0,2291",
+          "0,2291",
+          "0,0315",
+          "0,0315",
+          "0,0352",
+          "-0,0343"
+        ],
+        [
+          "1",
+          "40",
+          "0,0293",
+          "0,1727",
+          "0,1727",
+          "0,0383",
+          "0,0383",
+          "0,0455",
+          "-0,0429"
+        ],
+        [
+          "1",
+          "120",
+          "0,0170",
+          "0,0887",
+          "0,0887",
+          "0,0360",
+          "0,0360",
+          "0,0478",
+          "-0,0423"
+        ],
+        [
+          "1",
+          "200",
+          "0,0126",
+          "0,0621",
+          "0,0621",
+          "0,0317",
+          "0,0317",
+          "0,0443",
+          "-0,0380"
+        ],
+        [
+          "1",
+          "300",
+          "0,0099",
+          "0,0466",
+          "0,0466",
+          "0,0280",
+          "0,0280",
+          "0,0403",
+          "-0,0337"
+        ],
+        [
+          "1",
+          "400",
+          "0,0082",
+          "0,0383",
+          "0,0383",
+          "0,0255",
+          "0,0255",
+          "0,0372",
+          "-0,0309"
+        ],
+        [
+          "1,5",
+          "20",
+          "0,0554",
+          "0,3023",
+          "0,1612",
+          "0,0617",
+          "0,0287",
+          "0,0705",
+          "-0,0296"
+        ],
+        [
+          "1,5",
+          "40",
+          "0,0400",
+          "0,2114",
+          "0,1002",
+          "0,0583",
+          "0,0284",
+          "0,0710",
+          "-0,0293"
+        ],
+        [
+          "1,5",
+          "120",
+          "0,0214",
+          "0,1079",
+          "0,0428",
+          "0,0418",
+          "0,0224",
+          "0,0559",
+          "-0,0224"
+        ],
+        [
+          "1,5",
+          "200",
+          "0,0157",
+          "0,0778",
+          "0,0296",
+          "0,0345",
+          "0,0191",
+          "0,0471",
+          "-0,0188"
+        ],
+        [
+          "1,5",
+          "300",
+          "0,0122",
+          "0,0603",
+          "0,0224",
+          "0,0296",
+          "0,0167",
+          "0,0408",
+          "-0,0161"
+        ],
+        [
+          "1,5",
+          "400",
+          "0,0103",
+          "0,0505",
+          "0,0188",
+          "0,0267",
+          "0,0152",
+          "0,0369",
+          "-0,0147"
+        ],
+        [
+          "2",
+          "20",
+          "0,0621",
+          "0,3234",
+          "0,1109",
+          "0,0627",
+          "0,0142",
+          "0,0719",
+          "-0,0142"
+        ],
+        [
+          "2",
+          "40",
+          "0,0438",
+          "0,2229",
+          "0,0689",
+          "0,0530",
+          "0,0120",
+          "0,0639",
+          "-0,0120"
+        ],
+        [
+          "2",
+          "120",
+          "0,0234",
+          "0,1163",
+          "0,0336",
+          "0,0365",
+          "0,0086",
+          "0,0457",
+          "-0,0083"
+        ],
+        [
+          "2",
+          "200",
+          "0,0172",
+          "0,0847",
+          "0,0247",
+          "0,0305",
+          "0,0075",
+          "0,0384",
+          "-0,0067"
+        ],
+        [
+          "2",
+          "300",
+          "0,0135",
+          "0,0658",
+          "0,0195",
+          "0,0268",
+          "0,0067",
+          "0,0335",
+          "-0,0058"
+        ],
+        [
+          "2",
+          "400",
+          "0,0113",
+          "0,0548",
+          "0,0164",
+          "0,0244",
+          "0,0064",
+          "0,0305",
+          "-0,0050"
+        ],
+        [
+          "3",
+          "20",
+          "0,0686",
+          "0,3510",
+          "0,1022",
+          "0,0477",
+          "0,0020",
+          "0,0506",
+          "-0,0007"
+        ],
+        [
+          "3",
+          "40",
+          "0,0490",
+          "0,2471",
+          "0,0725",
+          "0,0420",
+          "0,0020",
+          "0,0441",
+          "0,0000"
+        ],
+        [
+          "3",
+          "120",
+          "0,0267",
+          "0,1317",
+          "0,0390",
+          "0,0320",
+          "0,0027",
+          "0,0335",
+          "0,0010"
+        ],
+        [
+          "3",
+          "200",
+          "0,0196",
+          "0,0954",
+          "0,0283",
+          "0,0271",
+          "0,0044",
+          "0,0285",
+          "0,0027"
+        ],
+        [
+          "3",
+          "300",
+          "0,0153",
+          "0,0733",
+          "0,0217",
+          "0,0242",
+          "0,0059",
+          "0,0256",
+          "0,0044"
+        ],
+        [
+          "3",
+          "400",
+          "0,0127",
+          "0,0605",
+          "0,0178",
+          "0,0221",
+          "0,0066",
+          "0,0235",
+          "0,0051"
+        ]
+      ],
+      "footnotes": [
+        "Loading: Uniformly distributed loading",
+        "Boundary conditions: FBC: All edges are simply supported. MBC: All edges remain straight. Zero average direct stresses, zero shear stresses",
+        "Parameters: Q = (qEd a^4) / (E t^4)"
+      ],
+      "clause": "C.3.3",
+      "page": 31
+    },
+    {
+      "table_id": "Table C.3",
+      "title": "Coefficients k",
+      "headers": [
+        "b/a",
+        "Q",
+        "kw1",
+        "kσbx1",
+        "kσby1",
+        "kσmx1",
+        "kσmy1",
+        "kσbx2",
+        "kσmy2"
+      ],
+      "rows": [
+        [
+          "1",
+          "20",
+          "0,0136",
+          "0,1336",
+          "0,1336",
+          "0,0061",
+          "0,0061",
+          "-0,3062",
+          "-0,0073"
+        ],
+        [
+          "1",
+          "40",
+          "0,0131",
+          "0,1268",
+          "0,1268",
+          "0,0113",
+          "0,0113",
+          "-0,3006",
+          "-0,0137"
+        ],
+        [
+          "1",
+          "120",
+          "0,0108",
+          "0,0933",
+          "0,0933",
+          "0,0212",
+          "0,0212",
+          "-0,2720",
+          "-0,0286"
+        ],
+        [
+          "1",
+          "200",
+          "0,0092",
+          "0,0711",
+          "0,0711",
+          "0,0233",
+          "0,0233",
+          "-0,2486",
+          "-0,0347"
+        ],
+        [
+          "1",
+          "300",
+          "0,0078",
+          "0,0547",
+          "0,0547",
+          "0,0233",
+          "0,0233",
+          "-0,2273",
+          "-0,0383"
+        ],
+        [
+          "1",
+          "400",
+          "0,0069",
+          "0,0446",
+          "0,0446",
+          "0,0226",
+          "0,0226",
+          "-0,2113",
+          "-0,0399"
+        ],
+        [
+          "1,5",
+          "20",
+          "0,0234",
+          "0,2117",
+          "0,1162",
+          "0,0061",
+          "0,0133",
+          "-0,4472",
+          "-0,0181"
+        ],
+        [
+          "1,5",
+          "40",
+          "0,0222",
+          "0,1964",
+          "0,1050",
+          "0,0098",
+          "0,0234",
+          "-0,4299",
+          "-0,0322"
+        ],
+        [
+          "1,5",
+          "120",
+          "0,0173",
+          "0,1406",
+          "0,0696",
+          "0,0124",
+          "0,0385",
+          "-0,3591",
+          "-0,0559"
+        ],
+        [
+          "1,5",
+          "200",
+          "0,0144",
+          "0,1103",
+          "0,0537",
+          "0,0116",
+          "0,0415",
+          "-0,3160",
+          "-0,0620"
+        ],
+        [
+          "1,5",
+          "300",
+          "0,0122",
+          "0,0879",
+          "0,0430",
+          "0,0105",
+          "0,0416",
+          "-0,2815",
+          "-0,0636"
+        ],
+        [
+          "1,5",
+          "400",
+          "0,0107",
+          "0,0737",
+          "0,0364",
+          "0,0098",
+          "0,0409",
+          "-0,2583",
+          "-0,0635"
+        ],
+        [
+          "2",
+          "20",
+          "0,0273",
+          "0,2418",
+          "0,0932",
+          "0,0010",
+          "0,0108",
+          "-0,4935",
+          "-0,0150"
+        ],
+        [
+          "2",
+          "40",
+          "0,0265",
+          "0,2330",
+          "0,0897",
+          "0,0017",
+          "0,0198",
+          "-0,4816",
+          "-0,0277"
+        ],
+        [
+          "2",
+          "120",
+          "0,0223",
+          "0,1901",
+          "0,0740",
+          "0,0032",
+          "0,0392",
+          "-0,4223",
+          "-0,0551"
+        ],
+        [
+          "2",
+          "200",
+          "0,0192",
+          "0,1578",
+          "0,0621",
+          "0,0039",
+          "0,0456",
+          "-0,3780",
+          "-0,0647"
+        ],
+        [
+          "2",
+          "300",
+          "0,0165",
+          "0,1306",
+          "0,0518",
+          "0,0042",
+          "0,0483",
+          "-0,3396",
+          "-0,0690"
+        ],
+        [
+          "2",
+          "400",
+          "0,0147",
+          "0,1120",
+          "0,0446",
+          "0,0044",
+          "0,0487",
+          "-0,3132",
+          "-0,0702"
+        ],
+        [
+          "3",
+          "20",
+          "0,0288",
+          "0,2492",
+          "0,0767",
+          "-0,0015",
+          "0,0027",
+          "-0,5065",
+          "-0,0033"
+        ],
+        [
+          "3",
+          "40",
+          "0,0290",
+          "0,2517",
+          "0,0795",
+          "-0,0022",
+          "0,0066",
+          "-0,5095",
+          "-0,0084"
+        ],
+        [
+          "3",
+          "120",
+          "0,0281",
+          "0,2440",
+          "0,0812",
+          "-0,0010",
+          "0,0247",
+          "-0,4984",
+          "-0,0331"
+        ],
+        [
+          "3",
+          "200",
+          "0,0260",
+          "0,2230",
+          "0,0750",
+          "0,0000",
+          "0,0368",
+          "-0,4702",
+          "-0,0497"
+        ],
+        [
+          "3",
+          "250",
+          "0,0247",
+          "0,2096",
+          "0,0707",
+          "0,0002",
+          "0,0415",
+          "-0,4520",
+          "-0,0564"
+        ]
+      ],
+      "footnotes": [
+        "Loading: Uniformly distributed loading",
+        "Boundary conditions: FBC: All edges are clamped. MBC: Zero direct stresses, zero shear stresses",
+        "Parameters: Q = (qEd a^4) / (E t^4)"
+      ],
+      "clause": "C.3.3",
+      "page": 32
+    },
+    {
+      "table_id": "Table C.4",
+      "title": "Coefficients k",
+      "headers": [
+        "b/a",
+        "Q",
+        "kw1",
+        "kσbx1",
+        "kσby1",
+        "kσmx1",
+        "kσmy1",
+        "kσbx2",
+        "kσmx2",
+        "kσmy2"
+      ],
+      "rows": [
+        [
+          "1",
+          "20",
+          "0,0136",
+          "0,1333",
+          "0,1333",
+          "0,0065",
+          "0,0065",
+          "-0,3058",
+          "0,0031",
+          "-0,0055"
+        ],
+        [
+          "1",
+          "40",
+          "0,0130",
+          "0,1258",
+          "0,1258",
+          "0,0118",
+          "0,0118",
+          "-0,3000",
+          "0,0059",
+          "-0,0103"
+        ],
+        [
+          "1",
+          "120",
+          "0,0105",
+          "0,0908",
+          "0,0908",
+          "0,0216",
+          "0,0216",
+          "-0,2704",
+          "0,0123",
+          "-0,0202"
+        ],
+        [
+          "1",
+          "200",
+          "0,0087",
+          "0,0688",
+          "0,0688",
+          "0,0234",
+          "0,0234",
+          "-0,2473",
+          "0,0151",
+          "-0,0233"
+        ],
+        [
+          "1",
+          "300",
+          "0,0073",
+          "0,0528",
+          "0,0528",
+          "0,0231",
+          "0,0231",
+          "-0,2267",
+          "0,0169",
+          "-0,0244"
+        ],
+        [
+          "1",
+          "400",
+          "0,0063",
+          "0,0430",
+          "0,0430",
+          "0,0223",
+          "0,0223",
+          "-0,2119",
+          "0,0176",
+          "-0,0246"
+        ],
+        [
+          "1,5",
+          "20",
+          "0,0230",
+          "0,2064",
+          "0,1125",
+          "0,0137",
+          "0,0097",
+          "-0,4431",
+          "0,0118",
+          "-0,0082"
+        ],
+        [
+          "1,5",
+          "40",
+          "0,0210",
+          "0,1833",
+          "0,0957",
+          "0,0218",
+          "0,0155",
+          "-0,4195",
+          "0,0200",
+          "-0,0133"
+        ],
+        [
+          "1,5",
+          "120",
+          "0,0149",
+          "0,1175",
+          "0,0532",
+          "0,0275",
+          "0,0202",
+          "-0,3441",
+          "0,0295",
+          "-0,0185"
+        ],
+        [
+          "1,5",
+          "200",
+          "0,0118",
+          "0,0876",
+          "0,0369",
+          "0,0259",
+          "0,0195",
+          "-0,3028",
+          "0,0304",
+          "-0,0182"
+        ],
+        [
+          "1,5",
+          "300",
+          "0,0096",
+          "0,0678",
+          "0,0275",
+          "0,0238",
+          "0,0180",
+          "-0,2710",
+          "0,0300",
+          "-0,0173"
+        ],
+        [
+          "1,5",
+          "400",
+          "0,0083",
+          "0,0562",
+          "0,0221",
+          "0,0220",
+          "0,0168",
+          "-0,2492",
+          "0,0291",
+          "-0,0163"
+        ],
+        [
+          "2",
+          "20",
+          "0,0262",
+          "0,2288",
+          "0,0853",
+          "0,0140",
+          "0,0060",
+          "-0,4811",
+          "0,0149",
+          "-0,0052"
+        ],
+        [
+          "2",
+          "40",
+          "0,0234",
+          "0,1994",
+          "0,0701",
+          "0,0206",
+          "0,0086",
+          "-0,4492",
+          "0,0234",
+          "-0,0077"
+        ],
+        [
+          "2",
+          "120",
+          "0,0162",
+          "0,1276",
+          "0,0404",
+          "0,0238",
+          "0,0094",
+          "-0,3611",
+          "0,0299",
+          "-0,0086"
+        ],
+        [
+          "2",
+          "200",
+          "0,0129",
+          "0,0963",
+          "0,0296",
+          "0,0223",
+          "0,0085",
+          "-0,3162",
+          "0,0289",
+          "-0,0079"
+        ],
+        [
+          "2",
+          "300",
+          "0,0105",
+          "0,0752",
+          "0,0230",
+          "0,0208",
+          "0,0077",
+          "-0,2824",
+          "0,0274",
+          "-0,0072"
+        ],
+        [
+          "2",
+          "400",
+          "0,0090",
+          "0,0627",
+          "0,0190",
+          "0,0196",
+          "0,0071",
+          "-0,2600",
+          "0,0259",
+          "-0,0066"
+        ],
+        [
+          "3",
+          "20",
+          "0,0272",
+          "0,2331",
+          "0,0700",
+          "0,0102",
+          "0,0010",
+          "-0,4878",
+          "0,0111",
+          "-0,0008"
+        ],
+        [
+          "3",
+          "40",
+          "0,0247",
+          "0,2071",
+          "0,0615",
+          "0,0149",
+          "0,0011",
+          "-0,4575",
+          "0,0167",
+          "-0,0009"
+        ],
+        [
+          "3",
+          "120",
+          "0,0177",
+          "0,1396",
+          "0,0413",
+          "0,0186",
+          "0,0009",
+          "-0,3727",
+          "0,0202",
+          "-0,0005"
+        ],
+        [
+          "3",
+          "200",
+          "0,0143",
+          "0,1074",
+          "0,0319",
+          "0,0184",
+          "0,0009",
+          "-0,3272",
+          "0,0197",
+          "-0,0003"
+        ],
+        [
+          "3",
+          "300",
+          "0,0117",
+          "0,0848",
+          "0,0251",
+          "0,0176",
+          "0,0008",
+          "-0,2924",
+          "0,0192",
+          "-0,0002"
+        ],
+        [
+          "3",
+          "400",
+          "0,0101",
+          "0,0709",
+          "0,0210",
+          "0,0169",
+          "0,0008",
+          "-0,2687",
+          "0,0182",
+          "0,0000"
+        ]
+      ],
+      "footnotes": [
+        "Loading: Uniformly distributed loading",
+        "Boundary conditions: FBC: All edges are clamped. MBC: All edges remain straight. Zero average direct stresses, zero shear stresses",
+        "Parameters: Q = (qEd a^4) / (E t^4)"
+      ],
+      "clause": "C.3.3",
+      "page": 33
+    },
+    {
+      "table_id": "Table C.5",
+      "title": "Coefficients k",
+      "headers": [
+        "α × β",
+        "p",
+        "kw1",
+        "kσbx1",
+        "kσby1",
+        "kσmx1",
+        "kσmy1"
+      ],
+      "rows": [
+        [
+          "0,1 × 0,1",
+          "10",
+          "0,1021",
+          "1,4586",
+          "1,4586",
+          "0,1548",
+          "0,1548"
+        ],
+        [
+          "0,1 × 0,1",
+          "20",
+          "0,0808",
+          "1,2143",
+          "1,2143",
+          "0,1926",
+          "0,1926"
+        ],
+        [
+          "0,1 × 0,1",
+          "60",
+          "0,0485",
+          "0,8273",
+          "0,8273",
+          "0,2047",
+          "0,2047"
+        ],
+        [
+          "0,1 × 0,1",
+          "100",
+          "0,0372",
+          "0,6742",
+          "0,6742",
+          "0,1978",
+          "0,1978"
+        ],
+        [
+          "0,1 × 0,1",
+          "150",
+          "0,0298",
+          "0,5693",
+          "0,5693",
+          "0,1892",
+          "0,1892"
+        ],
+        [
+          "0,1 × 0,1",
+          "200",
+          "0,0255",
+          "0,5005",
+          "0,5005",
+          "0,1823",
+          "0,1823"
+        ],
+        [
+          "0,2 × 0,2",
+          "10",
+          "0,0998",
+          "1,0850",
+          "1,0850",
+          "0,1399",
+          "0,1399"
+        ],
+        [
+          "0,2 × 0,2",
+          "20",
+          "0,0795",
+          "0,8593",
+          "0,8593",
+          "0,1729",
+          "0,1729"
+        ],
+        [
+          "0,2 × 0,2",
+          "60",
+          "0,0478",
+          "0,5108",
+          "0,5108",
+          "0,1756",
+          "0,1756"
+        ],
+        [
+          "0,2 × 0,2",
+          "100",
+          "0,0364",
+          "0,3881",
+          "0,3881",
+          "0,1624",
+          "0,1624"
+        ],
+        [
+          "0,2 × 0,2",
+          "150",
+          "0,0293",
+          "0,3089",
+          "0,3089",
+          "0,1505",
+          "0,1505"
+        ],
+        [
+          "0,2 × 0,2",
+          "200",
+          "0,0249",
+          "0,2614",
+          "0,2614",
+          "0,1412",
+          "0,1412"
+        ],
+        [
+          "0,3 × 0,3",
+          "10",
+          "0,0945",
+          "0,8507",
+          "0,8507",
+          "0,1144",
+          "0,1144"
+        ],
+        [
+          "0,3 × 0,3",
+          "20",
+          "0,0759",
+          "0,6614",
+          "0,6614",
+          "0,1425",
+          "0,1425"
+        ],
+        [
+          "0,3 × 0,3",
+          "60",
+          "0,0459",
+          "0,3702",
+          "0,3702",
+          "0,1425",
+          "0,1425"
+        ],
+        [
+          "0,3 × 0,3",
+          "100",
+          "0,0351",
+          "0,2704",
+          "0,2704",
+          "0,1300",
+          "0,1300"
+        ],
+        [
+          "0,3 × 0,3",
+          "150",
+          "0,0282",
+          "0,2101",
+          "0,2101",
+          "0,1186",
+          "0,1186"
+        ],
+        [
+          "0,3 × 0,3",
+          "200",
+          "0,0240",
+          "0,1747",
+          "0,1747",
+          "0,1102",
+          "0,1102"
+        ],
+        [
+          "0,2 × 0,3",
+          "10",
+          "0,0971",
+          "0,9888",
+          "0,9128",
+          "0,1224",
+          "0,1288"
+        ],
+        [
+          "0,2 × 0,3",
+          "20",
+          "0,0776",
+          "0,7800",
+          "0,7101",
+          "0,1512",
+          "0,1602"
+        ],
+        [
+          "0,2 × 0,3",
+          "60",
+          "0,0468",
+          "0,4596",
+          "0,4021",
+          "0,1488",
+          "0,1624"
+        ],
+        [
+          "0,2 × 0,3",
+          "100",
+          "0,0358",
+          "0,3468",
+          "0,2957",
+          "0,1368",
+          "0,1512"
+        ],
+        [
+          "0,2 × 0,3",
+          "150",
+          "0,0287",
+          "0,2760",
+          "0,2307",
+          "0,1248",
+          "0,1389"
+        ],
+        [
+          "0,2 × 0,3",
+          "200",
+          "0,0245",
+          "0,2340",
+          "0,1926",
+          "0,1152",
+          "0,1310"
+        ],
+        [
+          "0,2 × 0,4",
+          "10",
+          "0,0939",
+          "0,9119",
+          "0,7961",
+          "0,1078",
+          "0,1183"
+        ],
+        [
+          "0,2 × 0,4",
+          "20",
+          "0,0755",
+          "0,7216",
+          "0,6142",
+          "0,1320",
+          "0,1487"
+        ],
+        [
+          "0,2 × 0,4",
+          "60",
+          "0,0457",
+          "0,4235",
+          "0,3355",
+          "0,1287",
+          "0,1516"
+        ],
+        [
+          "0,2 × 0,4",
+          "100",
+          "0,0350",
+          "0,3201",
+          "0,2435",
+          "0,1166",
+          "0,1408"
+        ],
+        [
+          "0,2 × 0,4",
+          "150",
+          "0,0280",
+          "0,2541",
+          "0,1868",
+          "0,1045",
+          "0,1301"
+        ],
+        [
+          "0,2 × 0,4",
+          "200",
+          "0,0239",
+          "0,2156",
+          "0,1545",
+          "0,0968",
+          "0,1213"
+        ]
+      ],
+      "footnotes": [
+        "Loading: Central patch loading",
+        "Boundary conditions: FBC: All edges are rigidly supported and rotationally free. MBC: Zero direct stresses, zero shear stresses",
+        "Parameters: α = u/a; β = v/a, P = (pEd a^4) / (E t^4), b/a = 1"
+      ],
+      "clause": "C.4.3",
+      "page": 35
+    },
+    {
+      "table_id": "Table C.6",
+      "title": "Coefficients k",
+      "headers": [
+        "α × β",
+        "p",
+        "kw1",
+        "kσbx1",
+        "kσby1",
+        "kσmx1",
+        "kσmy1"
+      ],
+      "rows": [
+        [
+          "0,1 × 0,1",
+          "10",
+          "0,1303",
+          "1,5782",
+          "1,3855",
+          "0,1517",
+          "0,1921"
+        ],
+        [
+          "0,1 × 0,1",
+          "20",
+          "0,1018",
+          "1,3056",
+          "1,1373",
+          "0,1786",
+          "0,2295"
+        ],
+        [
+          "0,1 × 0,1",
+          "60",
+          "0,0612",
+          "0,8986",
+          "0,7701",
+          "0,1824",
+          "0,2380"
+        ],
+        [
+          "0,1 × 0,1",
+          "100",
+          "0,0469",
+          "0,7411",
+          "0,6273",
+          "0,1747",
+          "0,2295"
+        ],
+        [
+          "0,1 × 0,1",
+          "150",
+          "0,0378",
+          "0,6298",
+          "0,5287",
+          "0,1670",
+          "0,2193"
+        ],
+        [
+          "0,1 × 0,1",
+          "200",
+          "0,0323",
+          "0,5568",
+          "0,4641",
+          "0,1594",
+          "0,2125"
+        ],
+        [
+          "0,2 × 0,2",
+          "10",
+          "0,1281",
+          "1,1974",
+          "1,0049",
+          "0,1344",
+          "0,1780"
+        ],
+        [
+          "0,2 × 0,2",
+          "20",
+          "0,1007",
+          "0,9453",
+          "0,7766",
+          "0,1555",
+          "0,2116"
+        ],
+        [
+          "0,2 × 0,2",
+          "60",
+          "0,0605",
+          "0,5783",
+          "0,4554",
+          "0,1465",
+          "0,2103"
+        ],
+        [
+          "0,2 × 0,2",
+          "100",
+          "0,0462",
+          "0,4485",
+          "0,3457",
+          "0,1329",
+          "0,1974"
+        ],
+        [
+          "0,2 × 0,2",
+          "150",
+          "0,0372",
+          "0,3624",
+          "0,2748",
+          "0,1208",
+          "0,1845"
+        ],
+        [
+          "0,2 × 0,2",
+          "200",
+          "0,0317",
+          "0,3111",
+          "0,2322",
+          "0,1133",
+          "0,1742"
+        ],
+        [
+          "0,3 × 0,3",
+          "10",
+          "0,1229",
+          "0,9589",
+          "0,7737",
+          "0,1074",
+          "0,1525"
+        ],
+        [
+          "0,3 × 0,3",
+          "20",
+          "0,0972",
+          "0,7405",
+          "0,5828",
+          "0,1232",
+          "0,1818"
+        ],
+        [
+          "0,3 × 0,3",
+          "60",
+          "0,0585",
+          "0,4282",
+          "0,3161",
+          "0,1110",
+          "0,1788"
+        ],
+        [
+          "0,3 × 0,3",
+          "100",
+          "0,0449",
+          "0,3221",
+          "0,2353",
+          "0,0988",
+          "0,1667"
+        ],
+        [
+          "0,3 × 0,3",
+          "150",
+          "0,0361",
+          "0,2550",
+          "0,1828",
+          "0,0878",
+          "0,1535"
+        ],
+        [
+          "0,3 × 0,3",
+          "200",
+          "0,0309",
+          "0,2147",
+          "0,1525",
+          "0,0805",
+          "0,1444"
+        ],
+        [
+          "0,2 × 0,3",
+          "10",
+          "0,1260",
+          "1,1037",
+          "0,8360",
+          "0,1154",
+          "0,1657"
+        ],
+        [
+          "0,2 × 0,3",
+          "20",
+          "0,0994",
+          "0,8688",
+          "0,6322",
+          "0,1321",
+          "0,1984"
+        ],
+        [
+          "0,2 × 0,3",
+          "60",
+          "0,0598",
+          "0,5296",
+          "0,3553",
+          "0,1168",
+          "0,1973"
+        ],
+        [
+          "0,2 × 0,3",
+          "100",
+          "0,0459",
+          "0,4114",
+          "0,2649",
+          "0,1043",
+          "0,1853"
+        ],
+        [
+          "0,2 × 0,3",
+          "150",
+          "0,0369",
+          "0,3336",
+          "0,2082",
+          "0,0931",
+          "0,1722"
+        ],
+        [
+          "0,2 × 0,3",
+          "200",
+          "0,0314",
+          "0,2877",
+          "0,1755",
+          "0,0848",
+          "0,1624"
+        ],
+        [
+          "0,2 × 0,4",
+          "10",
+          "0,1235",
+          "1,0294",
+          "0,7271",
+          "0,0993",
+          "0,1563"
+        ],
+        [
+          "0,2 × 0,4",
+          "20",
+          "0,0977",
+          "0,8101",
+          "0,5432",
+          "0,1109",
+          "0,1877"
+        ],
+        [
+          "0,2 × 0,4",
+          "60",
+          "0,0590",
+          "0,4954",
+          "0,2983",
+          "0,0955",
+          "0,1877"
+        ],
+        [
+          "0,2 × 0,4",
+          "100",
+          "0,0453",
+          "0,3857",
+          "0,2220",
+          "0,0826",
+          "0,1754"
+        ],
+        [
+          "0,2 × 0,4",
+          "150",
+          "0,0365",
+          "0,3148",
+          "0,1744",
+          "0,0722",
+          "0,1630"
+        ],
+        [
+          "0,2 × 0,4",
+          "200",
+          "0,0311",
+          "0,2722",
+          "0,1468",
+          "0,0658",
+          "0,1544"
+        ]
+      ],
+      "footnotes": [
+        "Loading: Central patch loading",
+        "Boundary conditions: FBC: All edges are rigidly supported and rotationally free. MBC: Zero direct stresses, zero shear stresses",
+        "Parameters: α = u/a; β = v/a, P = (pEd a^4) / (E t^4), b/a = 1,5"
+      ],
+      "clause": "C.4.3",
+      "page": 36
+    },
+    {
+      "table_id": "Table C.7",
+      "title": "Coefficients k",
+      "headers": [
+        "α × β",
+        "p",
+        "kw1",
+        "kσbx1",
+        "kσby1",
+        "kσmx1",
+        "kσmy1"
+      ],
+      "rows": [
+        [
+          "0,1 × 0,1",
+          "10",
+          "0,1438",
+          "1,6351",
+          "1,3560",
+          "0,1517",
+          "0,1904"
+        ],
+        [
+          "0,1 × 0,1",
+          "20",
+          "0,1154",
+          "1,3692",
+          "1,1106",
+          "0,1773",
+          "0,2288"
+        ],
+        [
+          "0,1 × 0,1",
+          "60",
+          "0,0725",
+          "0,9633",
+          "0,7498",
+          "0,1753",
+          "0,2438"
+        ],
+        [
+          "0,1 × 0,1",
+          "100",
+          "0,0564",
+          "0,7979",
+          "0,6112",
+          "0,1675",
+          "0,2355"
+        ],
+        [
+          "0,1 × 0,1",
+          "150",
+          "0,0456",
+          "0,6797",
+          "0,5127",
+          "0,1596",
+          "0,2271"
+        ],
+        [
+          "0,1 × 0,1",
+          "200",
+          "0,0390",
+          "0,6028",
+          "0,4492",
+          "0,1517",
+          "0,2188"
+        ],
+        [
+          "0,2 × 0,2",
+          "10",
+          "0,1414",
+          "1,2542",
+          "0,9752",
+          "0,1326",
+          "0,1751"
+        ],
+        [
+          "0,2 × 0,2",
+          "20",
+          "0,1138",
+          "1,0078",
+          "0,7510",
+          "0,1513",
+          "0,2104"
+        ],
+        [
+          "0,2 × 0,2",
+          "60",
+          "0,0716",
+          "0,6427",
+          "0,4410",
+          "0,1373",
+          "0,2167"
+        ],
+        [
+          "0,2 × 0,2",
+          "100",
+          "0,0555",
+          "0,5054",
+          "0,3339",
+          "0,1232",
+          "0,2054"
+        ],
+        [
+          "0,2 × 0,2",
+          "150",
+          "0,0449",
+          "0,4134",
+          "0,2646",
+          "0,1108",
+          "0,1928"
+        ],
+        [
+          "0,2 × 0,2",
+          "200",
+          "0,0384",
+          "0,3572",
+          "0,2230",
+          "0,1030",
+          "0,1827"
+        ],
+        [
+          "0,3 × 0,3",
+          "10",
+          "0,1362",
+          "1,0227",
+          "0,7506",
+          "0,1062",
+          "0,1517"
+        ],
+        [
+          "0,3 × 0,3",
+          "20",
+          "0,1104",
+          "0,8090",
+          "0,5615",
+          "0,1190",
+          "0,1822"
+        ],
+        [
+          "0,3 × 0,3",
+          "60",
+          "0,0698",
+          "0,4941",
+          "0,3093",
+          "0,1024",
+          "0,1862"
+        ],
+        [
+          "0,3 × 0,3",
+          "100",
+          "0,0542",
+          "0,3789",
+          "0,2275",
+          "0,0883",
+          "0,1753"
+        ],
+        [
+          "0,3 × 0,3",
+          "150",
+          "0,0421",
+          "0,3046",
+          "0,1783",
+          "0,0794",
+          "0,1645"
+        ],
+        [
+          "0,3 × 0,3",
+          "200",
+          "0,0374",
+          "0,2586",
+          "0,1487",
+          "0,0717",
+          "0,1546"
+        ],
+        [
+          "0,2 × 0,3",
+          "10",
+          "0,1395",
+          "1,1702",
+          "0,8164",
+          "0,1146",
+          "0,1231"
+        ],
+        [
+          "0,2 × 0,3",
+          "20",
+          "0,1129",
+          "0,9396",
+          "0,6153",
+          "0,1262",
+          "0,1990"
+        ],
+        [
+          "0,2 × 0,3",
+          "60",
+          "0,0712",
+          "0,6003",
+          "0,3488",
+          "0,1088",
+          "0,2044"
+        ],
+        [
+          "0,2 × 0,3",
+          "100",
+          "0,0553",
+          "0,4742",
+          "0,2611",
+          "0,0943",
+          "0,1947"
+        ],
+        [
+          "0,2 × 0,3",
+          "150",
+          "0,0447",
+          "0,3901",
+          "0,2065",
+          "0,0841",
+          "0,1830"
+        ],
+        [
+          "0,2 × 0,3",
+          "200",
+          "0,0383",
+          "0,3379",
+          "0,1744",
+          "0,0754",
+          "0,1733"
+        ],
+        [
+          "0,2 × 0,4",
+          "10",
+          "0,1375",
+          "1,0976",
+          "0,7051",
+          "0,0959",
+          "0,1551"
+        ],
+        [
+          "0,2 × 0,4",
+          "20",
+          "0,1117",
+          "0,8829",
+          "0,5267",
+          "0,1053",
+          "0,1886"
+        ],
+        [
+          "0,2 × 0,4",
+          "60",
+          "0,0706",
+          "0,5670",
+          "0,2945",
+          "0,0851",
+          "0,1942"
+        ],
+        [
+          "0,2 × 0,4",
+          "100",
+          "0,0549",
+          "0,4496",
+          "0,2220",
+          "0,0729",
+          "0,1849"
+        ],
+        [
+          "0,2 × 0,4",
+          "150",
+          "0,0445",
+          "0,3713",
+          "0,1765",
+          "0,0635",
+          "0,1737"
+        ],
+        [
+          "0,2 × 0,4",
+          "200",
+          "0,0381",
+          "0,3227",
+          "0,1496",
+          "0,0554",
+          "0,1644"
+        ]
+      ],
+      "footnotes": [
+        "Loading: Central patch loading",
+        "Boundary conditions: FBC: All edges are rigidly supported and rotationally free. MBC: Zero direct stresses, zero shear stresses",
+        "Parameters: α = u/a; β = v/a, P = (pEd a^4) / (E t^4), b/a = 2"
+      ],
+      "clause": "C.4.3",
+      "page": 37
+    },
+    {
+      "table_id": "Table C.8",
+      "title": "Coefficients k",
+      "headers": [
+        "α × β",
+        "p",
+        "kw1",
+        "kσbx1",
+        "kσby1",
+        "kσmx1",
+        "kσmy1"
+      ],
+      "rows": [
+        [
+          "0,1 × 0,1",
+          "10",
+          "0,1496",
+          "1,6636",
+          "1,3463",
+          "0,1552",
+          "0,1826"
+        ],
+        [
+          "0,1 × 0,1",
+          "20",
+          "0,1235",
+          "1,4109",
+          "1,1006",
+          "0,1811",
+          "0,2175"
+        ],
+        [
+          "0,1 × 0,1",
+          "60",
+          "0,0861",
+          "1,0428",
+          "0,7453",
+          "0,1811",
+          "0,2374"
+        ],
+        [
+          "0,2 × 0,2",
+          "10",
+          "0,1470",
+          "1,2814",
+          "0,9650",
+          "0,1359",
+          "0,1688"
+        ],
+        [
+          "0,2 × 0,2",
+          "20",
+          "0,1218",
+          "1,0491",
+          "0,7400",
+          "0,1548",
+          "0,2000"
+        ],
+        [
+          "0,2 × 0,2",
+          "60",
+          "0,0849",
+          "0,7205",
+          "0,4363",
+          "0,1390",
+          "0,2088"
+        ],
+        [
+          "0,3 × 0,3",
+          "10",
+          "0,1419",
+          "1,0504",
+          "0,7410",
+          "0,1092",
+          "0,1443"
+        ],
+        [
+          "0,3 × 0,3",
+          "20",
+          "0,1182",
+          "0,8489",
+          "0,5519",
+          "0,1222",
+          "0,1726"
+        ],
+        [
+          "0,3 × 0,3",
+          "60",
+          "0,0827",
+          "0,5681",
+          "0,3052",
+          "0,1014",
+          "0,1775"
+        ],
+        [
+          "0,2 × 0,3",
+          "10",
+          "0,1455",
+          "1,1981",
+          "0,8056",
+          "0,1161",
+          "0,1579"
+        ],
+        [
+          "0,2 × 0,3",
+          "20",
+          "0,1210",
+          "0,9820",
+          "0,6053",
+          "0,1294",
+          "0,1876"
+        ],
+        [
+          "0,2 × 0,3",
+          "60",
+          "0,0847",
+          "0,6806",
+          "0,3487",
+          "0,1088",
+          "0,1982"
+        ],
+        [
+          "0,2 × 0,4",
+          "10",
+          "0,1434",
+          "0,1126",
+          "0,6949",
+          "0,0986",
+          "0,1469"
+        ],
+        [
+          "0,2 × 0,4",
+          "20",
+          "0,1199",
+          "0,9261",
+          "0,5168",
+          "0,1069",
+          "0,1763"
+        ],
+        [
+          "0,2 × 0,4",
+          "60",
+          "0,0844",
+          "0,6480",
+          "0,2993",
+          "0,0849",
+          "0,1873"
+        ]
+      ],
+      "footnotes": [
+        "Loading: Central patch loading",
+        "Boundary conditions: FBC: All edges are rigidly supported and rotationally free. MBC: Zero direct stresses, zero shear stresses",
+        "Parameters: α = u/a; β = v/a, P = (pEd a^4) / (E t^4), b/a = 2.5"
+      ],
+      "clause": "C.4.3",
+      "page": 38
+    }
+  ],
+  "figures": [
+    {
+      "figure_id": "Figure 1.1",
+      "title": "Components of a plated structure",
+      "figure_type": "diagram",
+      "description": "A 3D diagram showing a plated structure composed of plate segments, subpanels, transverse stiffeners (trough or closed), and longitudinal stiffeners (open or closed).",
+      "labels": [
+        "Plated structure",
+        "Transverse stiffener (trough or closed)",
+        "Longitudinal stiffeners (open or closed)",
+        "Plate segment",
+        "Subpanels"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "1.3.1.1",
+      "page": 7
+    },
+    {
+      "figure_id": "Figure 1.2",
+      "title": "Membrane stresses",
+      "figure_type": "diagram",
+      "description": "A 3D diagram of a rectangular plate element showing membrane normal stresses (σmx, σmy) and membrane shear stresses (τmxy, τmyx) acting on its faces, with dimensions ax and ay.",
+      "labels": [
+        "ax",
+        "ay",
+        "nx",
+        "ny",
+        "σmx",
+        "σmy",
+        "τmxy",
+        "τmyx"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "1.4",
+      "page": 9
+    },
+    {
+      "figure_id": "Figure 1.3",
+      "title": "Normal and shear stresses due to bending",
+      "figure_type": "diagram",
+      "description": "A 3D diagram of a rectangular plate element showing normal stresses (σbx, σby) and shear stresses (τbxy, τbyx, τbxz, τbyz) due to bending moments (mx, my, mxy) and transverse shear forces (qx, qy).",
+      "labels": [
+        "ax",
+        "ay",
+        "mx",
+        "my",
+        "mxy",
+        "qx",
+        "qy",
+        "σbx",
+        "σby",
+        "τbxy",
+        "τbyx",
+        "τbxz",
+        "τbyz"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "1.4",
+      "page": 9
+    },
+    {
+      "figure_id": "Figure 1.4",
+      "title": "Dimensions and axes of unstiffened plate segments",
+      "figure_type": "diagram",
+      "description": "A 3D diagram showing an unstiffened rectangular plate segment with length a, width b, and thickness t, along with a coordinate system (x,u; y,v; z,w).",
+      "labels": [
+        "a",
+        "b",
+        "t",
+        "x,u",
+        "y,v",
+        "z,w"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "1.4",
+      "page": 10
+    },
+    {
+      "figure_id": "Figure 1.5",
+      "title": "Dimensions and axes of stiffened plate segments; stiffeners may be open or closed stiffeners",
+      "figure_type": "diagram",
+      "description": "A 3D diagram showing a stiffened rectangular plate segment with length a, width b, and thickness t. It includes longitudinal stiffeners and indicates a subpanel, along with a coordinate system (x,u; y,v; z,w).",
+      "labels": [
+        "a",
+        "b",
+        "t",
+        "Stiffeners",
+        "Subpanel",
+        "x,u",
+        "y,v",
+        "z,w"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "1.4",
+      "page": 10
+    },
+    {
+      "figure_id": "Figure 5.1",
+      "title": "Initial equivalent geometric bow imperfection e0 of a plate segment",
+      "figure_type": "sketch",
+      "description": "A 3D sketch of a rectangular plate segment showing an initial bow imperfection. The plate has dimensions 'a' (length) and 'b' (width). The maximum out-of-plane deflection is labeled 'e0' at the center of the plate.",
+      "labels": [
+        "a",
+        "b",
+        "e0"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "5.2.3.3",
+      "page": 15
+    },
+    {
+      "figure_id": "Figure 5.2",
+      "title": "Definition of the cross-section Ai",
+      "figure_type": "cross_section",
+      "description": "A diagram showing the cross-section of a stiffened plate with transverse stiffeners. It illustrates the effective area Ai, the equivalent axial forces NEd, and the distributed load qEd. The diagram includes a side view and a cross-sectional view of the stiffeners.",
+      "labels": [
+        "Transverse stiffener",
+        "σx,Ed",
+        "NEd",
+        "qEd",
+        "e1",
+        "a",
+        "Ai"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "5.2.3.4.3",
+      "page": 16
+    },
+    {
+      "figure_id": "Figure B.7",
+      "title": "",
+      "figure_type": "diagram",
+      "description": "Diagram showing a rectangular plate with dimensions a and b, central patch loading with dimensions u and v, and axes x and y.",
+      "labels": [
+        "y",
+        "b",
+        "v",
+        "u",
+        "x",
+        "a"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "B.4.3",
+      "page": 27
+    },
+    {
+      "figure_id": "Figure C.1",
+      "title": "",
+      "figure_type": "diagram",
+      "description": "Diagram showing a rectangular plate with dimensions a and b, axes x and y, points 1 and 2, and boundary conditions FBC and MBC.",
+      "labels": [
+        "y",
+        "b",
+        "1",
+        "2",
+        "x",
+        "FBC",
+        "MBC",
+        "a"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "C.3.3",
+      "page": 30
+    },
+    {
+      "figure_id": "Figure C.2",
+      "title": "",
+      "figure_type": "diagram",
+      "description": "Diagram showing a rectangular plate with dimensions a and b, axes x and y, points 1 and 2, and boundary conditions FBC and MBC.",
+      "labels": [
+        "y",
+        "b",
+        "1",
+        "2",
+        "x",
+        "FBC",
+        "MBC",
+        "a"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "C.3.3",
+      "page": 31
+    },
+    {
+      "figure_id": "Figure C.3",
+      "title": "",
+      "figure_type": "diagram",
+      "description": "Diagram showing a rectangular plate with dimensions a and b, axes x and y, points 1 and 2, and boundary conditions FBC and MBC.",
+      "labels": [
+        "y",
+        "b",
+        "1",
+        "2",
+        "x",
+        "FBC",
+        "MBC",
+        "a"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "C.3.3",
+      "page": 32
+    },
+    {
+      "figure_id": "Figure C.4",
+      "title": "",
+      "figure_type": "diagram",
+      "description": "Diagram showing a rectangular plate with dimensions a and b, axes x and y, points 1 and 2, and boundary conditions FBC and MBC.",
+      "labels": [
+        "y",
+        "b",
+        "1",
+        "2",
+        "x",
+        "FBC",
+        "MBC",
+        "a"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "C.3.3",
+      "page": 33
+    },
+    {
+      "figure_id": "Figure C.5",
+      "title": "",
+      "figure_type": "diagram",
+      "description": "Diagram showing a rectangular plate with dimensions a and b, central patch loading with dimensions u and v, axes x and y, points 1 and 2, and boundary conditions FBC and MBC.",
+      "labels": [
+        "y",
+        "b",
+        "v",
+        "1",
+        "2",
+        "u",
+        "x",
+        "FBC",
+        "MBC",
+        "a"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "C.4.3",
+      "page": 35
+    },
+    {
+      "figure_id": "Figure C.6",
+      "title": "",
+      "figure_type": "diagram",
+      "description": "Diagram showing a rectangular plate with dimensions a and b, central patch loading with dimensions u and v, axes x and y, points 1 and 2, and boundary conditions FBC and MBC.",
+      "labels": [
+        "y",
+        "b",
+        "v",
+        "1",
+        "2",
+        "u",
+        "x",
+        "FBC",
+        "MBC",
+        "a"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "C.4.3",
+      "page": 36
+    },
+    {
+      "figure_id": "Figure C.7",
+      "title": "",
+      "figure_type": "diagram",
+      "description": "Diagram showing a rectangular plate with dimensions a and b, central patch loading with dimensions u and v, axes x and y, points 1 and 2, and boundary conditions FBC and MBC.",
+      "labels": [
+        "y",
+        "b",
+        "v",
+        "1",
+        "2",
+        "u",
+        "x",
+        "FBC",
+        "MBC",
+        "a"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "C.4.3",
+      "page": 37
+    },
+    {
+      "figure_id": "Figure C.8",
+      "title": "",
+      "figure_type": "diagram",
+      "description": "Diagram showing a rectangular plate with dimensions a and b, central patch loading with dimensions u and v, axes x and y, points 1 and 2, and boundary conditions FBC and MBC.",
+      "labels": [
+        "y",
+        "b",
+        "v",
+        "1",
+        "2",
+        "u",
+        "x",
+        "FBC",
+        "MBC",
+        "a"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "C.4.3",
+      "page": 38
+    },
+    {
+      "figure_id": "Table C.8 Diagram",
+      "title": "Central patch loading and boundary conditions",
+      "figure_type": "diagram",
+      "description": "Diagram embedded in the header of Table C.8 illustrating a rectangular plate with dimensions a and b, and a central loaded patch with dimensions u and v. It shows coordinate axes x and y originating from the center, and points 1 and 2 marked on the patch. It also indicates two boundary condition diagrams labeled FBC and MBC.",
+      "labels": [
+        "y",
+        "x",
+        "a",
+        "b",
+        "u",
+        "v",
+        "1",
+        "2",
+        "FBC",
+        "MBC"
+      ],
+      "axis_info": "",
+      "data_points": "",
+      "clause": "",
+      "page": 38
+    }
+  ],
+  "equations": [
+    {
+      "equation_id": "(5.1)",
+      "latex": "\\sigma_{eq,Ed} = \\frac{1}{t} \\sqrt{n_{x,Ed}^2 + n_{y,Ed}^2 - n_{x,Ed} n_{y,Ed} + 3 n_{xy,Ed}^2}",
+      "plain_text": "σeq,Ed = (1/t) * sqrt(nx,Ed^2 + ny,Ed^2 - nx,Ed*ny,Ed + 3*nxy,Ed^2)",
+      "description": "Equivalent Von Mises stress for a two dimensional stress field resulting from a membrane theory analysis",
+      "variables": [
+        {
+          "symbol": "σeq,Ed",
+          "meaning": "equivalent Von Mises stress"
+        },
+        {
+          "symbol": "t",
+          "meaning": "thickness of the plate"
+        },
+        {
+          "symbol": "nx,Ed",
+          "meaning": "membrane normal force in the x-direction"
+        },
+        {
+          "symbol": "ny,Ed",
+          "meaning": "membrane normal force in the y-direction"
+        },
+        {
+          "symbol": "nxy,Ed",
+          "meaning": "membrane shear force"
+        }
+      ],
+      "clause": "5.2.3.2",
+      "page": 14
+    },
+    {
+      "equation_id": "(5.2)",
+      "latex": "\\sigma_{eq,Ed} = \\sqrt{\\sigma_{x,Ed}^2 + \\sigma_{y,Ed}^2 - \\sigma_{x,Ed} \\sigma_{y,Ed} + 3 \\tau_{xy,Ed}^2}",
+      "plain_text": "σeq,Ed = sqrt(σx,Ed^2 + σy,Ed^2 - σx,Ed*σy,Ed + 3*τxy,Ed^2)",
+      "description": "Equivalent Von Mises stress for a two dimensional stress field resulting from an elastic plate theory",
+      "variables": [
+        {
+          "symbol": "σeq,Ed",
+          "meaning": "equivalent Von Mises stress"
+        },
+        {
+          "symbol": "σx,Ed",
+          "meaning": "normal stress in the x-direction, defined as nx,Ed/t ± mx,Ed/(t^2/4)"
+        },
+        {
+          "symbol": "σy,Ed",
+          "meaning": "normal stress in the y-direction, defined as ny,Ed/t ± my,Ed/(t^2/4)"
+        },
+        {
+          "symbol": "τxy,Ed",
+          "meaning": "shear stress, defined as nxy,Ed/t ± mxy,Ed/(t^2/4)"
+        },
+        {
+          "symbol": "nx,Ed",
+          "meaning": "membrane normal force in the x-direction"
+        },
+        {
+          "symbol": "ny,Ed",
+          "meaning": "membrane normal force in the y-direction"
+        },
+        {
+          "symbol": "nxy,Ed",
+          "meaning": "membrane shear force"
+        },
+        {
+          "symbol": "mx,Ed",
+          "meaning": "bending moment per unit width in the x-direction"
+        },
+        {
+          "symbol": "my,Ed",
+          "meaning": "bending moment per unit width in the y-direction"
+        },
+        {
+          "symbol": "mxy,Ed",
+          "meaning": "twisting moment per unit width"
+        },
+        {
+          "symbol": "t",
+          "meaning": "thickness of the plate"
+        }
+      ],
+      "clause": "5.2.3.2",
+      "page": 14
+    },
+    {
+      "equation_id": "(5.3)",
+      "latex": "\\sigma_{eq,Ed} = \\sqrt{\\sigma_{x,Ed}^2 + \\sigma_{y,Ed}^2 - \\sigma_{x,Ed} \\sigma_{y,Ed} + 3 \\tau_{xy,Ed}^2}",
+      "plain_text": "σeq,Ed = sqrt(σx,Ed^2 + σy,Ed^2 - σx,Ed*σy,Ed + 3*τxy,Ed^2)",
+      "description": "Maximum equivalent Von Mises stress of the plated structure calculated from a numerical analysis",
+      "variables": [
+        {
+          "symbol": "σeq,Ed",
+          "meaning": "equivalent Von Mises stress"
+        },
+        {
+          "symbol": "σx,Ed",
+          "meaning": "normal stress in the x-direction (positive in case of tension)"
+        },
+        {
+          "symbol": "σy,Ed",
+          "meaning": "normal stress in the y-direction (positive in case of tension)"
+        },
+        {
+          "symbol": "τxy,Ed",
+          "meaning": "shear stress"
+        }
+      ],
+      "clause": "5.2.3.3",
+      "page": 14
+    },
+    {
+      "equation_id": "(5.4)",
+      "latex": "e_0 = \\frac{(1 - \\rho \\bar{\\lambda}_p)(1 - \\rho)}{\\rho \\zeta}",
+      "plain_text": "e0 = ((1 - ρ*λp_bar)*(1 - ρ)) / (ρ*ζ)",
+      "description": "Amplitude of the initial equivalent geometric imperfection of a rectangular plate segment",
+      "variables": [
+        {
+          "symbol": "e0",
+          "meaning": "amplitude of the initial equivalent geometric imperfection"
+        },
+        {
+          "symbol": "ζ",
+          "meaning": "parameter defined as (6b^2(b^2+νa^2))/(t(a^2+b^2)^2)"
+        },
+        {
+          "symbol": "ρ",
+          "meaning": "reduction factor for plate buckling as defined in 4.4 of EN 1993-1-5"
+        },
+        {
+          "symbol": "a",
+          "meaning": "length of the plate"
+        },
+        {
+          "symbol": "b",
+          "meaning": "width of the plate"
+        },
+        {
+          "symbol": "t",
+          "meaning": "thickness of the plate"
+        },
+        {
+          "symbol": "α",
+          "meaning": "aspect ratio a/b"
+        },
+        {
+          "symbol": "λp",
+          "meaning": "relative slenderness of the plate, see EN 1993-1-5"
+        }
+      ],
+      "clause": "5.2.3.3",
+      "page": 15
+    },
+    {
+      "equation_id": "(5.5)",
+      "latex": "A_i = [\\rho_c (A_{t,eff} + \\Sigma \\rho_{pan,i} b_{pan,i} t_{pan,i})] \\beta^\\kappa",
+      "plain_text": "Ai = [ρc (At,eff + Σ ρpan,i bpan,i tpan,i)] β^κ",
+      "description": "Effective area Ai considering interaction between shear lag effects and plate buckling effects",
+      "variables": [
+        {
+          "symbol": "At,eff",
+          "meaning": "effective area of the stiffener considering to local plate buckling of the stiffener"
+        },
+        {
+          "symbol": "ρc",
+          "meaning": "reduction factor due to global plate buckling of the stiffened plate segment, as defined in 4.5.4(1) of EN 1993-1-5"
+        },
+        {
+          "symbol": "ρpan,i",
+          "meaning": "reduction factor due to local plate buckling of the subpanel i, as defined in 4.4(1) of EN 1993-1-5"
+        },
+        {
+          "symbol": "bpan,i",
+          "meaning": "width of the subpanel i, as defined in 4.5.1(3) of EN 1993-1-5"
+        },
+        {
+          "symbol": "tpan,i",
+          "meaning": "thickness of the subpanel i"
+        },
+        {
+          "symbol": "β",
+          "meaning": "effective width factor for the effect of shear lag, see 3.2.1 of EN 1993-1-5"
+        },
+        {
+          "symbol": "κ",
+          "meaning": "ratio defined in 3.3 of EN 1993-1-5"
+        }
+      ],
+      "clause": "5.2.3.4.3",
+      "page": 16
+    },
+    {
+      "equation_id": "(6.1)",
+      "latex": "\\sigma_{eq,Ed} \\le \\sigma_{eq,Rd}",
+      "plain_text": "σeq,Ed ≤ σeq,Rd",
+      "description": "Design stress condition at every point in a plated structure",
+      "variables": [
+        {
+          "symbol": "σeq,Ed",
+          "meaning": "largest value of Von Mises equivalent stress as defined in 5.2.3"
+        }
+      ],
+      "clause": "6.2.1",
+      "page": 17
+    },
+    {
+      "equation_id": "(6.2)",
+      "latex": "\\sigma_{eq,Rd} = f_{yk} / \\gamma_{M0}",
+      "plain_text": "σeq,Rd = fyk / γM0",
+      "description": "Resistance of a plate segment against plastic collapse or tensile rupture under combined axial forces and bending",
+      "variables": [
+        {
+          "symbol": "fyk",
+          "meaning": "yield strength"
+        },
+        {
+          "symbol": "γM0",
+          "meaning": "partial factor for resistance"
+        }
+      ],
+      "clause": "6.2.1",
+      "page": 17
+    },
+    {
+      "equation_id": "(6.3)",
+      "latex": "F_{Ed} \\le F_{Rd}",
+      "plain_text": "FEd ≤ FRd",
+      "description": "Condition for the result of the numerical analysis",
+      "variables": [
+        {
+          "symbol": "FRd",
+          "meaning": "plastic limit state load, equal to αR FEd"
+        },
+        {
+          "symbol": "αR",
+          "meaning": "load amplification factor for the loads FEd for reaching the ultimate limit state"
+        },
+        {
+          "symbol": "FEd",
+          "meaning": "design values of actions"
+        }
+      ],
+      "clause": "6.2.2",
+      "page": 17
+    },
+    {
+      "equation_id": "(6.4)",
+      "latex": "\\Delta\\sigma_{Ed} \\le \\Delta\\sigma_{Rd}",
+      "plain_text": "ΔσEd ≤ ΔσRd",
+      "description": "Design stress range condition for cyclic plasticity",
+      "variables": [
+        {
+          "symbol": "ΔσEd",
+          "meaning": "largest value of the Von Mises equivalent stress range"
+        }
+      ],
+      "clause": "6.3.1",
+      "page": 18
+    },
+    {
+      "equation_id": "(6.5)",
+      "latex": "\\Delta\\sigma_{Rd} = 2.0 f_{yk} / \\gamma_{M0}",
+      "plain_text": "ΔσRd = 2.0 fyk / γM0",
+      "description": "Von Mises stress range limitation for resistance against cyclic plasticity / low cycle fatigue",
+      "variables": [
+        {
+          "symbol": "fyk",
+          "meaning": "yield strength"
+        },
+        {
+          "symbol": "γM0",
+          "meaning": "partial factor for resistance"
+        }
+      ],
+      "clause": "6.3.1",
+      "page": 18
+    },
+    {
+      "equation_id": "(6.6)",
+      "latex": "\\varepsilon_{eq,Ed} = m \\Delta\\varepsilon_{eq,Ed}",
+      "plain_text": "εeq,Ed = m Δεeq,Ed",
+      "description": "Total accumulated Von Mises equivalent plastic strain",
+      "variables": [
+        {
+          "symbol": "m",
+          "meaning": "number of cycles in the design life"
+        },
+        {
+          "symbol": "Δεeq,Ed",
+          "meaning": "largest increment in the Von Mises plastic strain during one complete load cycle at any point in the structure occurring after the third cycle"
+        }
+      ],
+      "clause": "6.3.2",
+      "page": 18
+    },
+    {
+      "equation_id": "(6.7)",
+      "latex": "\\varepsilon_{p,eq,Ed} \\le n_{eq} \\frac{f_{yk}}{E \\gamma_{M0}}",
+      "plain_text": "εp,eq,Ed ≤ neq * fyk / (E * γM0)",
+      "description": "Condition for the design value of the total accumulated Von Mises equivalent plastic strain",
+      "variables": [
+        {
+          "symbol": "neq",
+          "meaning": "value chosen by the National Annex (recommended 25)"
+        },
+        {
+          "symbol": "fyk",
+          "meaning": "yield strength"
+        },
+        {
+          "symbol": "E",
+          "meaning": "elastic modulus"
+        },
+        {
+          "symbol": "γM0",
+          "meaning": "partial factor for resistance"
+        }
+      ],
+      "clause": "6.3.2",
+      "page": 19
+    },
+    {
+      "equation_id": "(6.8)",
+      "latex": "F_{Ed} \\le F_{Rd}",
+      "plain_text": "FEd ≤ FRd",
+      "description": "Condition for plate buckling resistance checked by numerical analysis",
+      "variables": [
+        {
+          "symbol": "FEd",
+          "meaning": "design actions"
+        },
+        {
+          "symbol": "FRd",
+          "meaning": "plate buckling resistance of a plated structure"
+        }
+      ],
+      "clause": "6.4.2",
+      "page": 19
+    },
+    {
+      "equation_id": "(6.9)",
+      "latex": "F_{Rd} = k F_{Rk} / \\gamma_{M1}",
+      "plain_text": "FRd = k FRk / γM1",
+      "description": "Plate buckling resistance of a plated structure",
+      "variables": [
+        {
+          "symbol": "FRk",
+          "meaning": "characteristic buckling resistance of the plated structure"
+        },
+        {
+          "symbol": "k",
+          "meaning": "calibration factor"
+        },
+        {
+          "symbol": "γM1",
+          "meaning": "partial factor for resistance"
+        }
+      ],
+      "clause": "6.4.2",
+      "page": 19
+    },
+    {
+      "equation_id": "(6.10)",
+      "latex": "k = F_{Rk,known,check} / F_{Rk,check}",
+      "plain_text": "k = FRk,known,check / FRk,check",
+      "description": "Calibration factor k evaluated from reliability checks",
+      "variables": [
+        {
+          "symbol": "FRk,known,check",
+          "meaning": "characteristic buckling resistance values known from prior knowledge"
+        },
+        {
+          "symbol": "FRk,check",
+          "meaning": "results of the numerical calculations"
+        }
+      ],
+      "clause": "6.4.2",
+      "page": 19
+    },
+    {
+      "equation_id": "(A.1)",
+      "latex": "\\frac{\\partial^4 w}{\\partial x^4} + 2 \\frac{\\partial^4 w}{\\partial x^2 \\partial y^2} + \\frac{\\partial^4 w}{\\partial y^4} = \\frac{p(x,y)}{D}",
+      "plain_text": "∂^4w/∂x^4 + 2 ∂^4w/(∂x^2 ∂y^2) + ∂^4w/∂y^4 = p(x,y)/D",
+      "description": "Fourth-order partial differential equation for an isotropic thin plate subject only to an out of plane load p(x,y) in Linear elastic plate analysis (LA)",
+      "variables": [
+        {
+          "symbol": "D",
+          "meaning": "flexural rigidity, D = E t^3 / (12 (1 - ν^2))"
+        },
+        {
+          "symbol": "E",
+          "meaning": "Elastic modulus"
+        },
+        {
+          "symbol": "t",
+          "meaning": "thickness of the plate"
+        },
+        {
+          "symbol": "ν",
+          "meaning": "Poisson's ratio"
+        }
+      ],
+      "clause": "A.2",
+      "page": 21
+    },
+    {
+      "equation_id": "(A.2a)",
+      "latex": "\\frac{\\partial^4 w}{\\partial x^4} + 2 \\frac{\\partial^4 w}{\\partial x^2 \\partial y^2} + \\frac{\\partial^4 w}{\\partial y^4} - \\frac{t}{D} \\left[ \\frac{\\partial^2 f}{\\partial y^2} \\frac{\\partial^2 w}{\\partial x^2} - 2 \\frac{\\partial^2 f}{\\partial x \\partial y} \\frac{\\partial^2 w}{\\partial x \\partial y} + \\frac{\\partial^2 f}{\\partial x^2} \\frac{\\partial^2 w}{\\partial y^2} \\right] = \\frac{p(x,y)}{D}",
+      "plain_text": "∂^4w/∂x^4 + 2 ∂^4w/(∂x^2 ∂y^2) + ∂^4w/∂y^4 - t/D [ (∂^2f/∂y^2)(∂^2w/∂x^2) - 2(∂^2f/∂x∂y)(∂^2w/∂x∂y) + (∂^2f/∂x^2)(∂^2w/∂y^2) ] = p(x,y)/D",
+      "description": "Fourth-order partial differential equation system for an isotropic thin plate subjected only to an out of plane load p(x,y) in Geometrically nonlinear analysis (GNA)",
+      "variables": [
+        {
+          "symbol": "f",
+          "meaning": "Airy's stress function"
+        },
+        {
+          "symbol": "D",
+          "meaning": "flexural rigidity, D = E t^3 / (12 (1 - ν^2))"
+        }
+      ],
+      "clause": "A.3",
+      "page": 21
+    },
+    {
+      "equation_id": "(A.2b)",
+      "latex": "\\frac{\\partial^4 f}{\\partial x^4} + 2 \\frac{\\partial^4 f}{\\partial x^2 \\partial y^2} + \\frac{\\partial^4 f}{\\partial y^4} = E \\left[ \\left( \\frac{\\partial^2 w}{\\partial x \\partial y} \\right)^2 - \\frac{\\partial^2 w}{\\partial x^2} \\frac{\\partial^2 w}{\\partial y^2} \\right]",
+      "plain_text": "∂^4f/∂x^4 + 2 ∂^4f/(∂x^2 ∂y^2) + ∂^4f/∂y^4 = E [ (∂^2w/∂x∂y)^2 - (∂^2w/∂x^2)(∂^2w/∂y^2) ]",
+      "description": "Compatibility equation for Geometrically nonlinear analysis (GNA)",
+      "variables": [
+        {
+          "symbol": "f",
+          "meaning": "Airy's stress function"
+        },
+        {
+          "symbol": "D",
+          "meaning": "flexural rigidity, D = E t^3 / (12 (1 - ν^2))"
+        }
+      ],
+      "clause": "A.3",
+      "page": 21
+    },
+    {
+      "equation_id": "(B.1)",
+      "latex": "w = k_w \\frac{q_{Ed} a^4}{E t^3}",
+      "plain_text": "w = kw * (qEd * a^4) / (E * t^3)",
+      "description": "Deflection w of a plate segment loaded by uniformly distributed loading",
+      "variables": [
+        {
+          "symbol": "w",
+          "meaning": "deflection of the plate segment"
+        },
+        {
+          "symbol": "kw",
+          "meaning": "coefficient for the deflection of the plate"
+        },
+        {
+          "symbol": "qEd",
+          "meaning": "design value of the distributed load"
+        },
+        {
+          "symbol": "a",
+          "meaning": "smaller side of the plate"
+        },
+        {
+          "symbol": "E",
+          "meaning": "Elastic modulus"
+        },
+        {
+          "symbol": "t",
+          "meaning": "thickness of the plate"
+        }
+      ],
+      "clause": "B.3.1",
+      "page": 23
+    },
+    {
+      "equation_id": "(B.2)",
+      "latex": "\\sigma_{bx,Ed} = k_{\\sigma bx} \\frac{q_{Ed} a^2}{t^2}",
+      "plain_text": "σbx,Ed = kσbx * (qEd * a^2) / t^2",
+      "description": "Bending stress σbx in a plate segment",
+      "variables": [
+        {
+          "symbol": "σbx,Ed",
+          "meaning": "bending stress in x direction"
+        },
+        {
+          "symbol": "kσbx",
+          "meaning": "coefficient for the bending stress σbx"
+        },
+        {
+          "symbol": "qEd",
+          "meaning": "design value of the distributed load"
+        },
+        {
+          "symbol": "a",
+          "meaning": "smaller side of the plate"
+        },
+        {
+          "symbol": "t",
+          "meaning": "thickness of the plate"
+        }
+      ],
+      "clause": "B.3.2",
+      "page": 23
+    },
+    {
+      "equation_id": "(B.3)",
+      "latex": "\\sigma_{by,Ed} = k_{\\sigma by} \\frac{q_{Ed} a^2}{t^2}",
+      "plain_text": "σby,Ed = kσby * (qEd * a^2) / t^2",
+      "description": "Bending stress σby in a plate segment",
+      "variables": [
+        {
+          "symbol": "σby,Ed",
+          "meaning": "bending stress in y direction"
+        },
+        {
+          "symbol": "kσby",
+          "meaning": "coefficient for the bending stress σby"
+        },
+        {
+          "symbol": "qEd",
+          "meaning": "design value of the distributed load"
+        },
+        {
+          "symbol": "a",
+          "meaning": "smaller side of the plate"
+        },
+        {
+          "symbol": "t",
+          "meaning": "thickness of the plate"
+        }
+      ],
+      "clause": "B.3.2",
+      "page": 24
+    },
+    {
+      "equation_id": "(B.4)",
+      "latex": "\\sigma_{eq,Ed} = \\sqrt{\\sigma_{bx,Ed}^2 + \\sigma_{by,Ed}^2 - \\sigma_{bx,Ed}\\sigma_{by,Ed}}",
+      "plain_text": "σeq,Ed = sqrt(σbx,Ed^2 + σby,Ed^2 - σbx,Ed*σby,Ed)",
+      "description": "Equivalent stress for a plate segment",
+      "variables": [
+        {
+          "symbol": "σeq,Ed",
+          "meaning": "equivalent stress"
+        }
+      ],
+      "clause": "B.3.2",
+      "page": 24
+    },
+    {
+      "equation_id": "(B.5)",
+      "latex": "w = k_w \\frac{p_{Ed} a^4}{E t^3}",
+      "plain_text": "w = kw * (pEd * a^4) / (E * t^3)",
+      "description": "Deflection w of a plate segment loaded by a central patch loading",
+      "variables": [
+        {
+          "symbol": "w",
+          "meaning": "deflection of the plate segment"
+        },
+        {
+          "symbol": "kw",
+          "meaning": "coefficient for the deflection of the plate"
+        },
+        {
+          "symbol": "pEd",
+          "meaning": "design value of the patch loading"
+        },
+        {
+          "symbol": "a",
+          "meaning": "smaller side of the plate"
+        },
+        {
+          "symbol": "E",
+          "meaning": "Elastic modulus"
+        },
+        {
+          "symbol": "t",
+          "meaning": "thickness of the plate"
+        }
+      ],
+      "clause": "B.4.1",
+      "page": 26
+    },
+    {
+      "equation_id": "(B.6)",
+      "latex": "\\sigma_{bx,Ed} = k_{\\sigma bx} \\frac{p_{Ed}}{t^2}",
+      "plain_text": "σbx,Ed = kσbx * pEd / t^2",
+      "description": "Bending stress σbx in a plate segment under central patch loading",
+      "variables": [
+        {
+          "symbol": "σbx,Ed",
+          "meaning": "bending stress in x direction"
+        },
+        {
+          "symbol": "kσbx",
+          "meaning": "coefficient for the bending stress σbx"
+        },
+        {
+          "symbol": "pEd",
+          "meaning": "design value of the patch loading"
+        },
+        {
+          "symbol": "t",
+          "meaning": "thickness of the plate"
+        }
+      ],
+      "clause": "B.4.2",
+      "page": 26
+    },
+    {
+      "equation_id": "(B.7)",
+      "latex": "\\sigma_{by,Ed} = k_{\\sigma by} \\frac{p_{Ed}}{t^2}",
+      "plain_text": "σby,Ed = kσby * pEd / t^2",
+      "description": "Bending stress σby in a plate segment under central patch loading",
+      "variables": [
+        {
+          "symbol": "σby,Ed",
+          "meaning": "bending stress in y direction"
+        },
+        {
+          "symbol": "kσby",
+          "meaning": "coefficient for the bending stress σby"
+        },
+        {
+          "symbol": "pEd",
+          "meaning": "design value of the patch loading"
+        },
+        {
+          "symbol": "t",
+          "meaning": "thickness of the plate"
+        }
+      ],
+      "clause": "B.4.2",
+      "page": 26
+    },
+    {
+      "equation_id": "(B.8)",
+      "latex": "\\sigma_{eq,Ed} = \\sqrt{\\sigma_{bx,Ed}^2 + \\sigma_{by,Ed}^2 - \\sigma_{bx,Ed}\\sigma_{by,Ed}}",
+      "plain_text": "σeq,Ed = sqrt(σbx,Ed^2 + σby,Ed^2 - σbx,Ed*σby,Ed)",
+      "description": "Equivalent stress for a plate segment under central patch loading",
+      "variables": [
+        {
+          "symbol": "σeq,Ed",
+          "meaning": "equivalent stress"
+        }
+      ],
+      "clause": "B.4.2",
+      "page": 26
+    },
+    {
+      "equation_id": "(C.1)",
+      "latex": "w = k_w \\frac{q_{Ed} a^4}{E t^3}",
+      "plain_text": "w = kw * (qEd * a^4) / (E * t^3)",
+      "description": "Out of plane deflection of a plate segment loaded by uniformly distributed loading",
+      "variables": [
+        {
+          "symbol": "qEd",
+          "meaning": "design value of the load uniformly distributed over the total surface",
+          "unit": ""
+        },
+        {
+          "symbol": "a",
+          "meaning": "smaller side of the plate",
+          "unit": ""
+        },
+        {
+          "symbol": "t",
+          "meaning": "thickness of the plate",
+          "unit": ""
+        },
+        {
+          "symbol": "E",
+          "meaning": "Elastic modulus",
+          "unit": ""
+        },
+        {
+          "symbol": "kw",
+          "meaning": "coefficient for the deflection of the plate appropriate to the boundary conditions",
+          "unit": ""
+        }
+      ],
+      "clause": "C.3.1",
+      "page": 28
+    },
+    {
+      "equation_id": "(C.2)",
+      "latex": "\\sigma_{bx,Ed} = k_{\\sigma bx} \\frac{q_{Ed} a^2}{t^2}",
+      "plain_text": "σbx,Ed = kσbx * (qEd * a^2) / t^2",
+      "description": "Bending stress σbx in a plate segment",
+      "variables": [
+        {
+          "symbol": "kσbx",
+          "meaning": "coefficient for the bending stress σbx of the plate appropriate to the boundary conditions",
+          "unit": ""
+        },
+        {
+          "symbol": "qEd",
+          "meaning": "design value of the load uniformly distributed over the total surface",
+          "unit": ""
+        },
+        {
+          "symbol": "a",
+          "meaning": "smaller side of the plate",
+          "unit": ""
+        },
+        {
+          "symbol": "t",
+          "meaning": "thickness of the plate",
+          "unit": ""
+        }
+      ],
+      "clause": "C.3.2",
+      "page": 29
+    },
+    {
+      "equation_id": "(C.3)",
+      "latex": "\\sigma_{by,Ed} = k_{\\sigma by} \\frac{q_{Ed} a^2}{t^2}",
+      "plain_text": "σby,Ed = kσby * (qEd * a^2) / t^2",
+      "description": "Bending stress σby in a plate segment",
+      "variables": [
+        {
+          "symbol": "kσby",
+          "meaning": "coefficient for the bending stress σby of the plate appropriate to the boundary conditions",
+          "unit": ""
+        },
+        {
+          "symbol": "qEd",
+          "meaning": "design value of the load uniformly distributed over the total surface",
+          "unit": ""
+        },
+        {
+          "symbol": "a",
+          "meaning": "smaller side of the plate",
+          "unit": ""
+        },
+        {
+          "symbol": "t",
+          "meaning": "thickness of the plate",
+          "unit": ""
+        }
+      ],
+      "clause": "C.3.2",
+      "page": 29
+    },
+    {
+      "equation_id": "(C.4)",
+      "latex": "\\sigma_{mx,Ed} = k_{\\sigma mx} \\frac{q_{Ed} a^2}{t^2}",
+      "plain_text": "σmx,Ed = kσmx * (qEd * a^2) / t^2",
+      "description": "Membrane stress σmx in a plate segment",
+      "variables": [
+        {
+          "symbol": "kσmx",
+          "meaning": "coefficient for the membrane stress σmx of the plate appropriate to the boundary conditions",
+          "unit": ""
+        },
+        {
+          "symbol": "qEd",
+          "meaning": "design value of the load uniformly distributed over the total surface",
+          "unit": ""
+        },
+        {
+          "symbol": "a",
+          "meaning": "smaller side of the plate",
+          "unit": ""
+        },
+        {
+          "symbol": "t",
+          "meaning": "thickness of the plate",
+          "unit": ""
+        }
+      ],
+      "clause": "C.3.2",
+      "page": 29
+    },
+    {
+      "equation_id": "(C.5)",
+      "latex": "\\sigma_{my,Ed} = k_{\\sigma my} \\frac{q_{Ed} a^2}{t^2}",
+      "plain_text": "σmy,Ed = kσmy * (qEd * a^2) / t^2",
+      "description": "Membrane stress σmy in a plate segment",
+      "variables": [
+        {
+          "symbol": "kσmy",
+          "meaning": "coefficient for the membrane stress σmy of the plate appropriate to the boundary conditions",
+          "unit": ""
+        },
+        {
+          "symbol": "qEd",
+          "meaning": "design value of the load uniformly distributed over the total surface",
+          "unit": ""
+        },
+        {
+          "symbol": "a",
+          "meaning": "smaller side of the plate",
+          "unit": ""
+        },
+        {
+          "symbol": "t",
+          "meaning": "thickness of the plate",
+          "unit": ""
+        }
+      ],
+      "clause": "C.3.2",
+      "page": 29
+    },
+    {
+      "equation_id": "(C.6)",
+      "latex": "\\sigma_{x,Ed} = -\\sigma_{bx,Ed} + \\sigma_{mx,Ed}",
+      "plain_text": "σx,Ed = -σbx,Ed + σmx,Ed",
+      "description": "Total stress σx at the loaded surface of a plate",
+      "variables": [
+        {
+          "symbol": "σbx,Ed",
+          "meaning": "bending stress σbx in a plate segment",
+          "unit": ""
+        },
+        {
+          "symbol": "σmx,Ed",
+          "meaning": "membrane stress σmx in a plate segment",
+          "unit": ""
+        }
+      ],
+      "clause": "C.3.2",
+      "page": 29
+    },
+    {
+      "equation_id": "(C.7)",
+      "latex": "\\sigma_{y,Ed} = -\\sigma_{by,Ed} + \\sigma_{my,Ed}",
+      "plain_text": "σy,Ed = -σby,Ed + σmy,Ed",
+      "description": "Total stress σy at the loaded surface of a plate",
+      "variables": [
+        {
+          "symbol": "σby,Ed",
+          "meaning": "bending stress σby in a plate segment",
+          "unit": ""
+        },
+        {
+          "symbol": "σmy,Ed",
+          "meaning": "membrane stress σmy in a plate segment",
+          "unit": ""
+        }
+      ],
+      "clause": "C.3.2",
+      "page": 29
+    },
+    {
+      "equation_id": "(C.8)",
+      "latex": "\\sigma_{x,Ed} = \\sigma_{bx,Ed} + \\sigma_{mx,Ed}",
+      "plain_text": "σx,Ed = σbx,Ed + σmx,Ed",
+      "description": "Total stress σx at the no-loaded surface of a plate",
+      "variables": [
+        {
+          "symbol": "σbx,Ed",
+          "meaning": "bending stress σbx in a plate segment",
+          "unit": ""
+        },
+        {
+          "symbol": "σmx,Ed",
+          "meaning": "membrane stress σmx in a plate segment",
+          "unit": ""
+        }
+      ],
+      "clause": "C.3.2",
+      "page": 29
+    },
+    {
+      "equation_id": "(C.9)",
+      "latex": "\\sigma_{y,Ed} = \\sigma_{by,Ed} + \\sigma_{my,Ed}",
+      "plain_text": "σy,Ed = σby,Ed + σmy,Ed",
+      "description": "Total stress σy at the no-loaded surface of a plate",
+      "variables": [
+        {
+          "symbol": "σby,Ed",
+          "meaning": "bending stress σby in a plate segment",
+          "unit": ""
+        },
+        {
+          "symbol": "σmy,Ed",
+          "meaning": "membrane stress σmy in a plate segment",
+          "unit": ""
+        }
+      ],
+      "clause": "C.3.2",
+      "page": 29
+    },
+    {
+      "equation_id": "(C.10)",
+      "latex": "\\sigma_{eq,Ed} = \\sqrt{\\sigma_{x,Ed}^2 + \\sigma_{y,Ed}^2 - \\sigma_{x,Ed} \\sigma_{y,Ed}}",
+      "plain_text": "σeq,Ed = √(σx,Ed^2 + σy,Ed^2 - σx,Ed * σy,Ed)",
+      "description": "Equivalent stress σv,Ed for a plate",
+      "variables": [
+        {
+          "symbol": "σx,Ed",
+          "meaning": "total stress σx at the no-loaded surface of a plate",
+          "unit": ""
+        },
+        {
+          "symbol": "σy,Ed",
+          "meaning": "total stress σy at the no-loaded surface of a plate",
+          "unit": ""
+        }
+      ],
+      "clause": "C.3.2",
+      "page": 29
+    },
+    {
+      "equation_id": "(C.11)",
+      "latex": "w = k_w \\frac{p_{Ed} a^4}{E t^3}",
+      "plain_text": "w = kw * (pEd * a^4) / (E * t^3)",
+      "description": "Deflection w for a plate loaded by a central patch loading",
+      "variables": [
+        {
+          "symbol": "pEd",
+          "meaning": "design value of the patch loading uniformly distributed over the surface u × v",
+          "unit": ""
+        },
+        {
+          "symbol": "a",
+          "meaning": "smaller side of the plate",
+          "unit": ""
+        },
+        {
+          "symbol": "t",
+          "meaning": "thickness of the plate",
+          "unit": ""
+        },
+        {
+          "symbol": "E",
+          "meaning": "Elastic modulus",
+          "unit": ""
+        },
+        {
+          "symbol": "kw",
+          "meaning": "coefficient for the deflection of the plate appropriate to the boundary conditions",
+          "unit": ""
+        }
+      ],
+      "clause": "C.4.1",
+      "page": 34
+    },
+    {
+      "equation_id": "(C.12)",
+      "latex": "\\sigma_{bx,Ed} = k_{\\sigma bx} \\frac{p_{Ed} a^2}{t^2}",
+      "plain_text": "σbx,Ed = kσbx * (pEd * a^2) / t^2",
+      "description": "Bending stress σbx in a plate segment under central patch loading",
+      "variables": [
+        {
+          "symbol": "kσbx",
+          "meaning": "coefficient for the bending stress σbx of the plate appropriate to the boundary conditions",
+          "unit": ""
+        },
+        {
+          "symbol": "pEd",
+          "meaning": "design value of the patch loading uniformly distributed over the surface u × v",
+          "unit": ""
+        },
+        {
+          "symbol": "a",
+          "meaning": "smaller side of the plate",
+          "unit": ""
+        },
+        {
+          "symbol": "t",
+          "meaning": "thickness of the plate",
+          "unit": ""
+        }
+      ],
+      "clause": "C.4.2",
+      "page": 34
+    },
+    {
+      "equation_id": "(C.13)",
+      "latex": "\\sigma_{by,Ed} = k_{\\sigma by} \\frac{p_{Ed} a^2}{t^2}",
+      "plain_text": "σby,Ed = kσby * (pEd * a^2) / t^2",
+      "description": "Bending stress σby in a plate segment under central patch loading",
+      "variables": [
+        {
+          "symbol": "kσby",
+          "meaning": "coefficient for the bending stress σby of the plate appropriate to the boundary conditions",
+          "unit": ""
+        },
+        {
+          "symbol": "pEd",
+          "meaning": "design value of the patch loading uniformly distributed over the surface u × v",
+          "unit": ""
+        },
+        {
+          "symbol": "a",
+          "meaning": "smaller side of the plate",
+          "unit": ""
+        },
+        {
+          "symbol": "t",
+          "meaning": "thickness of the plate",
+          "unit": ""
+        }
+      ],
+      "clause": "C.4.2",
+      "page": 34
+    },
+    {
+      "equation_id": "(C.14)",
+      "latex": "\\sigma_{mx,Ed} = k_{\\sigma mx} \\frac{p_{Ed} a^2}{t^2}",
+      "plain_text": "σmx,Ed = kσmx * (pEd * a^2) / t^2",
+      "description": "Membrane stress σmx in a plate segment under central patch loading",
+      "variables": [
+        {
+          "symbol": "kσmx",
+          "meaning": "coefficient for the membrane stress σmx of the plate appropriate to the boundary conditions",
+          "unit": ""
+        },
+        {
+          "symbol": "pEd",
+          "meaning": "design value of the patch loading uniformly distributed over the surface u × v",
+          "unit": ""
+        },
+        {
+          "symbol": "a",
+          "meaning": "smaller side of the plate",
+          "unit": ""
+        },
+        {
+          "symbol": "t",
+          "meaning": "thickness of the plate",
+          "unit": ""
+        }
+      ],
+      "clause": "C.4.2",
+      "page": 34
+    },
+    {
+      "equation_id": "(C.15)",
+      "latex": "\\sigma_{my,Ed} = k_{\\sigma my} \\frac{p_{Ed} a^2}{t^2}",
+      "plain_text": "σmy,Ed = kσmy * (pEd * a^2) / t^2",
+      "description": "Membrane stress σmy in a plate segment under central patch loading",
+      "variables": [
+        {
+          "symbol": "kσmy",
+          "meaning": "coefficient for the membrane stress σmy of the plate appropriate to the boundary conditions",
+          "unit": ""
+        },
+        {
+          "symbol": "pEd",
+          "meaning": "design value of the patch loading uniformly distributed over the surface u × v",
+          "unit": ""
+        },
+        {
+          "symbol": "a",
+          "meaning": "smaller side of the plate",
+          "unit": ""
+        },
+        {
+          "symbol": "t",
+          "meaning": "thickness of the plate",
+          "unit": ""
+        }
+      ],
+      "clause": "C.4.2",
+      "page": 34
+    },
+    {
+      "equation_id": "(C.16)",
+      "latex": "\\sigma_{x,Ed} = -\\sigma_{bx,Ed} + \\sigma_{mx,Ed}",
+      "plain_text": "σx,Ed = -σbx,Ed + σmx,Ed",
+      "description": "Total stress σx at the loaded surface of a plate under central patch loading",
+      "variables": [
+        {
+          "symbol": "σbx,Ed",
+          "meaning": "bending stress σbx in a plate segment",
+          "unit": ""
+        },
+        {
+          "symbol": "σmx,Ed",
+          "meaning": "membrane stress σmx in a plate segment",
+          "unit": ""
+        }
+      ],
+      "clause": "C.4.2",
+      "page": 34
+    },
+    {
+      "equation_id": "(C.17)",
+      "latex": "\\sigma_{y,Ed} = -\\sigma_{by,Ed} + \\sigma_{my,Ed}",
+      "plain_text": "σy,Ed = -σby,Ed + σmy,Ed",
+      "description": "Total stress σy at the loaded surface of a plate under central patch loading",
+      "variables": [
+        {
+          "symbol": "σby,Ed",
+          "meaning": "bending stress σby in a plate segment",
+          "unit": ""
+        },
+        {
+          "symbol": "σmy,Ed",
+          "meaning": "membrane stress σmy in a plate segment",
+          "unit": ""
+        }
+      ],
+      "clause": "C.4.2",
+      "page": 34
+    },
+    {
+      "equation_id": "(C.18)",
+      "latex": "\\sigma_{x,Ed} = \\sigma_{bx,Ed} + \\sigma_{mx,Ed}",
+      "plain_text": "σx,Ed = σbx,Ed + σmx,Ed",
+      "description": "Total stress σx at the no-loaded surface of a plate under central patch loading",
+      "variables": [
+        {
+          "symbol": "σbx,Ed",
+          "meaning": "bending stress σbx in a plate segment",
+          "unit": ""
+        },
+        {
+          "symbol": "σmx,Ed",
+          "meaning": "membrane stress σmx in a plate segment",
+          "unit": ""
+        }
+      ],
+      "clause": "C.4.2",
+      "page": 34
+    },
+    {
+      "equation_id": "(C.19)",
+      "latex": "\\sigma_{y,Ed} = \\sigma_{by,Ed} + \\sigma_{my,Ed}",
+      "plain_text": "σy,Ed = σby,Ed + σmy,Ed",
+      "description": "Total stress σy at the no-loaded surface of a plate under central patch loading",
+      "variables": [
+        {
+          "symbol": "σby,Ed",
+          "meaning": "bending stress σby in a plate segment",
+          "unit": ""
+        },
+        {
+          "symbol": "σmy,Ed",
+          "meaning": "membrane stress σmy in a plate segment",
+          "unit": ""
+        }
+      ],
+      "clause": "C.4.2",
+      "page": 34
+    },
+    {
+      "equation_id": "(C.20)",
+      "latex": "\\sigma_{eq,Ed} = \\sqrt{\\sigma_{x,Ed}^2 + \\sigma_{y,Ed}^2 - \\sigma_{x,Ed} \\sigma_{y,Ed}}",
+      "plain_text": "σeq,Ed = √(σx,Ed^2 + σy,Ed^2 - σx,Ed * σy,Ed)",
+      "description": "Equivalent stress σv,Ed for a plate under central patch loading",
+      "variables": [
+        {
+          "symbol": "σx,Ed",
+          "meaning": "total stress σx at the no-loaded surface of a plate",
+          "unit": ""
+        },
+        {
+          "symbol": "σy,Ed",
+          "meaning": "total stress σy at the no-loaded surface of a plate",
+          "unit": ""
+        }
+      ],
+      "clause": "C.4.2",
+      "page": 34
+    }
+  ],
+  "annexes": [
+    {
+      "clause_number": "Annex A",
+      "title": "[informative] - Types of analysis for the design of plated structures",
+      "text": "",
+      "page": 21
+    },
+    {
+      "clause_number": "Annex B",
+      "title": "[informative] - Internal stresses of unstiffened rectangular plates from small deflection theory",
+      "text": "",
+      "page": 23
+    },
+    {
+      "clause_number": "Annex C",
+      "title": "Internal stresses of unstiffened rectangular plates from large deflection theory",
+      "text": "Annex C [informative] - Internal stresses of unstiffened rectangular plates from large deflection theory",
+      "page": 28
+    }
+  ],
+  "national_annex": [],
+  "bibliography": [],
+  "_verification": {
+    "missing_tables": [],
+    "missing_figures": [],
+    "missing_equations": [],
+    "missing_clauses": [],
+    "table_errors": [],
+    "overall_quality": "Excellent. The extraction successfully captured all tables, figures, equations, and clauses present in the document."
+  }
+}

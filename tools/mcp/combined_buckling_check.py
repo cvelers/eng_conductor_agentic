@@ -6,6 +6,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field, PositiveFloat
 
 from tools.mcp.cli import run_cli
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "combined_buckling_check_ec3"
 
@@ -101,12 +102,7 @@ def calculate(inp: CombinedBucklingInput) -> dict:
             "pass": governing <= 1.0,
         },
         "clause_references": [
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "6.3.3(4)",
-                "title": "Uniform members in bending and axial compression",
-                "pointer": "en_1993_1_1_2005_structured.json#6.3.3",
-            },
+            clause_ref("ec3.en1993-1-1.2005", "6.3.3(4)", "Uniform members in bending and axial compression"),
         ],
         "notes": [
             f"Eq. 6.61 = {eq_6_61:.4f} ({'OK' if eq_6_61 <= 1.0 else 'FAIL'})",

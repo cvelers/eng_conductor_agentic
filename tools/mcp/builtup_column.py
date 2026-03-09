@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field, PositiveFloat, PositiveInt
 
 from tools.mcp.cli import run_cli
 from tools.mcp.section_library import steel_grade_to_fy
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "builtup_column_ec3"
 
@@ -193,18 +194,8 @@ def calculate(inp: BuiltupColumnInput) -> dict:
             "pass_overall": N_Ed <= Nb_Rd,
         },
         "clause_references": [
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "6.4.1",
-                "title": "Built-up compression members – General",
-                "pointer": "en_1993_1_1_2005_structured.json#6.4.1",
-            },
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "6.4.2.1" if inp.member_type == "laced" else "6.4.3.1",
-                "title": f"{'Laced' if inp.member_type == 'laced' else 'Battened'} compression members",
-                "pointer": f"en_1993_1_1_2005_structured.json#{'6.4.2.1' if inp.member_type == 'laced' else '6.4.3.1'}",
-            },
+            clause_ref("ec3.en1993-1-1.2005", "6.4.1", "Built-up compression members – General"),
+            clause_ref("ec3.en1993-1-1.2005", "6.4.2.1" if inp.member_type == "laced" else "6.4.3.1", f"{'Laced' if inp.member_type == 'laced' else 'Battened'} compression members"),
         ],
         "notes": notes,
     }

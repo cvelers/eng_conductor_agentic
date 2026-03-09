@@ -5,6 +5,7 @@ import math
 from pydantic import BaseModel, Field, PositiveFloat, PositiveInt
 
 from tools.mcp.cli import run_cli
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "sway_imperfection_ec3"
 
@@ -72,12 +73,7 @@ def calculate(inp: SwayImperfectionInput) -> dict:
         },
         "outputs": results,
         "clause_references": [
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "5.3.2(3)",
-                "title": "Imperfections for global analysis of frames",
-                "pointer": "en_1993_1_1_2005_structured.json#5.3.2",
-            },
+            clause_ref("ec3.en1993-1-1.2005", "5.3.2(3)", "Imperfections for global analysis of frames"),
         ],
         "notes": notes,
     }

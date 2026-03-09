@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field, PositiveFloat, field_validator
 from tools.mcp.cli import run_cli
 from tools.mcp.ipe_section_library import load_ipe_sections
 from tools.mcp.section_library import steel_grade_to_fy
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "ipe_moment_resistance_ec3"
 
@@ -105,18 +106,8 @@ def compute_ipe_moment_resistance(input_data: IPEMomentResistanceInput) -> dict:
             "section_class_interpretation": class_note,
         },
         "clause_references": [
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "6.2.5(1)",
-                "title": "Bending resistance",
-                "pointer": "en_1993_1_1_sample.json#/clauses/4",
-            },
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "5.5.2(1)",
-                "title": "Classification of cross-sections",
-                "pointer": "en_1993_1_1_sample.json#/clauses/1",
-            },
+            clause_ref("ec3.en1993-1-1.2005", "6.2.5(1)", "Bending resistance"),
+            clause_ref("ec3.en1993-1-1.2005", "5.5.2(1)", "Classification of cross-sections"),
         ],
         "notes": [
             "This tool focuses on cross-section moment resistance only (no buckling/LTB checks).",

@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field, PositiveFloat
 
 from tools.mcp.cli import run_cli
 from tools.mcp.section_library import steel_grade_to_fy
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "torsion_resistance_ec3"
 
@@ -124,12 +125,7 @@ def calculate(inp: TorsionResistanceInput) -> dict:
         },
         "outputs": results,
         "clause_references": [
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "6.2.7",
-                "title": "Torsion",
-                "pointer": "en_1993_1_1_2005_structured.json#6.2.7",
-            },
+            clause_ref("ec3.en1993-1-1.2005", "6.2.7", "Torsion"),
         ],
         "notes": notes,
     }

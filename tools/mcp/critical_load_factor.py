@@ -6,6 +6,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field, PositiveFloat
 
 from tools.mcp.cli import run_cli
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "critical_load_factor_ec3"
 
@@ -120,18 +121,8 @@ def calculate(inp: CriticalLoadFactorInput) -> dict:
         },
         "outputs": results,
         "clause_references": [
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "5.2.1",
-                "title": "Effects of deformed geometry of the structure",
-                "pointer": "en_1993_1_1_2005_structured.json#5.2.1",
-            },
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "5.2.2(6)B",
-                "title": "Sway amplification method",
-                "pointer": "en_1993_1_1_2005_structured.json#5.2.2",
-            },
+            clause_ref("ec3.en1993-1-1.2005", "5.2.1", "Effects of deformed geometry of the structure"),
+            clause_ref("ec3.en1993-1-1.2005", "5.2.2(6)B", "Sway amplification method"),
         ],
         "notes": notes,
     }

@@ -6,6 +6,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field, PositiveFloat
 
 from tools.mcp.cli import run_cli
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "interaction_factors_a_ec3"
 
@@ -246,18 +247,8 @@ def calculate(inp: InteractionFactorsAInput) -> dict:
             "k_zz": round(k_zz, 4),
         },
         "clause_references": [
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "A.1",
-                "title": "Method 1 – Interaction factors k_ij (Table A.1)",
-                "pointer": "en_1993_1_1_2005_structured.json#A.1",
-            },
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "A.2",
-                "title": "Equivalent uniform moment factors C_mi,0 (Table A.2)",
-                "pointer": "en_1993_1_1_2005_structured.json#A.2",
-            },
+            clause_ref("ec3.en1993-1-1.2005", "A.1", "Method 1 – Interaction factors k_ij (Table A.1)"),
+            clause_ref("ec3.en1993-1-1.2005", "A.2", "Equivalent uniform moment factors C_mi,0 (Table A.2)"),
         ],
         "notes": notes,
     }

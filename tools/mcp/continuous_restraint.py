@@ -6,6 +6,7 @@ from typing import Literal, Optional
 from pydantic import BaseModel, Field, PositiveFloat
 
 from tools.mcp.cli import run_cli
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "continuous_restraint_ec3"
 
@@ -105,12 +106,7 @@ def calculate(inp: ContinuousRestraintInput) -> dict:
                 "is_restrained": is_restrained,
             },
             "clause_references": [
-                {
-                    "doc_id": "ec3.en1993-1-1.2005",
-                    "clause_id": "BB.2.1",
-                    "title": "Continuous lateral restraints",
-                    "pointer": "en_1993_1_1_2005_structured.json#BB.2.1",
-                },
+                clause_ref("ec3.en1993-1-1.2005", "BB.2.1", "Continuous lateral restraints"),
             ],
             "notes": notes,
         }
@@ -156,12 +152,7 @@ def calculate(inp: ContinuousRestraintInput) -> dict:
                 "is_sufficient": is_sufficient,
             },
             "clause_references": [
-                {
-                    "doc_id": "ec3.en1993-1-1.2005",
-                    "clause_id": "BB.2.2",
-                    "title": "Continuous torsional restraints",
-                    "pointer": "en_1993_1_1_2005_structured.json#BB.2.2",
-                },
+                clause_ref("ec3.en1993-1-1.2005", "BB.2.2", "Continuous torsional restraints"),
             ],
             "notes": notes,
         }

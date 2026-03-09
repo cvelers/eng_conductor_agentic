@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field, PositiveFloat
 
 from tools.mcp.cli import run_cli
 from tools.mcp.section_library import SECTION_LIBRARY, steel_grade_to_fy
+from tools.mcp.clause_ref import clause_ref
 
 TOOL_NAME = "column_buckling_ec3"
 
@@ -181,24 +182,9 @@ def calculate(inp: ColumnBucklingInput) -> dict:
             "N_cr_kN": round(N_cr, 2),
         },
         "clause_references": [
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "6.3.1.1",
-                "title": "Buckling resistance of compression members",
-                "pointer": "en_1993_1_1_2005_ocr.json#6.3.1",
-            },
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "6.3.1.2",
-                "title": "Buckling curves — imperfection factors",
-                "pointer": "en_1993_1_1_2005_ocr.json#table_6.1",
-            },
-            {
-                "doc_id": "ec3.en1993-1-1.2005",
-                "clause_id": "Table 6.2",
-                "title": "Selection of buckling curve for cross-section",
-                "pointer": "en_1993_1_1_2005_ocr.json#table_6.2",
-            },
+            clause_ref("ec3.en1993-1-1.2005", "6.3.1.1", "Buckling resistance of compression members"),
+            clause_ref("ec3.en1993-1-1.2005", "6.3.1.2", "Buckling curves — imperfection factors"),
+            clause_ref("ec3.en1993-1-1.2005", "Table 6.2", "Selection of buckling curve for cross-section"),
         ],
         "notes": [
             f"Buckling axis: {inp.buckling_axis}-{inp.buckling_axis} ({curve_source}: curve '{curve}', α = {alpha})",
