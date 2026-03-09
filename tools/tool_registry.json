@@ -22,7 +22,10 @@
         },
         "stress_type": {
           "type": "string",
-          "enum": ["bending", "compression"],
+          "enum": [
+            "bending",
+            "compression"
+          ],
           "default": "bending",
           "description": "Dominant stress: 'bending' for beams (web limits 72/83/124 epsilon), 'compression' for columns (33/38/42 epsilon)."
         },
@@ -724,7 +727,10 @@
         },
         "buckling_axis": {
           "type": "string",
-          "enum": ["y", "z"],
+          "enum": [
+            "y",
+            "z"
+          ],
           "default": "y",
           "description": "Buckling axis: 'y' for strong-axis, 'z' for weak-axis. Controls which I is used from library."
         },
@@ -741,7 +747,10 @@
         },
         "fabrication": {
           "type": "string",
-          "enum": ["rolled", "welded"],
+          "enum": [
+            "rolled",
+            "welded"
+          ],
           "default": "rolled",
           "description": "Fabrication method for Table 6.2 buckling curve selection."
         },
@@ -1405,7 +1414,7 @@
   },
   {
     "tool_name": "bending_shear_interaction_ec3",
-    "description": "Checks bending-shear interaction per EC3 \u00a76.2.8. Reduces moment resistance when V_Ed > 0.5\u00b7V_pl,Rd.",
+    "description": "Checks bending-shear interaction per EC3 \u00a76.2.8. Reduces moment resistance when V_Ed > 0.5\u00b7V_pl,Rd using exact I/H formula M_V,Rd = (Wpl \u2212 \u03c1\u00b7Aw\u00b2/(4tw))\u00b7fy/\u03b3M0. Provide section_name for auto-computation of all section resistances, or supply V_pl_Rd_kN and M_c_Rd_kNm directly.",
     "tags": [
       "EC3",
       "EN 1993-1-1",
@@ -1419,9 +1428,7 @@
       "type": "object",
       "required": [
         "M_Ed_kNm",
-        "V_Ed_kN",
-        "V_pl_Rd_kN",
-        "M_c_Rd_kNm"
+        "V_Ed_kN"
       ],
       "properties": {
         "M_Ed_kNm": {
@@ -1432,11 +1439,13 @@
         },
         "V_pl_Rd_kN": {
           "type": "number",
-          "exclusiveMinimum": 0
+          "exclusiveMinimum": 0,
+          "description": "Plastic shear resistance in kN. Required unless section_name is given."
         },
         "M_c_Rd_kNm": {
           "type": "number",
-          "exclusiveMinimum": 0
+          "exclusiveMinimum": 0,
+          "description": "Unreduced moment resistance in kNm. Required unless section_name is given."
         },
         "steel_grade": {
           "type": "string",
@@ -1454,6 +1463,15 @@
           "minimum": 1,
           "maximum": 4,
           "default": 2
+        },
+        "section_name": {
+          "type": "string",
+          "description": "Section name e.g. IPE500. Auto-computes V_pl,Rd, M_c,Rd, Aw, tw from section library."
+        },
+        "tw_mm": {
+          "type": "number",
+          "description": "Web thickness in mm (for exact I/H formula per 6.2.8(3); auto-populated from section_name)",
+          "exclusiveMinimum": 0
         }
       }
     },
@@ -1488,12 +1506,11 @@
     "examples": [
       {
         "input": {
-          "M_Ed_kNm": 180,
-          "V_Ed_kN": 250,
-          "V_pl_Rd_kN": 400,
-          "M_c_Rd_kNm": 220
+          "section_name": "IPE500",
+          "M_Ed_kNm": 500,
+          "V_Ed_kN": 800
         },
-        "output_key": "utilization"
+        "output_key": "M_V_Rd_kNm"
       }
     ]
   },
