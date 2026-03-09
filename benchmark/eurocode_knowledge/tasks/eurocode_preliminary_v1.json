@@ -1,8 +1,8 @@
 {
   "benchmark_id": "ECB-2026-preliminary",
-  "name": "Eurocode Preliminary Benchmark (15 questions, EC3-only)",
-  "version": "1.1.0",
-  "description": "The 15-question preliminary benchmark. Targets use domain-specific tool output keys.",
+  "name": "Eurocode Preliminary Benchmark (17 questions, EC3-only)",
+  "version": "1.2.0",
+  "description": "The 17-question preliminary benchmark. Targets use domain-specific tool output keys.",
   "tracks": [
     {
       "name": "numeric",
@@ -11,7 +11,7 @@
     },
     {
       "name": "behavioral_safety",
-      "count": 3,
+      "count": 5,
       "purpose": "MCQ knowledge questions"
     }
   ],
@@ -26,7 +26,7 @@
       ],
       "prompt": "According to EN 1993-1-1 Table 3.1, what is the nominal yield strength f_y for S275 steel with a nominal thickness t \u2264 16 mm?",
       "expected": {
-        "required_patterns": [
+        "required_regex": [
           "B"
         ],
         "forbidden_patterns": []
@@ -49,7 +49,7 @@
       ],
       "prompt": "According to EN 1993-1-1 Table 6.2, which buckling curve applies to a hot-rolled H-section with h/b > 1.2 and t_f \u2264 40 mm, for buckling about the major axis (y-y)? Assume steel grade S355.",
       "expected": {
-        "required_patterns": [
+        "required_regex": [
           "A"
         ],
         "forbidden_patterns": []
@@ -72,8 +72,54 @@
       ],
       "prompt": "What is the imperfection factor \u03b1 for buckling curve 'b' according to EN 1993-1-1 Table 6.1?",
       "expected": {
-        "required_patterns": [
+        "required_regex": [
           "B"
+        ],
+        "forbidden_patterns": []
+      },
+      "scoring": {
+        "auto_weight": 1.0
+      },
+      "tags": [
+        "preliminary",
+        "mcq"
+      ]
+    },
+    {
+      "task_id": "PRELIM-EC3-016",
+      "track": "behavioral_safety",
+      "task_type": "behavioral_safety",
+      "difficulty": "easy",
+      "eurocode_parts": [
+        "EN 1993-1-1"
+      ],
+      "prompt": "According to EN 1993-1-1 clause 6.1, what is the recommended value of the partial safety factor \u03b3_M0 for resistance of cross-sections?",
+      "expected": {
+        "required_regex": [
+          "1\\.0"
+        ],
+        "forbidden_patterns": []
+      },
+      "scoring": {
+        "auto_weight": 1.0
+      },
+      "tags": [
+        "preliminary",
+        "mcq"
+      ]
+    },
+    {
+      "task_id": "PRELIM-EC3-017",
+      "track": "behavioral_safety",
+      "task_type": "behavioral_safety",
+      "difficulty": "easy",
+      "eurocode_parts": [
+        "EN 1993-1-1"
+      ],
+      "prompt": "According to EN 1993-1-1 Table 5.2, what is the Class 1 web slenderness limit (c/t ratio) for an internal compression element (web) in pure bending?",
+      "expected": {
+        "required_regex": [
+          "72"
         ],
         "forbidden_patterns": []
       },
