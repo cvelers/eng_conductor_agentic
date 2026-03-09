@@ -13,7 +13,9 @@ const GRAPH_NODES = [
 const GRAPH_EDGES = [
   { id: "u_o",  from: "user",         to: "orchestrator" },
   { id: "o_d",  from: "orchestrator", to: "database"     },
+  { id: "d_o",  from: "database",     to: "orchestrator" },
   { id: "o_t",  from: "orchestrator", to: "tools"        },
+  { id: "t_o",  from: "tools",        to: "orchestrator" },
   { id: "o_fa", from: "orchestrator", to: "fea_analyst"  },
   { id: "fa_o", from: "fea_analyst",  to: "orchestrator" },
   { id: "o_r",  from: "orchestrator", to: "response"     },
@@ -790,6 +792,7 @@ function initFlowGraph(msgNode, prompt) {
   GRAPH_EDGES.forEach(e => { es[e.id] = "idle"; });
 
   ns["user"] = "done";
+  ns["orchestrator"] = "active";
   es["u_o"] = "active";
 
   msgNode.__flow = {
@@ -892,11 +895,22 @@ function applyFlow(n) {
   }
   // flow-edge elements are inside diagramPanel which may be at body level
   const edgeContainer = f.diagramPanel || n;
+  const arrowColors = { idle: "#3d4149", done: "var(--accent)", active: "var(--accent-2)", error: "var(--danger)" };
   edgeContainer.querySelectorAll(".flow-edge").forEach(e => {
     const s = f.es[e.dataset.edge] || "idle";
     e.classList.remove("idle", "active", "done", "error");
     e.classList.add(s);
+    const marker = edgeContainer.querySelector(`#arrow-${e.dataset.edge} .flow-arrow`);
+    if (marker) marker.setAttribute("fill", arrowColors[s] || arrowColors.idle);
   });
+}
+
+function clearPopupLane(f, lane) {
+  const laneEl = f.popupLanes?.[lane];
+  const refs = f.popupRefs?.[lane];
+  if (!laneEl) return;
+  laneEl.innerHTML = "";
+  if (refs) refs.clear();
 }
 
 function normTool(n) { return String(n || "").replace(/_ec3/g, "").replace(/_/g, " ").trim(); }
@@ -928,21 +942,41 @@ function processEvent(f, ev) {
     if (skipped) {
       setNS(f, "database", "idle");
       setES(f, "o_d", "idle");
+      setES(f, "d_o", "idle");
       return;
     }
+    if (s === "active") {
+      clearPopupLane(f, "docs");
+      setES(f, "o_d", "active");
+      setES(f, "d_o", "idle");
+    } else if (s === "done") {
+      setES(f, "o_d", "done");
+      setES(f, "d_o", "done");
+    } else {
+      setES(f, "o_d", "error");
+      setES(f, "d_o", "error");
+    }
     setNS(f, "database", s === "error" ? "error" : (s === "done" ? "done" : "active"));
-    setES(f, "o_d", s === "error" ? "error" : (s === "done" ? "done" : "active"));
     if (m.top?.length) pushDocBadges(f, m.top);
     if (m.top_clauses?.length) pushDocBadges(f, m.top_clauses);
   } else if (node === "tools") {
     setNS(f, "orchestrator", "done");
     if (ev.skipped) {
-      // No tools used — keep TOOLS node idle (unhighlighted)
       setNS(f, "tools", "idle");
       setES(f, "o_t", "idle");
+      setES(f, "t_o", "idle");
+    } else if (s === "active") {
+      setES(f, "o_t", "active");
+      setES(f, "t_o", "idle");
+      setNS(f, "tools", "active");
+    } else if (s === "done") {
+      setES(f, "o_t", "done");
+      setES(f, "t_o", "done");
+      setNS(f, "tools", "done");
     } else {
-      setNS(f, "tools", s === "error" ? "error" : (s === "done" ? "done" : "active"));
-      setES(f, "o_t", s === "error" ? "error" : (s === "done" ? "done" : "active"));
+      setES(f, "o_t", "error");
+      setES(f, "t_o", "error");
+      setNS(f, "tools", "error");
     }
     if (m.tool) pushToolBadge(f, m.tool);
   } else if (node === "compose") {
