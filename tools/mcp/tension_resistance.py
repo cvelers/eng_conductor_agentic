@@ -64,9 +64,7 @@ def calculate(inp: TensionResistanceInput) -> dict:
     # §6.2.3(2)a – Plastic resistance of gross section
     N_pl_Rd = A_mm2 * fy / gamma_M0 / 1000.0  # kN
 
-    results: dict = {
-        "N_pl_Rd_kN": round(N_pl_Rd, 2),
-    }
+    results: dict = {}
     governing = "N_pl_Rd"
     N_t_Rd = N_pl_Rd
 
@@ -90,6 +88,10 @@ def calculate(inp: TensionResistanceInput) -> dict:
             N_t_Rd = min(N_pl_Rd, N_u_Rd)
             governing = "N_pl_Rd" if N_pl_Rd <= N_u_Rd else "N_u_Rd"
 
+    # N_pl_Rd_kN reports the governing design tension resistance N_t,Rd
+    # (= min(N_pl,Rd, N_u,Rd) per EC3 6.2.3). When no holes are present it
+    # equals the gross-section plastic resistance; otherwise it may be lower.
+    results["N_pl_Rd_kN"] = round(N_t_Rd, 2)
     results["N_t_Rd_kN"] = round(N_t_Rd, 2)
     results["governing"] = governing
 

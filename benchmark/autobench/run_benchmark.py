@@ -231,8 +231,12 @@ def main() -> None:
         help="Path to benchmark JSON file (default: eurocode_benchmark_v1.json)",
     )
     parser.add_argument(
-        "--preliminary", action="store_true",
-        help="Use the 15-question preliminary benchmark instead of the full 64-task one",
+        "--preliminary", action="store_true", default=True,
+        help="Use the preliminary benchmark (default). Pass --no-preliminary for the full 64-task one.",
+    )
+    parser.add_argument(
+        "--no-preliminary", action="store_false", dest="preliminary",
+        help="Use the full 64-task benchmark instead of the preliminary one.",
     )
     args = parser.parse_args()
 

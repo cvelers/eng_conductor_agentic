@@ -1,0 +1,4 @@
+iteration	commit	accuracy_pct	avg_latency_s	n_tasks	notes
+0	baseline	82.35	74.5	17	Baseline: S355 fu=490 bug, N_pl_Rd_kN=gross section, bending_shear formula bug
+1	14a9e6d	88.24	84.2	17	Fix S355 fu 490→510, N_pl_Rd_kN=N_t_Rd. PRELIM-EC3-008 now passes.
+2	53ad26b	100.0	83.7	17	Fix EC3 6.2.8(3) formula + section_name auto-pop. All 17 tasks pass.

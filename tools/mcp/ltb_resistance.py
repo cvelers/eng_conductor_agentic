@@ -77,6 +77,10 @@ class LTBResistanceInput(BaseModel):
                     self.b_mm = float(row.get("b_mm", 0))
                 if self.I_z_cm4 is None:
                     self.I_z_cm4 = float(row.get("I_z_cm4", 0)) or None
+                # Auto-select LTB curve from EC3 Table 6.4 based on h/b ratio
+                if self.h_mm and self.b_mm and self.b_mm > 0:
+                    h_over_b = self.h_mm / self.b_mm
+                    self.ltb_curve = "a" if h_over_b <= 2.0 else "b"
         if self.fy_mpa is None:
             self.fy_mpa = steel_grade_to_fy(self.steel_grade)
         return self
