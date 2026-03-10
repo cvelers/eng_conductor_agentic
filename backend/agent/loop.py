@@ -425,8 +425,11 @@ async def run_agent_loop(
             assistant_msg["tool_calls"] = tc_list
         all_messages.append(assistant_msg)
 
+        # Accumulate visible text across all rounds (matches what the
+        # frontend displays from delta events).
+        full_response += assistant_content
+
         if not tool_calls:
-            full_response = assistant_content
             break
 
         # ── Loop detection ───────────────────────────────────────────

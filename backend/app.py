@@ -149,6 +149,45 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def index() -> FileResponse:
         return FileResponse(frontend_dir / "index.html")
 
+    @app.post("/api/chat")
+    async def chat(request: ChatRequest) -> dict:
+        """Non-streaming endpoint. Returns the same response the user sees."""
+        if _is_fea_request(request.message):
+            raise HTTPException(status_code=400, detail="FEA requests not supported on /api/chat")
+
+        messages = convert_frontend_history(request.history)
+        messages.append({"role": "user", "content": request.message})
+
+        messages = compact_if_needed(
+            messages, SYSTEM_PROMPT,
+            context_window=active_settings.agent_context_window,
+        )
+
+        _WEB_TOOLS = {"web_search", "fetch_url"}
+        active_tools = TOOLS if request.web_search else [
+            t for t in TOOLS if t["function"]["name"] not in _WEB_TOOLS
+        ]
+
+        full_response = ""
+        async for event in run_agent_loop(
+            client=client,
+            model=active_settings.orchestrator_model,
+            system_prompt=SYSTEM_PROMPT,
+            messages=messages,
+            tools=active_tools,
+            tool_dispatcher=tool_dispatcher,
+            max_rounds=active_settings.agent_max_rounds,
+            temperature=active_settings.agent_temperature,
+            max_tokens=active_settings.agent_max_tokens,
+            reasoning_effort=active_settings.orchestrator_reasoning_effort or None,
+        ):
+            if event.get("type") == "delta":
+                full_response += event.get("content", "")
+            elif event.get("type") == "error":
+                raise HTTPException(status_code=500, detail=event.get("message", "Agent error"))
+
+        return {"answer": full_response}
+
     @app.post("/api/chat/stream")
     async def chat_stream(request: ChatRequest) -> StreamingResponse:
 
