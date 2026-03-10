@@ -401,8 +401,9 @@ class AgenticRetriever:
                     "Clauses:\n" + "\n".join(descriptions) + "\n\n"
                     "Score each clause. Return JSON array only."
                 ),
-                temperature=0,
-                max_tokens=1200,
+                temperature=self.settings.rerank_temperature,
+                max_tokens=self.settings.rerank_max_tokens,
+                **({"reasoning_effort": self.settings.rerank_reasoning_effort} if self.settings.rerank_reasoning_effort else {}),
             )
             data = parse_json_loose(raw)
             if isinstance(data, list):
@@ -454,8 +455,9 @@ class AgenticRetriever:
                     f"Current top results:\n{summary}\n\n"
                     "Return JSON: a search string or null."
                 ),
-                temperature=0,
-                max_tokens=600,
+                temperature=self.settings.gap_analysis_temperature,
+                max_tokens=self.settings.gap_analysis_max_tokens,
+                **({"reasoning_effort": self.settings.gap_analysis_reasoning_effort} if self.settings.gap_analysis_reasoning_effort else {}),
             )
             data = parse_json_loose(raw)
             if isinstance(data, str) and data.strip():

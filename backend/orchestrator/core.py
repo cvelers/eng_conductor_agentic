@@ -383,8 +383,9 @@ class CentralIntelligenceOrchestrator:
                     "calculations. Return only a valid JSON array."
                 ),
                 user_prompt=prompt,
-                temperature=0.0,
-                max_tokens=2000,
+                temperature=self.settings.chain_resolve_temperature,
+                max_tokens=self.settings.chain_resolve_max_tokens,
+                **({"reasoning_effort": self.settings.chain_resolve_reasoning_effort} if self.settings.chain_resolve_reasoning_effort else {}),
             )
             parsed = parse_json_loose(raw)
             if isinstance(parsed, list) and parsed:
@@ -466,8 +467,9 @@ class CentralIntelligenceOrchestrator:
                     "differ. Return only valid JSON."
                 ),
                 user_prompt=prompt,
-                temperature=0.0,
-                max_tokens=2000,
+                temperature=self.settings.input_resolve_temperature,
+                max_tokens=self.settings.input_resolve_max_tokens,
+                **({"reasoning_effort": self.settings.input_resolve_reasoning_effort} if self.settings.input_resolve_reasoning_effort else {}),
             )
             result = parse_json_loose(raw)
             if isinstance(result, dict):
@@ -649,17 +651,17 @@ class CentralIntelligenceOrchestrator:
                 raw = self.orchestrator_llm.generate_multimodal(
                     system_prompt=self._CLASSIFY_SYSTEM,
                     content_parts=content_parts,
-                    temperature=0,
-                    max_tokens=256,
-                    reasoning_effort="low",
+                    temperature=self.settings.intent_temperature,
+                    max_tokens=self.settings.intent_max_tokens,
+                    reasoning_effort=self.settings.intent_reasoning_effort or None,
                 )
             else:
                 raw = self.orchestrator_llm.generate(
                     system_prompt=self._CLASSIFY_SYSTEM,
                     user_prompt=f"User message: \"{cleaned}\"",
-                    temperature=0,
-                    max_tokens=256,
-                    reasoning_effort="low",
+                    temperature=self.settings.intent_temperature,
+                    max_tokens=self.settings.intent_max_tokens,
+                    reasoning_effort=self.settings.intent_reasoning_effort or None,
                 )
 
             token = raw.strip().upper().rstrip(".")

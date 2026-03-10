@@ -703,9 +703,9 @@ class AgentLoop:
                 f"{mode_hint}\n\n"
                 "Return JSON array of tasks."
             ),
-            temperature=0,
-            max_tokens=2048,
-            reasoning_effort="low" if thinking_mode != "extended" else None,
+            temperature=self.settings.decompose_temperature,
+            max_tokens=self.settings.decompose_max_tokens,
+            reasoning_effort=(self.settings.decompose_reasoning_effort or None) if thinking_mode != "extended" else None,
         )
 
         parsed = parse_json_loose(raw)
@@ -904,9 +904,9 @@ class AgentLoop:
                     f"Error: {error_msg}\n\n"
                     "Return ONLY the parameters that need to change as JSON."
                 ),
-                temperature=0,
-                max_tokens=1024,
-                reasoning_effort="low",
+                temperature=self.settings.fix_inputs_temperature,
+                max_tokens=self.settings.fix_inputs_max_tokens,
+                reasoning_effort=self.settings.fix_inputs_reasoning_effort or None,
             )
             fixed = parse_json_loose(raw)
             if isinstance(fixed, dict):
@@ -982,8 +982,9 @@ class AgentLoop:
                     f"Error history (all failed attempts):\n{error_history}\n\n"
                     "Resolve ALL inputs from scratch. Return ONLY a JSON object."
                 ),
-                temperature=0,
-                max_tokens=2000,
+                temperature=self.settings.upstream_resolve_temperature,
+                max_tokens=self.settings.upstream_resolve_max_tokens,
+                **({"reasoning_effort": self.settings.upstream_resolve_reasoning_effort} if self.settings.upstream_resolve_reasoning_effort else {}),
             )
             result = parse_json_loose(raw)
             if isinstance(result, dict):
@@ -1060,7 +1061,7 @@ class AgentLoop:
 
         reasoning_effort = None
         if thinking_mode == "standard":
-            reasoning_effort = "low"
+            reasoning_effort = self.settings.compose_reasoning_effort or None
         elif thinking_mode == "extended":
             reasoning_effort = "high"
 
@@ -1075,8 +1076,8 @@ class AgentLoop:
                     f"{failure_note}"
                     "Give a detailed engineering answer. Wrap ALL math in $...$ delimiters."
                 ),
-                temperature=0.15,
-                max_tokens=8000,
+                temperature=self.settings.compose_temperature,
+                max_tokens=self.settings.compose_max_tokens,
                 reasoning_effort=reasoning_effort,
             )
             return raw.strip()
