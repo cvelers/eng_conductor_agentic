@@ -306,16 +306,14 @@ class FEAAnalystLoop:
         # Build the request with tools
         # Since we're using the OpenAI-compatible API, include tools in the request
         reasoning = self.settings.fea_analyst_reasoning_effort or None
-
-        # Use generous max_tokens — Gemini thinking models use tokens for reasoning
-        # so the actual output may be much smaller than max_tokens.
-        max_tok = 16000
+        max_tok = self.settings.fea_analyst_max_tokens
+        temp = self.settings.fea_analyst_temperature
 
         # Try function-calling format first
         try:
             raw = self.llm.generate_messages(
                 messages=messages,
-                temperature=0.0,
+                temperature=temp,
                 max_tokens=max_tok,
                 reasoning_effort=reasoning,
                 tools=FEA_TOOLS,
@@ -334,7 +332,7 @@ class FEAAnalystLoop:
 
             return self.llm.generate_messages(
                 messages=augmented,
-                temperature=0.0,
+                temperature=temp,
                 max_tokens=max_tok,
                 reasoning_effort=reasoning,
             )

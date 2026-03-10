@@ -27,54 +27,9 @@ def get_orchestrator_provider(settings: Settings) -> LLMProvider:
     raise ValueError(f"Unsupported orchestrator provider: {settings.orchestrator_provider}")
 
 
-def get_tool_writer_provider(settings: Settings) -> LLMProvider:
-    """Separate LLM for tool generation. Falls back to orchestrator config if unset."""
-    provider = (settings.tool_writer_provider or settings.orchestrator_provider).lower()
-    model = settings.tool_writer_model or settings.orchestrator_model
-    api_key = settings.tool_writer_api_key or settings.orchestrator_api_key
-    base_url = settings.tool_writer_base_url or settings.orchestrator_base_url
-
-    if provider == "gemini":
-        effort = (
-            settings.tool_writer_reasoning_effort
-            or settings.orchestrator_reasoning_effort
-        ) or None
-        return GeminiProvider(
-            api_key=api_key,
-            model=model,
-            base_url=base_url,
-            default_reasoning_effort=effort,
-        )
-    if provider == "openrouter":
-        return OpenRouterProvider(api_key=api_key, model=model, base_url=base_url)
-    if provider == "mock":
-        return MockProvider()
-    raise ValueError(f"Unsupported tool writer provider: {provider}")
-
-
 def get_fea_analyst_provider(settings: Settings) -> LLMProvider:
-    """Separate LLM for FEA analyst. Falls back to orchestrator config if unset."""
-    provider = (settings.fea_analyst_provider or settings.orchestrator_provider).lower()
-    model = settings.fea_analyst_model or settings.orchestrator_model
-    api_key = settings.fea_analyst_api_key or settings.orchestrator_api_key
-    base_url = settings.fea_analyst_base_url or settings.orchestrator_base_url
-
-    if provider == "gemini":
-        effort = (
-            settings.fea_analyst_reasoning_effort
-            or settings.orchestrator_reasoning_effort
-        ) or None
-        return GeminiProvider(
-            api_key=api_key,
-            model=model,
-            base_url=base_url,
-            default_reasoning_effort=effort,
-        )
-    if provider == "openrouter":
-        return OpenRouterProvider(api_key=api_key, model=model, base_url=base_url)
-    if provider == "mock":
-        return MockProvider()
-    raise ValueError(f"Unsupported FEA analyst provider: {provider}")
+    """LLM for FEA analyst — uses orchestrator provider/model/key/url."""
+    return get_orchestrator_provider(settings)
 
 
 def get_search_provider(settings: Settings) -> LLMProvider:

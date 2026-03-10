@@ -208,7 +208,6 @@ body {
 }
 
 .top-actions { display: flex; align-items: center; gap: 12px; }
-.dev-toggle-label { font-size: 0.78rem; color: var(--muted); font-weight: 600; letter-spacing: 0.03em; }
 .top-auth-btn {
   border: 1px solid var(--border);
   border-radius: 999px;
@@ -622,23 +621,6 @@ body.chat-started .composer-meta {
   display: flex;
   justify-content: flex-end;
 }
-.composer-dev-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: rgba(20, 21, 23, 0.85);
-  padding: 5px 10px;
-  cursor: pointer;
-  user-select: none;
-  transition: border-color 120ms, background 120ms;
-}
-.composer-dev-toggle:hover {
-  border-color: var(--border-2);
-  background: rgba(30, 32, 35, 0.92);
-}
-.composer-dev-toggle input { accent-color: var(--accent); cursor: pointer; }
 .composer {
   width: min(820px, calc(100% - 20px)); margin: 0 auto;
   display: flex; flex-direction: column; gap: 8px;
@@ -1054,44 +1036,6 @@ body.chat-started .attach-menu {
 .composer button[type="submit"].stop-mode { background: #e53e3e; opacity: 1; cursor: pointer; }
 .composer button[type="submit"].stop-mode:hover { background: #c53030; }
 
-/* Dev panel */
-.dev-panel {
-  position: absolute; top: 0; right: 0; width: 360px; max-height: 100vh;
-  background: var(--bg-2); border-left: 1px solid var(--border); z-index: 20;
-  display: flex; flex-direction: column; box-shadow: -4px 0 16px rgba(0, 0, 0, 0.3);
-}
-.dev-panel.hidden { display: none; }
-.dev-panel-header {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 12px 14px; border-bottom: 1px solid var(--border);
-  font-size: 0.82rem;
-}
-.dev-panel-body { padding: 14px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
-.dev-panel-body p { margin: 0; font-size: 0.8rem; color: var(--muted); line-height: 1.4; }
-.dev-panel-body textarea {
-  width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm);
-  background: var(--bg-3); color: var(--text); padding: 10px; font-size: 0.82rem;
-  font-family: var(--font-sans); resize: vertical; outline: none;
-}
-.dev-panel-body textarea:focus { border-color: var(--accent); }
-.solid-btn {
-  border: 1px solid rgba(79, 156, 247, 0.4); border-radius: var(--radius-sm);
-  background: linear-gradient(180deg, rgba(79, 156, 247, 0.2), rgba(79, 156, 247, 0.1));
-  color: var(--accent-2); font-weight: 600; padding: 8px 14px; cursor: pointer; font-size: 0.82rem;
-  transition: background 120ms;
-}
-.solid-btn:hover { background: rgba(79, 156, 247, 0.25); }
-#tool-writer-output, #dev-activity {
-  max-height: 250px; overflow: auto; font-size: 0.75rem;
-  font-family: var(--font-mono); color: var(--text-2);
-  background: var(--bg-3); border: 1px solid var(--border); border-radius: var(--radius-sm);
-  padding: 10px; white-space: pre-wrap; margin: 0;
-}
-.dev-section-label {
-  font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;
-  font-weight: 700; margin-top: 4px;
-}
-
 /* Auth overlay (production-ready) */
 .auth-overlay {
   position: fixed; inset: 0; z-index: 100;
@@ -1261,7 +1205,6 @@ body.chat-started .attach-menu {
     min-width: 200px;
   }
   .welcome { width: 92%; }
-  .dev-panel { width: 100%; }
   .top-auth-btn { padding: 5px 10px; font-size: 0.74rem; }
 }
 

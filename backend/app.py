@@ -18,7 +18,7 @@ from pydantic import BaseModel
 from backend.auth import create_auth_router, require_auth
 from backend.config import Settings
 from backend.threads import create_threads_router
-from backend.llm.factory import get_fea_analyst_provider, get_orchestrator_provider, get_search_provider, get_tool_writer_provider
+from backend.llm.factory import get_orchestrator_provider, get_search_provider
 from backend.logging_config import configure_logging
 from backend.orchestrator.agent_loop import AgentLoop
 from backend.orchestrator.core import CentralIntelligenceOrchestrator
@@ -28,7 +28,6 @@ from backend.retrieval.agentic_search import AgenticRetriever
 from backend.orchestrator.fea_analyst import FEAAnalystLoop
 from backend.schemas import ChatRequest, ChatResponse, FEAAnswerRequest, FEAResultsRequest
 from backend.tools.runner import MCPToolRunner
-from backend.tools.writer import ToolWriter
 
 logger = logging.getLogger(__name__)
 
@@ -81,10 +80,6 @@ def _history_payload(history: list) -> list[dict]:
     return rows
 
 
-class ToolGenerateRequest(BaseModel):
-    description: str
-
-
 def create_app(settings: Settings | None = None) -> FastAPI:
     load_dotenv()
     active_settings = settings or Settings.load()
@@ -121,15 +116,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         settings=active_settings,
     )
 
-    tool_writer_provider = get_tool_writer_provider(active_settings)
-
-    tool_writer = ToolWriter(
-        llm=tool_writer_provider,
-        retriever=retriever,
-        tool_registry=orchestrator.tool_registry,
-        project_root=active_settings.project_root,
-    )
-
     # FEA session storage (in-memory, keyed by session_id)
     fea_sessions: dict[str, FEAAnalystLoop] = {}
 
@@ -141,7 +127,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app = FastAPI(title="Eurocodes Chatbot", version="0.3.0", lifespan=lifespan)
     app.state.orchestrator = orchestrator
     app.state.agent_loop = agent_loop
-    app.state.tool_writer = tool_writer
     app.state.settings = active_settings
     app.state.fea_sessions = fea_sessions
     app.state.tool_runner = tool_runner
@@ -310,15 +295,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(status_code=404, detail=f"FEA session '{request.session_id}' not found.")
         analyst.provide_answer(request.answer)
         return {"status": "ok"}
-
-    @app.post("/api/tools/generate")
-    async def generate_tool(request: ToolGenerateRequest):
-        try:
-            result = tool_writer.generate(request.description)
-            return result
-        except Exception as exc:
-            logger.exception("tool_generation_failed")
-            raise HTTPException(status_code=500, detail=str(exc)) from exc
 
     @app.get("/api/tools")
     async def list_tools():

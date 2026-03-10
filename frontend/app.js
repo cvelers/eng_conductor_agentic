@@ -47,8 +47,6 @@ const welcome = $("#welcome");
 const threadList = $("#thread-list");
 const newChatBtn = $("#new-chat-btn");
 const chatSearch = $("#chat-search");
-const devToggle = $("#dev-mode-toggle");
-const devPanel = $("#dev-panel");
 const sidebarToggle = $("#sidebar-toggle");
 const sidebar = $("#sidebar");
 const signInBtn = $("#signin-btn");
@@ -70,7 +68,6 @@ const state = {
   activeThreadId: null,
   guestThread: null,
   filter: "",
-  devMode: false,
   thinkingMode: "thinking",
   attachments: [],
   abortController: null,
@@ -1938,10 +1935,6 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         }
         appendLog(assistantNode, "Response complete.");
 
-        if (state.devMode && payload.tool_trace?.length) {
-          showDevActivity(payload);
-        }
-
         if (!finalized) {
           thread.messages.push({ id: uid(), role: "assistant", content: payload.answer, responsePayload: payload, createdAt: now() });
           thread.updatedAt = now();
@@ -1981,72 +1974,6 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
       }
     }
   }
-}
-
-// ---- Developer mode ----
-function showDevActivity(payload) {
-  const out = $("#dev-activity");
-  if (!out) return;
-  out.classList.remove("hidden");
-
-  const lines = [];
-  if (payload.tool_trace?.length) {
-    lines.push("Tools executed:");
-    for (const t of payload.tool_trace) {
-      const status = t.status === "ok" ? "✓" : "✗";
-      lines.push(`  ${status} ${t.tool_name}`);
-      if (t.inputs) {
-        for (const [k, v] of Object.entries(t.inputs)) {
-          lines.push(`    ${k}: ${JSON.stringify(v)}`);
-        }
-      }
-    }
-  }
-  if (payload.sources?.length) {
-    lines.push("\nSources used:");
-    const seen = new Set();
-    for (const s of payload.sources) {
-      const key = `${s.clause_id}`;
-      if (seen.has(key) || key === "0") continue;
-      seen.add(key);
-      const clauseId = String(s.clause_id || "").trim();
-      const prefix = /^\d/.test(clauseId) ? "Cl. " : "";
-      lines.push(`  ${prefix}${clauseId} — ${s.clause_title || ""}`);
-    }
-  }
-  out.textContent = lines.join("\n");
-}
-
-function initDevMode() {
-  devToggle.addEventListener("change", () => {
-    state.devMode = devToggle.checked;
-    devPanel.classList.toggle("hidden", !state.devMode);
-    document.body.classList.toggle("dev-active", state.devMode);
-  });
-  $("#dev-panel-close")?.addEventListener("click", () => {
-    devToggle.checked = false;
-    state.devMode = false;
-    devPanel.classList.add("hidden");
-    document.body.classList.remove("dev-active");
-  });
-  $("#tool-writer-btn")?.addEventListener("click", async () => {
-    const desc = $("#tool-writer-input")?.value?.trim();
-    if (!desc) return;
-    const out = $("#tool-writer-output");
-    out.classList.remove("hidden");
-    out.textContent = "Generating tool...";
-    try {
-      const res = await fetch("/api/tools/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description: desc }),
-      });
-      const data = await res.json();
-      out.textContent = data.code || data.error || JSON.stringify(data, null, 2);
-    } catch (e) {
-      out.textContent = `Error: ${e.message}`;
-    }
-  });
 }
 
 // ---- Auth ----
@@ -2449,7 +2376,6 @@ async function initialize() {
   resetGuestThread();
   renderThreadList();
   renderMessages();
-  initDevMode();
   initAuth();
   syncAuthControls();
   loadThinkingModePreference();
@@ -2664,11 +2590,6 @@ async function initialize() {
     _cleanupFloatingDiagrams();
     const assistantNode = createMsg("assistant", "", { showThinking: true, prompt: fullPrompt });
     updateWelcome();
-
-    if (state.devMode) {
-      const out = $("#dev-activity");
-      if (out) { out.classList.remove("hidden"); out.textContent = "Processing query..."; }
-    }
 
     try {
       await streamChat(fullPrompt, assistantNode, thread, state.thinkingMode, currentAttachments);

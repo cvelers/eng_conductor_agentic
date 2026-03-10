@@ -104,31 +104,7 @@
           </div>
         </div>
 
-        <div id="dev-panel" class="dev-panel hidden">
-          <div class="dev-panel-header">
-            <strong>Developer Mode</strong>
-            <button id="dev-panel-close" class="icon-btn" type="button">&times;</button>
-          </div>
-          <div class="dev-panel-body">
-            <div class="dev-section-label">Live Activity</div>
-            <p>Shows tools, inputs, and sources used for each query automatically.</p>
-            <pre id="dev-activity" class="hidden"></pre>
-
-            <div class="dev-section-label">Tool Writer</div>
-            <p>Generate new MCP calculator tools from EC3 database clauses.</p>
-            <textarea id="tool-writer-input" rows="3" placeholder="Describe the tool you need, e.g. 'lateral-torsional buckling resistance check per EC3 6.3.2'"></textarea>
-            <button id="tool-writer-btn" class="solid-btn" type="button">Generate Tool</button>
-            <pre id="tool-writer-output" class="hidden"></pre>
-          </div>
-        </div>
-
         <footer class="composer-shell">
-          <div class="composer-meta">
-            <label class="composer-dev-toggle" title="Developer Mode — enables tool writer and technical internals">
-              <input type="checkbox" id="dev-mode-toggle" />
-              <span class="dev-toggle-label">Dev Mode</span>
-            </label>
-          </div>
           <form id="chat-form" class="composer">
             <div id="attachments-preview" class="attachments-preview hidden"></div>
             <div class="composer-main-row">
