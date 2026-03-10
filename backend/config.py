@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -27,6 +28,41 @@ def _to_float(value: str | None, default: float) -> float:
         return float(value)
     except ValueError:
         return default
+
+
+# Default cognitive config — used when cognitive_config.json is missing.
+_COGNITIVE_DEFAULTS: dict[str, dict[str, object]] = {
+    "intent":           {"temperature": 0.0,  "max_tokens": 256,  "reasoning_effort": "low"},
+    "decompose":        {"temperature": 0.0,  "max_tokens": 2048, "reasoning_effort": "low"},
+    "rerank":           {"temperature": 0.0,  "max_tokens": 1200, "reasoning_effort": None},
+    "gap_analysis":     {"temperature": 0.0,  "max_tokens": 600,  "reasoning_effort": None},
+    "chain_resolve":    {"temperature": 0.0,  "max_tokens": 2000, "reasoning_effort": None},
+    "input_resolve":    {"temperature": 0.0,  "max_tokens": 2000, "reasoning_effort": None},
+    "fix_inputs":       {"temperature": 0.0,  "max_tokens": 1024, "reasoning_effort": "low"},
+    "upstream_resolve": {"temperature": 0.0,  "max_tokens": 2000, "reasoning_effort": None},
+    "compose":          {"temperature": 0.15, "max_tokens": 8000, "reasoning_effort": "low"},
+}
+
+
+def _load_cognitive_config(project_root: Path) -> dict[str, object]:
+    """Load pipeline LLM params from cognitive_config.json, fall back to defaults."""
+    cfg = dict(_COGNITIVE_DEFAULTS)
+    config_path = project_root / "cognitive_config.json"
+    if config_path.is_file():
+        with open(config_path) as f:
+            user_cfg = json.load(f)
+        for stage, params in user_cfg.items():
+            if stage in cfg:
+                cfg[stage] = {**cfg[stage], **params}
+
+    # Flatten into Settings field names: {stage}_{param}
+    flat: dict[str, object] = {}
+    for stage, params in cfg.items():
+        re = params.get("reasoning_effort")
+        flat[f"{stage}_temperature"] = float(params.get("temperature", 0))
+        flat[f"{stage}_max_tokens"] = int(params.get("max_tokens", 2000))
+        flat[f"{stage}_reasoning_effort"] = re if isinstance(re, str) else ""
+    return flat
 
 
 @dataclass(frozen=True)
@@ -180,52 +216,8 @@ class Settings:
             embeddings_enabled=_to_bool(os.getenv("EMBEDDINGS_ENABLED"), False),
             max_retrieval_iters=_to_int(os.getenv("MAX_RETRIEVAL_ITERS"), 3),
             top_k_clauses=_to_int(os.getenv("TOP_K_CLAUSES"), 6),
-            # Pipeline stage LLM parameters
-            intent_temperature=_to_float(os.getenv("INTENT_TEMPERATURE"), 0.0),
-            intent_max_tokens=_to_int(os.getenv("INTENT_MAX_TOKENS"), 256),
-            intent_reasoning_effort=(
-                os.getenv("INTENT_REASONING_EFFORT", "low").strip() or ""
-            ),
-            decompose_temperature=_to_float(os.getenv("DECOMPOSE_TEMPERATURE"), 0.0),
-            decompose_max_tokens=_to_int(os.getenv("DECOMPOSE_MAX_TOKENS"), 2048),
-            decompose_reasoning_effort=(
-                os.getenv("DECOMPOSE_REASONING_EFFORT", "low").strip() or ""
-            ),
-            rerank_temperature=_to_float(os.getenv("RERANK_TEMPERATURE"), 0.0),
-            rerank_max_tokens=_to_int(os.getenv("RERANK_MAX_TOKENS"), 1200),
-            rerank_reasoning_effort=(
-                os.getenv("RERANK_REASONING_EFFORT", "").strip() or ""
-            ),
-            gap_analysis_temperature=_to_float(os.getenv("GAP_ANALYSIS_TEMPERATURE"), 0.0),
-            gap_analysis_max_tokens=_to_int(os.getenv("GAP_ANALYSIS_MAX_TOKENS"), 600),
-            gap_analysis_reasoning_effort=(
-                os.getenv("GAP_ANALYSIS_REASONING_EFFORT", "").strip() or ""
-            ),
-            chain_resolve_temperature=_to_float(os.getenv("CHAIN_RESOLVE_TEMPERATURE"), 0.0),
-            chain_resolve_max_tokens=_to_int(os.getenv("CHAIN_RESOLVE_MAX_TOKENS"), 2000),
-            chain_resolve_reasoning_effort=(
-                os.getenv("CHAIN_RESOLVE_REASONING_EFFORT", "").strip() or ""
-            ),
-            input_resolve_temperature=_to_float(os.getenv("INPUT_RESOLVE_TEMPERATURE"), 0.0),
-            input_resolve_max_tokens=_to_int(os.getenv("INPUT_RESOLVE_MAX_TOKENS"), 2000),
-            input_resolve_reasoning_effort=(
-                os.getenv("INPUT_RESOLVE_REASONING_EFFORT", "").strip() or ""
-            ),
-            fix_inputs_temperature=_to_float(os.getenv("FIX_INPUTS_TEMPERATURE"), 0.0),
-            fix_inputs_max_tokens=_to_int(os.getenv("FIX_INPUTS_MAX_TOKENS"), 1024),
-            fix_inputs_reasoning_effort=(
-                os.getenv("FIX_INPUTS_REASONING_EFFORT", "low").strip() or ""
-            ),
-            upstream_resolve_temperature=_to_float(os.getenv("UPSTREAM_RESOLVE_TEMPERATURE"), 0.0),
-            upstream_resolve_max_tokens=_to_int(os.getenv("UPSTREAM_RESOLVE_MAX_TOKENS"), 2000),
-            upstream_resolve_reasoning_effort=(
-                os.getenv("UPSTREAM_RESOLVE_REASONING_EFFORT", "").strip() or ""
-            ),
-            compose_temperature=_to_float(os.getenv("COMPOSE_TEMPERATURE"), 0.15),
-            compose_max_tokens=_to_int(os.getenv("COMPOSE_MAX_TOKENS"), 8000),
-            compose_reasoning_effort=(
-                os.getenv("COMPOSE_REASONING_EFFORT", "low").strip() or ""
-            ),
+            # Pipeline stage LLM parameters (from cognitive_config.json)
+            **_load_cognitive_config(project_root),
             document_registry_path=(
                 Path(os.environ["DOCUMENT_REGISTRY_PATH"])
                 if os.getenv("DOCUMENT_REGISTRY_PATH")
