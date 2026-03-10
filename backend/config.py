@@ -59,8 +59,8 @@ class Settings:
     agentic_search_enabled: bool = True
     recursive_retrieval_enabled: bool = False
     embeddings_enabled: bool = False
-    max_retrieval_iters: int = 3
-    top_k_clauses: int = 20
+    max_retrieval_iters: int = 3  # Max sufficiency evaluation iterations
+    top_k_clauses: int = 8
 
     # Retriever LLM params (used internally by AgenticRetriever)
     rerank_temperature: float = 0.0
@@ -137,7 +137,7 @@ class Settings:
             ),
             embeddings_enabled=_to_bool(os.getenv("EMBEDDINGS_ENABLED"), False),
             max_retrieval_iters=_to_int(os.getenv("MAX_RETRIEVAL_ITERS"), 3),
-            top_k_clauses=_to_int(os.getenv("TOP_K_CLAUSES"), 6),
+            top_k_clauses=_to_int(os.getenv("TOP_K_CLAUSES"), 8),
             rerank_temperature=_to_float(os.getenv("RERANK_TEMPERATURE"), 0.0),
             rerank_max_tokens=_to_int(os.getenv("RERANK_MAX_TOKENS"), 1200),
             gap_analysis_temperature=_to_float(os.getenv("GAP_ANALYSIS_TEMPERATURE"), 0.0),

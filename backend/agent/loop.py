@@ -1,7 +1,18 @@
-"""Core agent loop — think → act → observe → repeat.
+"""Core agent loop — think -> act -> observe -> repeat.
 
 Uses the ``openai`` Python package for native tool calling with streaming.
 Bridges sync OpenAI streaming into async iteration via a background thread.
+
+Harness patterns implemented:
+  - **System reminders** injected after every tool result (Claude Code pattern).
+    Higher behavioral adherence than system-prompt-only instructions.
+  - **Observation compression** for older tool results (SWE-Agent pattern).
+    Only the last N tool results are kept at full fidelity; older ones are
+    compressed to summaries, keeping the context window lean.
+  - **Budget-aware guidance** — as tool budget depletes, the agent is
+    coached to wrap up rather than hard-stopped without context.
+  - **Novelty tracking** — detects when successive searches return the
+    same clauses (circular retrieval) and breaks out early.
 """
 
 from __future__ import annotations
@@ -21,6 +32,50 @@ logger = logging.getLogger(__name__)
 MAX_ROUNDS = 25
 MAX_CONSECUTIVE_SAME_TOOL = 4
 LOOP_BREAKER_HARD_LIMIT = 3
+
+# Number of recent tool results to keep at full fidelity.
+# Older ones are compressed to summaries (SWE-Agent pattern).
+FULL_FIDELITY_TOOL_RESULTS = 4
+
+# After this many total tool calls, inject budget guidance.
+TOOL_BUDGET_WARN_THRESHOLD = 10
+
+# ── System Reminders (Claude Code pattern) ─────────────────────────
+# Injected after every tool result to keep the agent on track.
+# These repeat key behavioral instructions at the exact moment the
+# agent is deciding what to do next — the "high attention zone" at
+# the end of the context window.
+
+_SYSTEM_REMINDERS: dict[str, str] = {
+    "eurocode_search": (
+        "\n\n<system-reminder>"
+        "Review these search results. If they reference tables, clauses, or "
+        "equations that are NOT in the results but you need, use `read_clause` "
+        "to fetch them directly (e.g., read_clause with clause_id='Table 6.2'). "
+        "If results don't cover what you need, search again with different terms."
+        "</system-reminder>"
+    ),
+    "read_clause": (
+        "\n\n<system-reminder>"
+        "You have the full clause text. Check if it cross-references other "
+        "clauses, tables, or formulas you still need. Fetch them if so."
+        "</system-reminder>"
+    ),
+    "math_calculator": (
+        "\n\n<system-reminder>"
+        "Verify calculation inputs match the Eurocode requirements. "
+        "If any input was assumed rather than looked up, state this clearly."
+        "</system-reminder>"
+    ),
+}
+
+# Default reminder for tools without a specific one
+_DEFAULT_REMINDER = (
+    "\n\n<system-reminder>"
+    "Continue working toward answering the user's question. "
+    "If you have enough information, provide your answer now."
+    "</system-reminder>"
+)
 
 
 # ── Streaming bridge ─────────────────────────────────────────────────
@@ -157,6 +212,62 @@ def _parse_tool_calls(store: dict[int, dict], tool_round: int) -> list[dict]:
     return calls
 
 
+# ── Observation compression ──────────────────────────────────────────
+
+
+def _compress_old_tool_results(
+    messages: list[dict[str, Any]],
+    keep_full: int = FULL_FIDELITY_TOOL_RESULTS,
+) -> list[dict[str, Any]]:
+    """Compress older tool results to summaries, keeping recent ones full.
+
+    This is the SWE-Agent "observation compression" pattern: the agent sees
+    full detail for recent actions and summaries for older ones. Keeps the
+    context window lean while preserving the information trail.
+    """
+    # Find indices of tool messages (from the end)
+    tool_indices: list[int] = []
+    for i in range(len(messages) - 1, -1, -1):
+        if messages[i].get("role") == "tool":
+            tool_indices.append(i)
+
+    # Keep the most recent `keep_full` tool results at full fidelity
+    indices_to_compress = tool_indices[keep_full:]
+    if not indices_to_compress:
+        return messages
+
+    for idx in indices_to_compress:
+        content = messages[idx].get("content", "")
+        if not isinstance(content, str) or len(content) < 500:
+            continue  # Already short enough
+
+        # Compress: keep first 200 chars + indicator
+        compressed = content[:200].rstrip()
+        messages[idx] = {
+            **messages[idx],
+            "content": f"{compressed}\n[... compressed — {len(content)} chars total]",
+        }
+
+    return messages
+
+
+# ── Novelty tracking ─────────────────────────────────────────────────
+
+
+def _extract_clause_ids_from_result(result_str: str) -> set[str]:
+    """Extract clause IDs from a tool result for novelty tracking."""
+    try:
+        data = json.loads(result_str)
+        if isinstance(data, dict) and "clauses" in data:
+            return {
+                c.get("clause_id", "") for c in data["clauses"]
+                if isinstance(c, dict) and c.get("clause_id")
+            }
+    except (json.JSONDecodeError, TypeError):
+        pass
+    return set()
+
+
 # ── Main agent loop ──────────────────────────────────────────────────
 
 
@@ -191,9 +302,16 @@ async def run_agent_loop(
     consecutive_names: list[str] = []
     loop_breaker_count = 0
 
+    # Novelty tracking — detect circular retrieval
+    search_result_sets: list[set[str]] = []
+
     all_messages = [{"role": "system", "content": system_prompt}] + messages
 
     while tool_round < max_rounds:
+        # Compress older tool results before sending (keeps context lean)
+        if tool_round > 2:
+            _compress_old_tool_results(all_messages)
+
         request_kwargs: dict[str, Any] = {
             "model": model,
             "messages": all_messages,
@@ -317,12 +435,19 @@ async def run_agent_loop(
         total_tool_calls += len(tool_calls)
 
         force_stop = False
+        force_reason = ""
+
+        # Check consecutive same-tool calls
         if len(consecutive_names) >= MAX_CONSECUTIVE_SAME_TOOL + 1:
             recent = consecutive_names[-(MAX_CONSECUTIVE_SAME_TOOL + 1) :]
             if len(set(recent)) == 1:
                 force_stop = True
+                force_reason = f"Same tool '{recent[0]}' called {MAX_CONSECUTIVE_SAME_TOOL + 1}x consecutively"
+
+        # Check total tool budget
         if total_tool_calls > 15:
             force_stop = True
+            force_reason = f"Tool budget exceeded ({total_tool_calls} calls)"
 
         if force_stop:
             loop_breaker_count += 1
@@ -359,10 +484,49 @@ async def run_agent_loop(
                 "summary": summary,
             }
 
+            # ── Novelty tracking for search results ──────────────────
+            if tc["name"] == "eurocode_search":
+                clause_ids = _extract_clause_ids_from_result(result_str)
+                if clause_ids:
+                    # Check if this result set is mostly identical to a previous one
+                    for prev_set in search_result_sets:
+                        overlap = len(clause_ids & prev_set)
+                        if prev_set and overlap / max(len(prev_set), 1) > 0.8:
+                            # Circular retrieval detected — inject guidance
+                            result_str += (
+                                '\n\n{"_hint": "WARNING: This search returned very similar '
+                                'results to a previous search. Try a significantly different '
+                                'query, or use read_clause to fetch specific items directly."}'
+                            )
+                            break
+                    search_result_sets.append(clause_ids)
+
+            # ── System reminder injection (Claude Code pattern) ──────
+            # Append a behavioral reminder to the tool result content.
+            # This places guidance in the "high attention zone" at the
+            # end of the context, achieving higher adherence than
+            # system-prompt-only instructions.
+            reminder = _SYSTEM_REMINDERS.get(tc["name"], _DEFAULT_REMINDER)
+
+            # Budget-aware guidance: as budget depletes, nudge toward wrapping up
+            budget_hint = ""
+            remaining = max(0, 15 - total_tool_calls)
+            if remaining <= 3 and remaining > 0:
+                budget_hint = (
+                    f"\n[Budget: {remaining} tool calls remaining. "
+                    "Start composing your answer with available information.]"
+                )
+            elif remaining <= 0:
+                budget_hint = (
+                    "\n[Budget depleted. Provide your answer now with available information.]"
+                )
+
+            tool_content = result_str[:30_000] + reminder + budget_hint
+
             all_messages.append({
                 "role": "tool",
                 "tool_call_id": tc["id"],
-                "content": result_str[:30_000],
+                "content": tool_content,
             })
 
         tool_round += 1

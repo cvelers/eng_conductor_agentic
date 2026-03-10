@@ -1,3 +1,23 @@
+"""Dynamic iterative search — intent-aware retrieval with sufficiency evaluation.
+
+Two retrieval modes:
+  - **Blanket search**: broad topic queries decomposed into sub-queries,
+    scored via TF-IDF + LLM reranking, then iteratively evaluated for gaps.
+  - **Targeted fetch**: direct clause/table/equation lookup by ID pattern,
+    used when the query (or a gap analysis result) asks for a specific item.
+
+The key innovation over the previous linear pipeline is the **sufficiency
+evaluation loop**: after initial retrieval the LLM reads actual clause
+*content* and identifies specific missing items (tables, referenced clauses,
+equations), then the retriever fetches those items directly before returning.
+
+This means a query like "bending resistance check for IPE300" will:
+  1. Find clauses about bending resistance (6.2.5, 6.2.6, etc.)
+  2. Notice that Table 6.2 (cross-section classification) is referenced but missing
+  3. Fetch Table 6.2 directly
+  4. Return the complete set of clauses needed for the check.
+"""
+
 from __future__ import annotations
 
 import json
@@ -5,7 +25,7 @@ import logging
 import math
 import re
 from collections import defaultdict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Iterator
 
 from backend.config import Settings
@@ -18,6 +38,10 @@ logger = logging.getLogger(__name__)
 QUERY_SANITIZE_RE = re.compile(r"[^A-Za-z0-9\s_\-\./]")
 TOKEN_RE = re.compile(r"[a-z0-9_\-\.]+")
 CLAUSE_ID_RE = re.compile(r"\b(\d+\.\d+(?:\.\d+)?(?:\([^)]+\))?)\b")
+TABLE_ID_RE = re.compile(r"\b[Tt]able\s+(\d+\.\d+(?:\.\d+)?)\b")
+FIGURE_ID_RE = re.compile(r"\b[Ff]igure?\s+(\d+\.\d+(?:\.\d+)?)\b")
+# Match "EN 1993-1-X" or "EC3" style standard references
+STANDARD_REF_RE = re.compile(r"\bEN\s*1993[- ]1[- ](\d+)\b", re.IGNORECASE)
 
 STOPWORDS = frozenset({
     "the", "is", "in", "of", "to", "and", "for", "with", "that", "this",
@@ -45,6 +69,31 @@ class _IndexedClause:
     full_text_lower: str
 
 
+@dataclass
+class _SearchIntent:
+    """Classified query intent."""
+    mode: str  # "blanket" | "targeted" | "hybrid"
+    original_query: str
+    # For targeted mode: specific IDs to look up
+    clause_ids: list[str] = field(default_factory=list)
+    table_ids: list[str] = field(default_factory=list)
+    # For blanket mode: the search terms
+    search_query: str = ""
+    # Optional standard filter
+    standard_filter: str = ""
+
+
+@dataclass
+class _SufficiencyResult:
+    """Result of LLM sufficiency evaluation."""
+    score: int  # 1-10
+    sufficient: bool
+    missing_clauses: list[str] = field(default_factory=list)
+    missing_tables: list[str] = field(default_factory=list)
+    follow_up_query: str = ""
+    reasoning: str = ""
+
+
 class AgenticRetriever:
     def __init__(
         self,
@@ -60,6 +109,9 @@ class AgenticRetriever:
         self._inverted_index: dict[str, set[int]] = defaultdict(set)
         self._doc_freq: dict[str, int] = {}
         self._total_docs = max(len(clauses), 1)
+        # Direct lookup indices
+        self._by_clause_id: dict[str, list[ClauseRecord]] = defaultdict(list)
+        self._by_title_lower: dict[str, list[ClauseRecord]] = defaultdict(list)
         self._build_index()
 
     # ------------------------------------------------------------------
@@ -90,6 +142,16 @@ class AgenticRetriever:
 
             for token in all_tokens:
                 self._inverted_index[token].add(idx)
+
+            # Build direct lookup indices
+            cid = clause.clause_id.lower().strip()
+            self._by_clause_id[cid].append(clause)
+            # Also index by bare ID for tables: "table 6.2" → "6.2"
+            if cid.startswith("table"):
+                bare = cid.replace("table", "").strip()
+                self._by_clause_id[f"table {bare}"].append(clause)
+                self._by_clause_id[bare].append(clause)
+            self._by_title_lower[clause.clause_title.lower().strip()].append(clause)
 
         self._doc_freq = {
             token: len(indices) for token, indices in self._inverted_index.items()
@@ -140,18 +202,56 @@ class AgenticRetriever:
             if recursive is None
             else bool(recursive)
         )
-        max_gap_iters = max(0, self.settings.max_retrieval_iters - 2) if agentic_enabled else 0
+        max_sufficiency_iters = (
+            max(0, self.settings.max_retrieval_iters) if agentic_enabled else 0
+        )
 
-        # ---- Phase 1: query decomposition ----
-        sub_queries = self._decompose_query(query) if agentic_enabled else [self._sanitize(query)]
-
+        # ---- Phase 1: Intent Classification ----
+        intent = self._classify_intent(query)
         trace.append({
-            "iteration": 1, "query": query,
-            "top_clause_ids": [], "phase": "decompose",
-            "sub_queries": sub_queries,
+            "iteration": 0, "phase": "classify",
+            "mode": intent.mode, "query": query,
+            "clause_ids": intent.clause_ids,
+            "table_ids": intent.table_ids,
         })
 
-        # ---- Phase 2: lexical candidate generation ----
+        # ---- Phase 2A: Targeted fetch (if any direct IDs found) ----
+        if intent.clause_ids or intent.table_ids:
+            targeted_results = self._targeted_fetch(
+                clause_ids=intent.clause_ids,
+                table_ids=intent.table_ids,
+                standard_filter=intent.standard_filter,
+            )
+            for item in targeted_results:
+                key = item.clause.citation_address
+                if key not in aggregated or item.score > aggregated[key].score:
+                    aggregated[key] = item
+
+            trace.append({
+                "iteration": 0, "phase": "targeted_fetch",
+                "fetched": len(targeted_results),
+                "ids": [r.clause.clause_id for r in targeted_results],
+            })
+
+            if intent.mode == "targeted" and targeted_results:
+                # Pure targeted query — return directly
+                final_results = sorted(
+                    aggregated.values(),
+                    key=lambda x: (-x.score, x.clause.doc_id, x.clause.clause_id),
+                )[:limit]
+                yield {"type": "final", "results": final_results, "trace": trace}
+                return
+
+        # ---- Phase 2B: Blanket search ----
+        sub_queries = (
+            self._decompose_query(query) if agentic_enabled
+            else [self._sanitize(query)]
+        )
+        trace.append({
+            "iteration": 1, "phase": "decompose",
+            "query": query, "sub_queries": sub_queries,
+        })
+
         candidate_pool: dict[str, RetrievedClause] = {}
         for sq in sub_queries:
             for hit in self._search_lexical(sq, limit=limit * 4):
@@ -168,7 +268,6 @@ class AgenticRetriever:
             ],
         }
         trace.append(step_lexical)
-
         logger.info(
             "retrieval_lexical",
             extra={"hits": len(candidates), "top": [c.clause.clause_id for c in candidates[:3]]},
@@ -198,7 +297,6 @@ class AgenticRetriever:
                 ],
             }
             trace.append(step_rerank)
-
             logger.info(
                 "retrieval_reranked",
                 extra={"hits": len(aggregated), "top": [
@@ -218,54 +316,118 @@ class AgenticRetriever:
             for item in candidates[:limit]:
                 aggregated[item.clause.citation_address] = item
 
-        # ---- Phase 4: iterative gap analysis ----
-        seen_gap_queries: set[str] = set()
+        # ---- Phase 4: Sufficiency evaluation loop ----
+        seen_queries: set[str] = set()
+        fetched_ids: set[str] = set()
 
-        for gap_iter in range(max_gap_iters):
-            current_top = sorted(aggregated.values(), key=lambda x: -x.score)[:limit]
-            gap_query = self._llm_gap_analysis(query, current_top)
-            if not gap_query or gap_query in seen_gap_queries:
+        for suff_iter in range(max_sufficiency_iters):
+            current_top = sorted(
+                aggregated.values(), key=lambda x: -x.score,
+            )[:limit]
+
+            evaluation = self._evaluate_sufficiency(query, current_top)
+
+            step_eval = {
+                "iteration": 3 + suff_iter, "phase": "sufficiency_eval",
+                "score": evaluation.score,
+                "sufficient": evaluation.sufficient,
+                "missing_clauses": evaluation.missing_clauses,
+                "missing_tables": evaluation.missing_tables,
+                "follow_up_query": evaluation.follow_up_query,
+            }
+            trace.append(step_eval)
+            logger.info(
+                "sufficiency_eval",
+                extra={
+                    "score": evaluation.score,
+                    "sufficient": evaluation.sufficient,
+                    "missing": evaluation.missing_clauses + evaluation.missing_tables,
+                },
+            )
+
+            if evaluation.sufficient:
                 break
-            seen_gap_queries.add(gap_query)
 
-            gap_hits = self._search_lexical(gap_query, limit=limit * 2)
-            new_candidates = [
-                h for h in gap_hits if h.clause.citation_address not in aggregated
-            ][:15]
-            if not new_candidates:
-                break
+            made_progress = False
 
-            if self.search_provider.available:
-                scored_new = self._llm_score_relevance(query, new_candidates)
-                for item in scored_new:
+            # 4A: Targeted fetches for specific missing items
+            new_clause_ids = [
+                cid for cid in evaluation.missing_clauses if cid not in fetched_ids
+            ]
+            new_table_ids = [
+                tid for tid in evaluation.missing_tables if tid not in fetched_ids
+            ]
+
+            if new_clause_ids or new_table_ids:
+                targeted_hits = self._targeted_fetch(
+                    clause_ids=new_clause_ids,
+                    table_ids=new_table_ids,
+                    standard_filter=intent.standard_filter,
+                )
+                for item in targeted_hits:
                     key = item.clause.citation_address
                     if key not in aggregated or item.score > aggregated[key].score:
                         aggregated[key] = item
-            else:
-                for item in new_candidates:
-                    aggregated[item.clause.citation_address] = item
+                        made_progress = True
+                fetched_ids.update(new_clause_ids)
+                fetched_ids.update(new_table_ids)
 
-            step_gap = {
-                "iteration": 3 + gap_iter, "phase": "gap_fill",
-                "query": gap_query,
-                "top_clause_ids": [
-                    f"{c.clause.doc_id}:{c.clause.clause_id}"
-                    for c in sorted(aggregated.values(), key=lambda x: -x.score)[:limit]
-                ],
-            }
-            trace.append(step_gap)
+                if targeted_hits:
+                    step_targeted = {
+                        "iteration": 3 + suff_iter, "phase": "targeted_follow_up",
+                        "fetched": [r.clause.clause_id for r in targeted_hits],
+                    }
+                    trace.append(step_targeted)
+                    yield {
+                        "type": "iteration", "step": step_targeted,
+                        "top": [
+                            {"doc_id": r.clause.doc_id, "clause_id": r.clause.clause_id,
+                             "title": r.clause.clause_title, "score": r.score}
+                            for r in targeted_hits[:3]
+                        ],
+                    }
 
-            logger.info("retrieval_gap_fill", extra={"gap_query": gap_query})
-            yield {
-                "type": "iteration", "step": step_gap,
-                "top": [
-                    {"doc_id": c.clause.doc_id, "clause_id": c.clause.clause_id,
-                     "title": c.clause.clause_title, "score": c.score}
-                    for c in sorted(aggregated.values(), key=lambda x: -x.score)[:3]
-                ],
-            }
+            # 4B: Blanket search for topic gaps
+            gap_query = evaluation.follow_up_query
+            if gap_query and gap_query not in seen_queries:
+                seen_queries.add(gap_query)
+                gap_hits = self._search_lexical(gap_query, limit=limit * 2)
+                new_candidates = [
+                    h for h in gap_hits if h.clause.citation_address not in aggregated
+                ][:15]
 
-        # ---- Phase 5: recursive expansion (optional) ----
+                if new_candidates:
+                    if self.search_provider.available:
+                        scored_new = self._llm_score_relevance(query, new_candidates)
+                        for item in scored_new:
+                            key = item.clause.citation_address
+                            if key not in aggregated or item.score > aggregated[key].score:
+                                aggregated[key] = item
+                                made_progress = True
+                    else:
+                        for item in new_candidates:
+                            aggregated[item.clause.citation_address] = item
+                            made_progress = True
+
+                    step_gap = {
+                        "iteration": 3 + suff_iter, "phase": "gap_search",
+                        "query": gap_query,
+                        "new_hits": len(new_candidates),
+                    }
+                    trace.append(step_gap)
+                    yield {
+                        "type": "iteration", "step": step_gap,
+                        "top": [
+                            {"doc_id": c.clause.doc_id, "clause_id": c.clause.clause_id,
+                             "title": c.clause.clause_title, "score": c.score}
+                            for c in sorted(aggregated.values(), key=lambda x: -x.score)[:3]
+                        ],
+                    }
+
+            if not made_progress:
+                break
+
+        # ---- Phase 5: Recursive expansion (optional) ----
         merged = sorted(
             aggregated.values(),
             key=lambda item: (-item.score, item.clause.doc_id, item.clause.clause_id),
@@ -277,6 +439,227 @@ class AgenticRetriever:
 
         final_results = merged[:limit]
         yield {"type": "final", "results": final_results, "trace": trace}
+
+    # ------------------------------------------------------------------
+    # Intent classification
+    # ------------------------------------------------------------------
+
+    def _classify_intent(self, query: str) -> _SearchIntent:
+        """Classify query as blanket search, targeted fetch, or hybrid."""
+        clean = query.strip()
+        lower = clean.lower()
+
+        clause_ids: list[str] = []
+        table_ids: list[str] = []
+        standard_filter = ""
+
+        # Extract standard references
+        std_match = STANDARD_REF_RE.search(clean)
+        if std_match:
+            part_num = std_match.group(1)
+            standard_filter = f"EN 1993-1-{part_num}"
+
+        # Extract explicit table references: "Table 6.2", "table 3.1"
+        for m in TABLE_ID_RE.finditer(clean):
+            tid = f"table {m.group(1)}"
+            if tid not in table_ids:
+                table_ids.append(tid)
+
+        # Extract clause ID patterns: "6.3.2.3", "3.1(2)"
+        for m in CLAUSE_ID_RE.finditer(clean):
+            cid = m.group(1)
+            # Don't treat numbers that are part of "EN 1993-1-1" as clause IDs
+            start = m.start()
+            prefix = clean[:start].rstrip()
+            if prefix.endswith("-") or prefix.lower().endswith("en 1993"):
+                continue
+            if cid not in clause_ids:
+                clause_ids.append(cid)
+
+        # Detect "read clause X" / "show me clause X" / "what does clause X say"
+        direct_patterns = [
+            r"(?:read|show|get|fetch|look\s*up|find)\s+(?:me\s+)?(?:clause|table|section)\s+",
+            r"what\s+does?\s+(?:clause|table|section)\s+",
+            r"(?:clause|table|section)\s+\d+\.\d+",
+        ]
+        is_direct = any(re.search(p, lower) for p in direct_patterns)
+
+        # Determine mode
+        if (clause_ids or table_ids) and is_direct:
+            mode = "targeted"
+        elif clause_ids or table_ids:
+            mode = "hybrid"  # Has IDs but also has search context
+        else:
+            mode = "blanket"
+
+        return _SearchIntent(
+            mode=mode,
+            original_query=clean,
+            clause_ids=clause_ids,
+            table_ids=table_ids,
+            search_query=self._sanitize(clean),
+            standard_filter=standard_filter,
+        )
+
+    # ------------------------------------------------------------------
+    # Targeted fetch — direct clause/table/equation lookup
+    # ------------------------------------------------------------------
+
+    def _targeted_fetch(
+        self,
+        *,
+        clause_ids: list[str] | None = None,
+        table_ids: list[str] | None = None,
+        standard_filter: str = "",
+    ) -> list[RetrievedClause]:
+        """Directly look up clauses by ID. Fast, no LLM call."""
+        results: list[RetrievedClause] = []
+        seen: set[str] = set()
+
+        all_targets = []
+        for cid in (clause_ids or []):
+            all_targets.append(("clause", cid))
+        for tid in (table_ids or []):
+            all_targets.append(("table", tid))
+
+        for target_type, target_id in all_targets:
+            target_lower = target_id.lower().strip()
+
+            # Strategy 1: Exact match in clause_id index
+            candidates = list(self._by_clause_id.get(target_lower, []))
+
+            # Strategy 2: Prefix match (e.g., "6.3" matches "6.3.1", "6.3.2")
+            if not candidates:
+                for key, clauses in self._by_clause_id.items():
+                    if key.startswith(target_lower) or target_lower.startswith(key):
+                        candidates.extend(clauses)
+
+            # Strategy 3: Title search for tables
+            if target_type == "table" and not candidates:
+                # Extract the numeric part
+                num_part = target_lower.replace("table", "").strip()
+                for entry in self._entries:
+                    title_lower = entry.clause.clause_title.lower()
+                    cid_lower = entry.clause.clause_id.lower()
+                    if (f"table {num_part}" in title_lower
+                            or f"table {num_part}" in cid_lower
+                            or cid_lower == f"table {num_part}"):
+                        candidates.append(entry.clause)
+
+            # Strategy 4: Full-text search as fallback
+            if not candidates:
+                for entry in self._entries:
+                    if target_lower in entry.full_text_lower:
+                        candidates.append(entry.clause)
+                        if len(candidates) >= 3:
+                            break
+
+            # Apply standard filter
+            if standard_filter:
+                std_lower = standard_filter.lower()
+                filtered = [c for c in candidates if std_lower in c.standard.lower()]
+                if filtered:
+                    candidates = filtered
+
+            # Deduplicate and score
+            for clause in candidates[:5]:
+                key = clause.citation_address
+                if key in seen:
+                    continue
+                seen.add(key)
+                # High score for direct fetches — they were explicitly requested
+                results.append(RetrievedClause(
+                    clause=clause,
+                    score=9.0,
+                    matched_terms=[f"targeted:{target_id}"],
+                ))
+
+        return results
+
+    # ------------------------------------------------------------------
+    # Sufficiency evaluation — LLM reads actual content to find gaps
+    # ------------------------------------------------------------------
+
+    def _evaluate_sufficiency(
+        self, query: str, current_results: list[RetrievedClause],
+    ) -> _SufficiencyResult:
+        """LLM evaluates whether results are sufficient, with content awareness."""
+        if not current_results or not self.search_provider.available:
+            return _SufficiencyResult(score=5, sufficient=True)
+
+        # Build content summaries — show actual text, not just titles
+        result_summaries: list[str] = []
+        for i, r in enumerate(current_results[:10]):
+            # Show enough text to see cross-references
+            text_preview = r.clause.text[:500].replace("\n", " ")
+            result_summaries.append(
+                f"{i + 1}. [{r.clause.standard} {r.clause.clause_id}] "
+                f"{r.clause.clause_title}\n"
+                f"   Content preview: {text_preview}"
+            )
+
+        try:
+            raw = self.search_provider.generate(
+                system_prompt=(
+                    "You evaluate Eurocode search results for completeness.\n"
+                    "Given a query and the retrieved clauses (with content previews), assess:\n"
+                    "1. Are the key formulas/rules/tables needed to answer the query present?\n"
+                    "2. Are there tables, clauses, or equations REFERENCED in the results "
+                    "that are NOT in the results but would be needed?\n\n"
+                    "Return JSON:\n"
+                    "{\n"
+                    '  "score": 1-10,  // 10 = fully sufficient, 1 = mostly missing\n'
+                    '  "sufficient": true/false,  // true if score >= 7\n'
+                    '  "missing_clauses": ["6.3.2.3", "6.1(1)"],  // specific clause IDs referenced but not present\n'
+                    '  "missing_tables": ["Table 6.2", "Table 3.1"],  // specific tables referenced but not present\n'
+                    '  "follow_up_query": "string or null",  // topic search if there is a conceptual gap\n'
+                    '  "reasoning": "brief explanation"\n'
+                    "}\n\n"
+                    "IMPORTANT: Only list SPECIFIC clause/table IDs that are explicitly "
+                    "referenced in the retrieved text but not present in the results. "
+                    "Do not guess or invent IDs."
+                ),
+                user_prompt=(
+                    "###TASK:SUFFICIENCY###\n"
+                    f"Query: {query}\n\n"
+                    f"Retrieved clauses:\n"
+                    + "\n".join(result_summaries)
+                    + "\n\nEvaluate completeness. Return JSON only."
+                ),
+                temperature=0,
+                max_tokens=self.settings.gap_analysis_max_tokens,
+                **({"reasoning_effort": self.settings.gap_analysis_reasoning_effort}
+                   if self.settings.gap_analysis_reasoning_effort else {}),
+            )
+            data = parse_json_loose(raw)
+            if isinstance(data, dict):
+                score = int(data.get("score", 5))
+                missing_clauses = [
+                    str(c) for c in data.get("missing_clauses", [])
+                    if isinstance(c, str) and c.strip()
+                ]
+                missing_tables = [
+                    str(t) for t in data.get("missing_tables", [])
+                    if isinstance(t, str) and t.strip()
+                ]
+                follow_up = data.get("follow_up_query")
+                if isinstance(follow_up, str) and follow_up.strip():
+                    follow_up = self._sanitize(follow_up)
+                else:
+                    follow_up = ""
+
+                return _SufficiencyResult(
+                    score=score,
+                    sufficient=score >= 7,
+                    missing_clauses=missing_clauses,
+                    missing_tables=missing_tables,
+                    follow_up_query=follow_up,
+                    reasoning=str(data.get("reasoning", "")),
+                )
+        except Exception as exc:
+            logger.warning("sufficiency_eval_failed", extra={"error": str(exc)})
+
+        return _SufficiencyResult(score=5, sufficient=True)
 
     # ------------------------------------------------------------------
     # Lexical search with TF-IDF field-weighted scoring
@@ -349,7 +732,8 @@ class AgenticRetriever:
                     "for a Eurocode clause database.\n"
                     "Return a JSON array of 1-4 concise search strings. "
                     "Each should target a different aspect of the question.\n"
-                    "Always include the original query (possibly simplified) as the first element."
+                    "Always include the original query (possibly simplified) as the first element.\n"
+                    "Think about what Eurocode clauses, tables, and formulas would be needed."
                 ),
                 user_prompt=(
                     "###TASK:DECOMPOSE###\n"
@@ -403,7 +787,8 @@ class AgenticRetriever:
                 ),
                 temperature=self.settings.rerank_temperature,
                 max_tokens=self.settings.rerank_max_tokens,
-                **({"reasoning_effort": self.settings.rerank_reasoning_effort} if self.settings.rerank_reasoning_effort else {}),
+                **({"reasoning_effort": self.settings.rerank_reasoning_effort}
+                   if self.settings.rerank_reasoning_effort else {}),
             )
             data = parse_json_loose(raw)
             if isinstance(data, list):
@@ -429,43 +814,6 @@ class AgenticRetriever:
             logger.warning("llm_relevance_scoring_failed", extra={"error": str(exc)})
 
         return candidates
-
-    def _llm_gap_analysis(
-        self, query: str, current_results: list[RetrievedClause],
-    ) -> str | None:
-        if not current_results or not self.search_provider.available:
-            return None
-
-        summary = "\n".join(
-            f"- [{c.clause.clause_id}] {c.clause.clause_title} (score: {c.score:.1f})"
-            for c in current_results[:8]
-        )
-
-        try:
-            raw = self.search_provider.generate(
-                system_prompt=(
-                    "You analyze Eurocode search results and identify gaps.\n"
-                    "If important information is missing for answering the query, "
-                    "return a JSON string with ONE focused search query to fill the gap.\n"
-                    "If the results are sufficient, return JSON null."
-                ),
-                user_prompt=(
-                    "###TASK:GAP###\n"
-                    f"Query: {query}\n\n"
-                    f"Current top results:\n{summary}\n\n"
-                    "Return JSON: a search string or null."
-                ),
-                temperature=self.settings.gap_analysis_temperature,
-                max_tokens=self.settings.gap_analysis_max_tokens,
-                **({"reasoning_effort": self.settings.gap_analysis_reasoning_effort} if self.settings.gap_analysis_reasoning_effort else {}),
-            )
-            data = parse_json_loose(raw)
-            if isinstance(data, str) and data.strip():
-                return self._sanitize(data)
-        except Exception as exc:
-            logger.warning("gap_analysis_failed", extra={"error": str(exc)})
-
-        return None
 
     # ------------------------------------------------------------------
     # Recursive cross-reference expansion

@@ -9,11 +9,16 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 import subprocess
 from pathlib import Path
 from typing import Any, Callable
 
 logger = logging.getLogger(__name__)
+
+# Regex for extracting cross-references from clause text
+_CROSS_REF_RE = re.compile(r"\b(\d+\.\d+(?:\.\d+)?(?:\([^)]+\))?)\b")
+_TABLE_REF_RE = re.compile(r"\b[Tt]able\s+(\d+\.\d+(?:\.\d+)?)\b")
 
 # ── Tool definitions (OpenAI format) ─────────────────────────────────
 
@@ -287,44 +292,115 @@ TOOLS = [t for t in TOOLS if t["function"]["name"] not in _HIDDEN_TOOLS]
 def _handle_eurocode_search(args: dict, retriever: Any) -> str:
     query = args.get("query", "")
     top_k = min(args.get("top_k", 8), 20)
-    results, _trace = retriever.retrieve(query, top_k=top_k)
+    results, trace = retriever.retrieve(query, top_k=top_k)
+
     clauses_out = []
+    # Collect cross-referenced IDs across all results for hint generation
+    all_referenced_ids: set[str] = set()
+    returned_ids: set[str] = set()
+
     for r in results:
-        clauses_out.append({
+        returned_ids.add(r.clause.clause_id.lower())
+        clause_data: dict[str, Any] = {
             "clause_id": r.clause.clause_id,
             "title": r.clause.clause_title,
             "standard": r.clause.standard,
             "text": r.clause.text[:3000],
             "score": round(r.score, 2),
             "pointer": r.clause.pointer,
-        })
-    return json.dumps({"clauses": clauses_out, "total_found": len(results)})
+        }
+        # Extract cross-references from clause text for progressive disclosure
+        refs = _CROSS_REF_RE.findall(r.clause.text)
+        table_refs = _TABLE_REF_RE.findall(r.clause.text)
+        if refs or table_refs:
+            all_refs = set(refs) | {f"Table {t}" for t in table_refs}
+            clause_data["cross_references"] = sorted(all_refs)[:8]
+            all_referenced_ids.update(r.lower() for r in refs)
+            all_referenced_ids.update(f"table {t}".lower() for t in table_refs)
+        clauses_out.append(clause_data)
+
+    result: dict[str, Any] = {
+        "clauses": clauses_out,
+        "total_found": len(results),
+    }
+
+    # Surface unretrieved cross-references as a hint for the agent
+    missing_refs = all_referenced_ids - returned_ids
+    if missing_refs:
+        # Filter to only plausible Eurocode-style references
+        plausible = sorted(r for r in missing_refs if len(r) > 2)[:6]
+        if plausible:
+            result["_referenced_but_not_retrieved"] = plausible
+
+    return json.dumps(result)
 
 
 def _handle_read_clause(args: dict, clause_index: dict) -> str:
     clause_id = args.get("clause_id", "").strip()
     standard = args.get("standard", "").strip().lower()
-    candidates = clause_index.get(clause_id.lower(), [])
+
+    # Normalize: "Table 6.2" → try both "table 6.2" and "6.2"
+    lookup_keys = [clause_id.lower()]
+    if clause_id.lower().startswith("table"):
+        bare = clause_id.lower().replace("table", "").strip()
+        lookup_keys.append(f"table {bare}")
+        lookup_keys.append(bare)
+
+    candidates = []
+    for key in lookup_keys:
+        candidates.extend(clause_index.get(key, []))
+
     if standard:
         candidates = [c for c in candidates if standard in c.standard.lower()]
     if not candidates:
         # Try partial match
         for key, vals in clause_index.items():
-            if clause_id.lower() in key:
+            if clause_id.lower() in key or key in clause_id.lower():
                 candidates.extend(vals)
         if standard:
             candidates = [c for c in candidates if standard in c.standard.lower()]
     if not candidates:
-        return json.dumps({"error": f"Clause '{clause_id}' not found in database."})
+        # Provide a helpful error with suggestions
+        similar = []
+        cid_lower = clause_id.lower()
+        for key in clause_index:
+            if cid_lower[:3] in key:  # Match first part of the ID
+                similar.append(key)
+                if len(similar) >= 5:
+                    break
+        error_data: dict[str, Any] = {
+            "error": f"Clause '{clause_id}' not found in database.",
+        }
+        if similar:
+            error_data["similar_ids"] = sorted(set(similar))[:5]
+            error_data["_hint"] = "Try one of the similar IDs, or use eurocode_search to find it."
+        return json.dumps(error_data)
+
+    # Deduplicate
+    seen: set[str] = set()
     results = []
-    for c in candidates[:5]:
-        results.append({
+    for c in candidates:
+        key = f"{c.standard}:{c.clause_id}"
+        if key in seen:
+            continue
+        seen.add(key)
+        clause_data: dict[str, Any] = {
             "clause_id": c.clause_id,
             "title": c.clause_title,
             "standard": c.standard,
             "text": c.text,
             "pointer": c.pointer,
-        })
+        }
+        # Surface cross-references for progressive disclosure
+        refs = _CROSS_REF_RE.findall(c.text)
+        table_refs = _TABLE_REF_RE.findall(c.text)
+        if refs or table_refs:
+            all_refs = set(refs) | {f"Table {t}" for t in table_refs}
+            clause_data["cross_references"] = sorted(all_refs)[:10]
+        results.append(clause_data)
+        if len(results) >= 5:
+            break
+
     return json.dumps({"clauses": results})
 
 
@@ -501,12 +577,24 @@ def build_tool_dispatcher(
     Returns a ``(tool_name, args) -> result_str`` callable.
     """
     # Pre-build clause lookup index for read_clause
+    # Multiple keys per clause for flexible lookup (Table 6.2, table 6.2, 6.2, etc.)
     clause_index: dict[str, list] = {}
     for c in clauses:
-        clause_index.setdefault(c.clause_id.lower(), []).append(c)
-        # Also index tables by their ID
-        if c.clause_id.lower().startswith("table"):
-            clause_index.setdefault(c.clause_id.lower(), []).append(c)
+        cid = c.clause_id.lower().strip()
+        clause_index.setdefault(cid, []).append(c)
+
+        # Index tables under multiple keys for flexible lookup
+        if cid.startswith("table"):
+            bare = cid.replace("table", "").strip()
+            clause_index.setdefault(f"table {bare}", []).append(c)
+            clause_index.setdefault(bare, []).append(c)
+        # Also index by title keywords for tables mentioned in title
+        title_lower = c.clause_title.lower()
+        if "table" in title_lower:
+            import re as _re
+            for m in _re.finditer(r"table\s+(\d+\.\d+(?:\.\d+)?)", title_lower):
+                key = f"table {m.group(1)}"
+                clause_index.setdefault(key, []).append(c)
 
     _handlers: dict[str, Callable] = {
         "eurocode_search": lambda args: _handle_eurocode_search(args, retriever),
