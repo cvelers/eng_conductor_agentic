@@ -742,6 +742,8 @@ class AgenticRetriever:
                 ),
                 temperature=0,
                 max_tokens=self.settings.search_decompose_max_tokens,
+                **({"reasoning_effort": self.settings.search_decompose_reasoning_effort}
+                   if self.settings.search_decompose_reasoning_effort else {}),
             )
             data = parse_json_loose(raw)
             if isinstance(data, list) and data:

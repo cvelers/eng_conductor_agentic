@@ -1,0 +1,37 @@
+{
+  "orchestrator": {
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite-preview",
+    "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
+    "temperature": 0.2,
+    "max_tokens": 32000,
+    "reasoning_effort": "high",
+    "max_rounds": 25,
+    "context_window": 1000000
+  },
+  "search": {
+    "provider": "gemini",
+    "model": "gemini-3.1-flash-lite-preview",
+    "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
+    "decompose": {
+      "temperature": 0.2,
+      "max_tokens": 4000,
+      "reasoning_effort": "high"
+    },
+    "rerank": {
+      "temperature": 0.2,
+      "max_tokens": 2000,
+      "reasoning_effort": ""
+    },
+    "gap_analysis": {
+      "temperature": 0.2,
+      "max_tokens": 2000,
+      "reasoning_effort": ""
+    }
+  },
+  "fea_analyst": {
+    "temperature": 0.2,
+    "max_tokens": 16000,
+    "reasoning_effort": ""
+  }
+}

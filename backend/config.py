@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import json
+import logging
 import os
 from dataclasses import dataclass, replace
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 def _to_bool(value: str | None, default: bool) -> bool:
@@ -29,6 +33,19 @@ def _to_float(value: str | None, default: float) -> float:
         return default
 
 
+def _load_cognitive_config(project_root: Path) -> dict:
+    """Load LLM cognitive settings from cognitive_config.json."""
+    config_path = project_root / "cognitive_config.json"
+    if not config_path.exists():
+        logger.warning("cognitive_config.json not found at %s, using defaults", config_path)
+        return {}
+    try:
+        return json.loads(config_path.read_text(encoding="utf-8"))
+    except Exception:
+        logger.exception("Failed to load cognitive_config.json")
+        return {}
+
+
 @dataclass(frozen=True)
 class Settings:
     project_root: Path
@@ -53,13 +70,14 @@ class Settings:
     search_api_key: str = ""
     search_base_url: str = "https://openrouter.ai/api/v1"
     search_decompose_max_tokens: int = 1200
+    search_decompose_reasoning_effort: str = ""
     search_reasoning_effort: str = ""
 
     # ── Retrieval settings ───────────────────────────────────────────
     agentic_search_enabled: bool = True
     recursive_retrieval_enabled: bool = False
     embeddings_enabled: bool = False
-    max_retrieval_iters: int = 3  # Max sufficiency evaluation iterations
+    max_retrieval_iters: int = 3
     top_k_clauses: int = 8
 
     # Retriever LLM params (used internally by AgenticRetriever)
@@ -104,33 +122,52 @@ class Settings:
     @classmethod
     def load(cls) -> "Settings":
         project_root = Path(__file__).resolve().parents[1]
+
+        # ── Load cognitive config (single source of truth for LLM params) ──
+        cc = _load_cognitive_config(project_root)
+        orch = cc.get("orchestrator", {})
+        search = cc.get("search", {})
+        decompose = search.get("decompose", {})
+        rerank = search.get("rerank", {})
+        gap = search.get("gap_analysis", {})
+        fea = cc.get("fea_analyst", {})
+
         return cls(
             project_root=project_root,
             log_level=os.getenv("LOG_LEVEL", "INFO"),
-            orchestrator_provider=os.getenv("ORCHESTRATOR_PROVIDER", "gemini"),
-            orchestrator_model=os.getenv("ORCHESTRATOR_MODEL", "gemini-2.5-pro"),
+
+            # ── Orchestrator (from cognitive_config.json) ──
+            orchestrator_provider=orch.get("provider", "gemini"),
+            orchestrator_model=orch.get("model", "gemini-2.5-pro"),
             orchestrator_api_key=os.getenv("ORCHESTRATOR_API_KEY", ""),
-            orchestrator_base_url=os.getenv(
-                "ORCHESTRATOR_BASE_URL",
+            orchestrator_base_url=orch.get(
+                "base_url",
                 "https://generativelanguage.googleapis.com/v1beta/openai",
             ),
-            orchestrator_reasoning_effort=(
-                os.getenv("ORCHESTRATOR_REASONING_EFFORT", "").strip() or ""
-            ),
-            agent_temperature=_to_float(os.getenv("AGENT_TEMPERATURE"), 0.2),
-            agent_max_tokens=_to_int(os.getenv("AGENT_MAX_TOKENS"), 16000),
-            agent_max_rounds=_to_int(os.getenv("AGENT_MAX_ROUNDS"), 25),
-            agent_context_window=_to_int(os.getenv("AGENT_CONTEXT_WINDOW"), 1_000_000),
-            search_provider=os.getenv("SEARCH_PROVIDER", "openrouter"),
-            search_model=os.getenv("SEARCH_MODEL", "moonshotai/kimi-k2.5"),
+            orchestrator_reasoning_effort=orch.get("reasoning_effort", ""),
+            agent_temperature=float(orch.get("temperature", 0.2)),
+            agent_max_tokens=int(orch.get("max_tokens", 16000)),
+            agent_max_rounds=int(orch.get("max_rounds", 25)),
+            agent_context_window=int(orch.get("context_window", 1_000_000)),
+
+            # ── Search (from cognitive_config.json) ──
+            search_provider=search.get("provider", "openrouter"),
+            search_model=search.get("model", "moonshotai/kimi-k2.5"),
             search_api_key=os.getenv("SEARCH_API_KEY", ""),
-            search_base_url=os.getenv("SEARCH_BASE_URL", "https://openrouter.ai/api/v1"),
-            search_decompose_max_tokens=_to_int(
-                os.getenv("SEARCH_DECOMPOSE_MAX_TOKENS"), 1200
+            search_base_url=search.get(
+                "base_url", "https://openrouter.ai/api/v1",
             ),
-            search_reasoning_effort=(
-                os.getenv("SEARCH_REASONING_EFFORT", "").strip() or ""
-            ),
+            search_decompose_max_tokens=int(decompose.get("max_tokens", 1200)),
+            search_decompose_reasoning_effort=decompose.get("reasoning_effort", ""),
+            search_reasoning_effort=decompose.get("reasoning_effort", ""),
+            rerank_temperature=float(rerank.get("temperature", 0.0)),
+            rerank_max_tokens=int(rerank.get("max_tokens", 1200)),
+            rerank_reasoning_effort=rerank.get("reasoning_effort", ""),
+            gap_analysis_temperature=float(gap.get("temperature", 0.0)),
+            gap_analysis_max_tokens=int(gap.get("max_tokens", 600)),
+            gap_analysis_reasoning_effort=gap.get("reasoning_effort", ""),
+
+            # ── Retrieval feature flags (still from env) ──
             agentic_search_enabled=_to_bool(os.getenv("AGENTIC_SEARCH_ENABLED"), True),
             recursive_retrieval_enabled=_to_bool(
                 os.getenv("RECURSIVE_RETRIEVAL_ENABLED"), False
@@ -138,15 +175,13 @@ class Settings:
             embeddings_enabled=_to_bool(os.getenv("EMBEDDINGS_ENABLED"), False),
             max_retrieval_iters=_to_int(os.getenv("MAX_RETRIEVAL_ITERS"), 3),
             top_k_clauses=_to_int(os.getenv("TOP_K_CLAUSES"), 8),
-            rerank_temperature=_to_float(os.getenv("RERANK_TEMPERATURE"), 0.0),
-            rerank_max_tokens=_to_int(os.getenv("RERANK_MAX_TOKENS"), 1200),
-            gap_analysis_temperature=_to_float(os.getenv("GAP_ANALYSIS_TEMPERATURE"), 0.0),
-            gap_analysis_max_tokens=_to_int(os.getenv("GAP_ANALYSIS_MAX_TOKENS"), 600),
-            fea_analyst_temperature=_to_float(os.getenv("FEA_ANALYST_TEMPERATURE"), 0.0),
-            fea_analyst_max_tokens=_to_int(os.getenv("FEA_ANALYST_MAX_TOKENS"), 16000),
-            fea_analyst_reasoning_effort=(
-                os.getenv("FEA_ANALYST_REASONING_EFFORT", "").strip() or ""
-            ),
+
+            # ── FEA analyst (from cognitive_config.json) ──
+            fea_analyst_temperature=float(fea.get("temperature", 0.0)),
+            fea_analyst_max_tokens=int(fea.get("max_tokens", 16000)),
+            fea_analyst_reasoning_effort=fea.get("reasoning_effort", ""),
+
+            # ── Paths (from env) ──
             document_registry_path=(
                 Path(os.environ["DOCUMENT_REGISTRY_PATH"])
                 if os.getenv("DOCUMENT_REGISTRY_PATH")
@@ -157,6 +192,8 @@ class Settings:
                 if os.getenv("ORCHESTRATOR_THREAD_LOG_PATH")
                 else None
             ),
+
+            # ── Auth (from env) ──
             supabase_url=os.getenv("SUPABASE_URL", ""),
             supabase_anon_key=os.getenv("SUPABASE_ANON_KEY", ""),
             supabase_jwt_secret=os.getenv("SUPABASE_JWT_SECRET", ""),
