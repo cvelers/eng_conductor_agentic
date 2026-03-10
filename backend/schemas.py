@@ -24,6 +24,7 @@ class ChatRequest(BaseModel):
     thinking_mode: Literal["standard", "thinking", "extended"] = "thinking"
     attachments: list[Attachment] = Field(default_factory=list)
     is_edit: bool = False
+    web_search: bool = True
 
 
 class Citation(BaseModel):
@@ -61,10 +62,4 @@ class FEAAnswerRequest(BaseModel):
 class ChatResponse(BaseModel):
     answer: str
     supported: bool = True
-    user_inputs: dict[str, Any]
-    assumed_inputs: dict[str, Any]
-    assumptions: list[str]
-    sources: list[Citation]
-    tool_trace: list[ToolTraceStep]
-    retrieval_trace: list[RetrievalTraceStep]
-    what_i_used: list[str]
+    sources: list[Citation] = Field(default_factory=list)

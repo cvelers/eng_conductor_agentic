@@ -13,21 +13,27 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+
+from openai import OpenAI
 
 from backend.auth import create_auth_router, require_auth
 from backend.config import Settings
 from backend.threads import create_threads_router
-from backend.llm.factory import get_orchestrator_provider, get_search_provider
+from backend.llm.factory import get_search_provider, get_orchestrator_provider
 from backend.logging_config import configure_logging
-from backend.orchestrator.agent_loop import AgentLoop
-from backend.orchestrator.core import CentralIntelligenceOrchestrator
 from backend.registries.document_registry import load_all_clauses, load_document_registry
-from backend.registries.tool_registry import load_tool_registry
 from backend.retrieval.agentic_search import AgenticRetriever
+from backend.schemas import ChatRequest, FEAAnswerRequest, FEAResultsRequest
+
+# New agent imports
+from backend.agent.loop import run_agent_loop
+from backend.agent.tools import TOOLS, build_tool_dispatcher
+from backend.agent.prompt import SYSTEM_PROMPT
+from backend.agent.stream_adapter import adapt_event
+from backend.agent.context import convert_frontend_history, compact_if_needed
+
+# FEA (kept as separate mode)
 from backend.orchestrator.fea_analyst import FEAAnalystLoop
-from backend.schemas import ChatRequest, ChatResponse, FEAAnswerRequest, FEAResultsRequest
-from backend.tools.runner import MCPToolRunner
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +54,6 @@ def _append_thread_log(settings: Settings, payload: dict) -> None:
                     elif isinstance(parsed, dict):
                         entries = [parsed]
                 except Exception:
-                    # Backward compatibility: migrate old JSONL content into JSON array.
                     migrated: list[dict] = []
                     for line in raw.splitlines():
                         line = line.strip()
@@ -80,65 +85,60 @@ def _history_payload(history: list) -> list[dict]:
     return rows
 
 
+_FEA_KEYWORDS = frozenset([
+    "fea", "finite element", "fem", "mesh", "node", "element",
+    "stiffness matrix", "analyse the frame", "analyze the frame",
+    "run fea", "structural analysis model",
+])
+
+
+def _is_fea_request(message: str) -> bool:
+    lower = message.lower()
+    return any(kw in lower for kw in _FEA_KEYWORDS)
+
+
 def create_app(settings: Settings | None = None) -> FastAPI:
     load_dotenv()
     active_settings = settings or Settings.load()
-
     configure_logging(active_settings.log_level)
 
+    # ── Data loading ─────────────────────────────────────────────────
     doc_registry = load_document_registry(active_settings.resolved_document_registry_path)
     clauses = load_all_clauses(active_settings.project_root, doc_registry)
-    # Full registry for the MCP runner (can execute any tool)
-    full_tool_registry = load_tool_registry(active_settings.resolved_tool_registry_path)
-    # Active-only registry for the orchestrator (LLM sees only the 5 generic tools)
-    orchestrator_tool_registry = load_tool_registry(
-        active_settings.resolved_tool_registry_path, active_only=True,
-    )
 
+    # ── Search provider (for retriever's internal LLM reranking) ─────
     search_provider = get_search_provider(active_settings)
-    orchestrator_provider = get_orchestrator_provider(active_settings)
-
     retriever = AgenticRetriever(
         settings=active_settings,
         search_provider=search_provider,
         clauses=clauses,
     )
 
-    tool_runner = MCPToolRunner(project_root=active_settings.project_root, registry=full_tool_registry)
-
-    orchestrator = CentralIntelligenceOrchestrator(
-        settings=active_settings,
-        orchestrator_llm=orchestrator_provider,
-        retriever=retriever,
-        tool_runner=tool_runner,
-        tool_registry=orchestrator_tool_registry,
-        document_registry=doc_registry,
-        clauses=clauses,
+    # ── OpenAI client for agent loop ─────────────────────────────────
+    client = OpenAI(
+        api_key=active_settings.orchestrator_api_key,
+        base_url=active_settings.orchestrator_base_url,
     )
 
-    agent_loop = AgentLoop(
-        orchestrator=orchestrator,
-        settings=active_settings,
-    )
+    # ── Tool dispatcher ──────────────────────────────────────────────
+    tool_dispatcher = build_tool_dispatcher(retriever, clauses)
 
-    # FEA session storage (in-memory, keyed by session_id)
+    # ── FEA (separate mode, unchanged) ───────────────────────────────
     fea_sessions: dict[str, FEAAnalystLoop] = {}
+
+    # FEA needs its own orchestrator provider for the analyst LLM
+    fea_provider = get_orchestrator_provider(active_settings)
 
     @asynccontextmanager
     async def lifespan(application: FastAPI):  # noqa: ARG001
         yield
-        tool_runner.shutdown()
 
-    app = FastAPI(title="Eurocodes Chatbot", version="0.3.0", lifespan=lifespan)
-    app.state.orchestrator = orchestrator
-    app.state.agent_loop = agent_loop
+    app = FastAPI(title="Eurocodes Chatbot", version="0.4.0", lifespan=lifespan)
     app.state.settings = active_settings
     app.state.fea_sessions = fea_sessions
-    app.state.tool_runner = tool_runner
 
     app.include_router(create_auth_router(active_settings))
     app.include_router(create_threads_router(active_settings))
-    auth_dep = require_auth(active_settings)
 
     frontend_dir = active_settings.project_root / "frontend"
     data_dir = active_settings.project_root / "data"
@@ -149,119 +149,74 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def index() -> FileResponse:
         return FileResponse(frontend_dir / "index.html")
 
-    @app.post("/api/chat", response_model=ChatResponse)
-    async def chat(request: ChatRequest) -> ChatResponse:
-        request_id = uuid4().hex
-        all_events: list[dict] = []
-        final_response: ChatResponse | None = None
-        error_detail: str | None = None
-        try:
-            for event_type, payload in agent_loop.run_stream(
-                request.message,
-                history=request.history,
-                thinking_mode=request.thinking_mode,
-                attachments=request.attachments,
-                is_edit=request.is_edit,
-            ):
-                if event_type == "response":
-                    final_response = payload
-                elif isinstance(payload, dict):
-                    all_events.append({"event_type": event_type, **payload})
-            if final_response is None:
-                raise RuntimeError("No response generated.")
-            return final_response
-        except Exception as exc:
-            error_detail = str(exc)
-            logger.exception("chat_failed")
-            raise HTTPException(status_code=500, detail=str(exc)) from exc
-        finally:
-            _append_thread_log(
-                active_settings,
-                {
-                    "ts": datetime.now(timezone.utc).isoformat(),
-                    "request_id": request_id,
-                    "endpoint": "/api/chat",
-                    "request": {
-                        "message": request.message,
-                        "history": _history_payload(request.history),
-                        "thinking_mode": request.thinking_mode,
-                        "is_edit": request.is_edit,
-                    },
-                    "events": all_events,
-                    "response": final_response.model_dump() if final_response else None,
-                    "error": error_detail,
-                },
-            )
-
     @app.post("/api/chat/stream")
     async def chat_stream(request: ChatRequest) -> StreamingResponse:
 
         async def _stream_generator():
             request_id = uuid4().hex
             all_events: list[dict] = []
-            final_response: ChatResponse | None = None
             error_detail: str | None = None
+            final_answer: str = ""
             try:
-                for event_type, payload in agent_loop.run_stream(
-                    request.message,
-                    history=request.history,
-                    thinking_mode=request.thinking_mode,
-                    attachments=request.attachments,
-                    is_edit=request.is_edit,
+                # ── FEA detection ────────────────────────────────────
+                if _is_fea_request(request.message):
+                    analyst = FEAAnalystLoop(
+                        llm=fea_provider,
+                        settings=active_settings,
+                    )
+                    fea_sessions[analyst.session_id] = analyst
+                    yield json.dumps({"type": "fea_session_created", "session_id": analyst.session_id}) + "\n"
+                    try:
+                        async for fea_event_type, fea_payload in analyst.run_stream(
+                            request.message, history=request.history,
+                        ):
+                            yield json.dumps({"type": fea_event_type, **fea_payload}) + "\n"
+                            all_events.append({"event_type": fea_event_type, **fea_payload})
+                            await asyncio.sleep(0.005)
+                    finally:
+                        fea_sessions.pop(analyst.session_id, None)
+                    yield json.dumps({"type": "machine", "node": "fea_analyst", "status": "done", "title": "FEA Analyst", "detail": "Analysis complete."}) + "\n"
+                    return
+
+                # ── Agent loop (main path) ───────────────────────────
+                messages = convert_frontend_history(request.history)
+                messages.append({"role": "user", "content": request.message})
+
+                # Auto-compact if conversation is long
+                messages = compact_if_needed(
+                    messages, SYSTEM_PROMPT,
+                    context_window=active_settings.agent_context_window,
+                )
+
+                # Filter web tools if web search is disabled
+                _WEB_TOOLS = {"web_search", "fetch_url"}
+                active_tools = TOOLS if request.web_search else [
+                    t for t in TOOLS if t["function"]["name"] not in _WEB_TOOLS
+                ]
+
+                async for event in run_agent_loop(
+                    client=client,
+                    model=active_settings.orchestrator_model,
+                    system_prompt=SYSTEM_PROMPT,
+                    messages=messages,
+                    tools=active_tools,
+                    tool_dispatcher=tool_dispatcher,
+                    max_rounds=active_settings.agent_max_rounds,
+                    temperature=active_settings.agent_temperature,
+                    max_tokens=active_settings.agent_max_tokens,
+                    reasoning_effort=active_settings.orchestrator_reasoning_effort or None,
                 ):
-                    # ── FEA delegation: switch to async iteration ──
-                    if event_type == "fea_session_created":
-                        session_id = payload["session_id"]
-                        yield json.dumps({"type": "fea_session_created", "session_id": session_id}) + "\n"
-                        await asyncio.sleep(0.005)
-                        continue
-
-                    if event_type == "fea_delegate":
-                        analyst: FEAAnalystLoop = payload["analyst"]
-                        fea_query: str = payload["query"]
-                        fea_history: list = payload["history"]
-
-                        # Register session for result callbacks
-                        fea_sessions[analyst.session_id] = analyst
-
-                        try:
-                            async for fea_event_type, fea_payload in analyst.run_stream(
-                                fea_query, history=fea_history,
-                            ):
-                                yield json.dumps({"type": fea_event_type, **fea_payload}) + "\n"
-                                all_events.append({"event_type": fea_event_type, **fea_payload})
-                                await asyncio.sleep(0.005)
-                        finally:
-                            fea_sessions.pop(analyst.session_id, None)
-
-                        # FEA path does not produce a ChatResponse — emit a
-                        # synthetic final event so the frontend knows we're done.
-                        yield json.dumps({"type": "machine", "node": "fea_analyst", "status": "done", "title": "FEA Analyst", "detail": "Analysis complete."}) + "\n"
-                        continue
-                    # ── End FEA delegation ──
-
-                    if event_type == "response":
-                        final_response = payload
-                        yield json.dumps({"type": "final", "response": payload.model_dump()}) + "\n"
-                    elif event_type == "machine":
-                        all_events.append(payload)
-                        yield json.dumps({"type": "machine", **payload}) + "\n"
-                    elif isinstance(payload, dict):
-                        all_events.append({"event_type": event_type, **payload})
-                        yield json.dumps({"type": event_type, **payload}) + "\n"
-                    else:
-                        yield json.dumps({"type": event_type, "content": str(payload)}) + "\n"
+                    adapted = adapt_event(event)
+                    all_events.append(adapted)
+                    if event.get("type") == "done":
+                        final_answer = event.get("content", "")
+                    yield json.dumps(adapted, default=str) + "\n"
                     await asyncio.sleep(0.005)
+
             except Exception as exc:
                 error_detail = str(exc)
                 logger.exception("chat_stream_failed")
                 yield json.dumps({"type": "error", "detail": str(exc)}) + "\n"
-            else:
-                if final_response is None and not any(
-                    e.get("event_type") == "fea_complete" for e in all_events
-                ):
-                    error_detail = "No response generated."
-                    yield json.dumps({"type": "error", "detail": "No response generated."}) + "\n"
             finally:
                 _append_thread_log(
                     active_settings,
@@ -271,12 +226,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                         "endpoint": "/api/chat/stream",
                         "request": {
                             "message": request.message,
-                            "history": _history_payload(request.history),
-                            "thinking_mode": request.thinking_mode,
-                            "is_edit": request.is_edit,
+                            "history_len": len(request.history),
                         },
-                        "events": all_events,
-                        "response": final_response.model_dump() if final_response else None,
+                        "events_count": len(all_events),
+                        "answer_len": len(final_answer),
                         "error": error_detail,
                     },
                 )
@@ -285,7 +238,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.post("/api/fea/results")
     async def fea_results(request: FEAResultsRequest):
-        """Receive solver results from the frontend and feed them back to the FEA analyst."""
         analyst = fea_sessions.get(request.session_id)
         if analyst is None:
             raise HTTPException(status_code=404, detail=f"FEA session '{request.session_id}' not found.")
@@ -294,7 +246,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.post("/api/fea/answer")
     async def fea_answer(request: FEAAnswerRequest):
-        """Receive a user answer from the frontend query popup and feed it back to the FEA analyst."""
         analyst = fea_sessions.get(request.session_id)
         if analyst is None:
             raise HTTPException(status_code=404, detail=f"FEA session '{request.session_id}' not found.")
@@ -305,11 +256,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def list_tools():
         return [
             {
-                "tool_name": entry.tool_name,
-                "description": entry.description,
-                "tags": entry.tags,
+                "tool_name": t["function"]["name"],
+                "description": t["function"]["description"],
             }
-            for entry in full_tool_registry
+            for t in TOOLS
         ]
 
     return app

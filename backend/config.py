@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import os
 from dataclasses import dataclass, replace
 from pathlib import Path
@@ -30,116 +29,57 @@ def _to_float(value: str | None, default: float) -> float:
         return default
 
 
-# Default cognitive config — used when cognitive_config.json is missing.
-_COGNITIVE_DEFAULTS: dict[str, dict[str, object]] = {
-    "intent":           {"temperature": 0.0,  "max_tokens": 256,  "reasoning_effort": "low"},
-    "decompose":        {"temperature": 0.0,  "max_tokens": 2048, "reasoning_effort": "low"},
-    "rerank":           {"temperature": 0.0,  "max_tokens": 1200, "reasoning_effort": None},
-    "gap_analysis":     {"temperature": 0.0,  "max_tokens": 600,  "reasoning_effort": None},
-    "chain_resolve":    {"temperature": 0.0,  "max_tokens": 2000, "reasoning_effort": None},
-    "input_resolve":    {"temperature": 0.0,  "max_tokens": 2000, "reasoning_effort": None},
-    "fix_inputs":       {"temperature": 0.0,  "max_tokens": 1024, "reasoning_effort": "low"},
-    "upstream_resolve": {"temperature": 0.0,  "max_tokens": 2000, "reasoning_effort": None},
-    "equation_extract": {"temperature": 0.0,  "max_tokens": 4000, "reasoning_effort": None},
-    "compose":          {"temperature": 0.15, "max_tokens": 8000, "reasoning_effort": "low"},
-    "fea_analyst":      {"temperature": 0.0,  "max_tokens": 16000, "reasoning_effort": None},
-}
-
-
-def _load_cognitive_config(project_root: Path) -> dict[str, object]:
-    """Load pipeline LLM params from cognitive_config.json, fall back to defaults."""
-    cfg = dict(_COGNITIVE_DEFAULTS)
-    config_path = project_root / "cognitive_config.json"
-    if config_path.is_file():
-        with open(config_path) as f:
-            user_cfg = json.load(f)
-        for stage, params in user_cfg.items():
-            if stage in cfg:
-                cfg[stage] = {**cfg[stage], **params}
-
-    # Flatten into Settings field names: {stage}_{param}
-    flat: dict[str, object] = {}
-    for stage, params in cfg.items():
-        re = params.get("reasoning_effort")
-        flat[f"{stage}_temperature"] = float(params.get("temperature", 0))
-        flat[f"{stage}_max_tokens"] = int(params.get("max_tokens", 2000))
-        flat[f"{stage}_reasoning_effort"] = re if isinstance(re, str) else ""
-    return flat
-
-
 @dataclass(frozen=True)
 class Settings:
     project_root: Path
     log_level: str = "INFO"
 
+    # ── Main LLM (agent loop) ────────────────────────────────────────
     orchestrator_provider: str = "gemini"
-    orchestrator_model: str = "gemini-3.1-pro"
+    orchestrator_model: str = "gemini-2.5-pro"
     orchestrator_api_key: str = ""
     orchestrator_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai"
-    orchestrator_reasoning_effort: str = ""  # Gemini only: low, medium, high
+    orchestrator_reasoning_effort: str = ""
 
+    # Agent loop parameters
+    agent_temperature: float = 0.2
+    agent_max_tokens: int = 16000
+    agent_max_rounds: int = 25
+    agent_context_window: int = 1_000_000
+
+    # ── Search provider (for retriever's internal LLM reranking) ─────
     search_provider: str = "openrouter"
     search_model: str = "moonshotai/kimi-k2.5"
     search_api_key: str = ""
     search_base_url: str = "https://openrouter.ai/api/v1"
     search_decompose_max_tokens: int = 1200
-    search_reasoning_effort: str = ""  # Gemini only: low, medium, high
+    search_reasoning_effort: str = ""
 
+    # ── Retrieval settings ───────────────────────────────────────────
     agentic_search_enabled: bool = True
     recursive_retrieval_enabled: bool = False
     embeddings_enabled: bool = False
     max_retrieval_iters: int = 3
     top_k_clauses: int = 20
 
-    # Pipeline stage LLM parameters (temperature, max_tokens, reasoning_effort)
-    intent_temperature: float = 0.0
-    intent_max_tokens: int = 256
-    intent_reasoning_effort: str = "low"
-
-    decompose_temperature: float = 0.0
-    decompose_max_tokens: int = 2048
-    decompose_reasoning_effort: str = "low"
-
+    # Retriever LLM params (used internally by AgenticRetriever)
     rerank_temperature: float = 0.0
     rerank_max_tokens: int = 1200
     rerank_reasoning_effort: str = ""
-
     gap_analysis_temperature: float = 0.0
     gap_analysis_max_tokens: int = 600
     gap_analysis_reasoning_effort: str = ""
 
-    chain_resolve_temperature: float = 0.0
-    chain_resolve_max_tokens: int = 2000
-    chain_resolve_reasoning_effort: str = ""
-
-    input_resolve_temperature: float = 0.0
-    input_resolve_max_tokens: int = 2000
-    input_resolve_reasoning_effort: str = ""
-
-    fix_inputs_temperature: float = 0.0
-    fix_inputs_max_tokens: int = 1024
-    fix_inputs_reasoning_effort: str = "low"
-
-    upstream_resolve_temperature: float = 0.0
-    upstream_resolve_max_tokens: int = 2000
-    upstream_resolve_reasoning_effort: str = ""
-
-    equation_extract_temperature: float = 0.0
-    equation_extract_max_tokens: int = 4000
-    equation_extract_reasoning_effort: str = ""
-
-    compose_temperature: float = 0.15
-    compose_max_tokens: int = 8000
-    compose_reasoning_effort: str = "low"
-
+    # ── FEA analyst (separate mode) ──────────────────────────────────
     fea_analyst_temperature: float = 0.0
     fea_analyst_max_tokens: int = 16000
     fea_analyst_reasoning_effort: str = ""
 
+    # ── Paths ────────────────────────────────────────────────────────
     document_registry_path: Path | None = None
-    tool_registry_path: Path | None = None
     orchestrator_thread_log_path: Path | None = None
 
+    # ── Auth ─────────────────────────────────────────────────────────
     supabase_url: str = ""
     supabase_anon_key: str = ""
     supabase_jwt_secret: str = ""
@@ -156,12 +96,6 @@ class Settings:
         return self.project_root / "data" / "document_registry.json"
 
     @property
-    def resolved_tool_registry_path(self) -> Path:
-        if self.tool_registry_path:
-            return self.tool_registry_path
-        return self.project_root / "tools" / "tool_registry.json"
-
-    @property
     def resolved_orchestrator_thread_log_path(self) -> Path:
         if self.orchestrator_thread_log_path:
             return self.orchestrator_thread_log_path
@@ -174,7 +108,7 @@ class Settings:
             project_root=project_root,
             log_level=os.getenv("LOG_LEVEL", "INFO"),
             orchestrator_provider=os.getenv("ORCHESTRATOR_PROVIDER", "gemini"),
-            orchestrator_model=os.getenv("ORCHESTRATOR_MODEL", "gemini-3.1-pro"),
+            orchestrator_model=os.getenv("ORCHESTRATOR_MODEL", "gemini-2.5-pro"),
             orchestrator_api_key=os.getenv("ORCHESTRATOR_API_KEY", ""),
             orchestrator_base_url=os.getenv(
                 "ORCHESTRATOR_BASE_URL",
@@ -183,6 +117,10 @@ class Settings:
             orchestrator_reasoning_effort=(
                 os.getenv("ORCHESTRATOR_REASONING_EFFORT", "").strip() or ""
             ),
+            agent_temperature=_to_float(os.getenv("AGENT_TEMPERATURE"), 0.2),
+            agent_max_tokens=_to_int(os.getenv("AGENT_MAX_TOKENS"), 16000),
+            agent_max_rounds=_to_int(os.getenv("AGENT_MAX_ROUNDS"), 25),
+            agent_context_window=_to_int(os.getenv("AGENT_CONTEXT_WINDOW"), 1_000_000),
             search_provider=os.getenv("SEARCH_PROVIDER", "openrouter"),
             search_model=os.getenv("SEARCH_MODEL", "moonshotai/kimi-k2.5"),
             search_api_key=os.getenv("SEARCH_API_KEY", ""),
@@ -200,16 +138,18 @@ class Settings:
             embeddings_enabled=_to_bool(os.getenv("EMBEDDINGS_ENABLED"), False),
             max_retrieval_iters=_to_int(os.getenv("MAX_RETRIEVAL_ITERS"), 3),
             top_k_clauses=_to_int(os.getenv("TOP_K_CLAUSES"), 6),
-            # Pipeline stage LLM parameters (from cognitive_config.json)
-            **_load_cognitive_config(project_root),
+            rerank_temperature=_to_float(os.getenv("RERANK_TEMPERATURE"), 0.0),
+            rerank_max_tokens=_to_int(os.getenv("RERANK_MAX_TOKENS"), 1200),
+            gap_analysis_temperature=_to_float(os.getenv("GAP_ANALYSIS_TEMPERATURE"), 0.0),
+            gap_analysis_max_tokens=_to_int(os.getenv("GAP_ANALYSIS_MAX_TOKENS"), 600),
+            fea_analyst_temperature=_to_float(os.getenv("FEA_ANALYST_TEMPERATURE"), 0.0),
+            fea_analyst_max_tokens=_to_int(os.getenv("FEA_ANALYST_MAX_TOKENS"), 16000),
+            fea_analyst_reasoning_effort=(
+                os.getenv("FEA_ANALYST_REASONING_EFFORT", "").strip() or ""
+            ),
             document_registry_path=(
                 Path(os.environ["DOCUMENT_REGISTRY_PATH"])
                 if os.getenv("DOCUMENT_REGISTRY_PATH")
-                else None
-            ),
-            tool_registry_path=(
-                Path(os.environ["TOOL_REGISTRY_PATH"])
-                if os.getenv("TOOL_REGISTRY_PATH")
                 else None
             ),
             orchestrator_thread_log_path=(
