@@ -19,8 +19,34 @@ class ToolRegistryEntry(BaseModel):
     examples: list[dict[str, Any]] = Field(default_factory=list)
 
 
-def load_tool_registry(path: Path) -> list[ToolRegistryEntry]:
+# The 5 generic tools the orchestrator should see.
+# All other hardcoded calculation tools remain in the registry / MCP server
+# for direct use, but are hidden from the orchestrator's decompose step.
+ORCHESTRATOR_ACTIVE_TOOLS: frozenset[str] = frozenset({
+    "math_calculator",
+    "section_properties",
+    "unit_converter",
+    "steel_grade_properties",
+    "section_classification_ec3",
+})
+
+
+def load_tool_registry(
+    path: Path,
+    *,
+    active_only: bool = False,
+) -> list[ToolRegistryEntry]:
+    """Load tool registry entries from JSON.
+
+    When *active_only* is True, only tools in ``ORCHESTRATOR_ACTIVE_TOOLS``
+    are returned.  The MCP server passes ``active_only=False`` (default) to
+    expose every tool; the orchestrator passes ``active_only=True`` so the
+    LLM only sees the 5 generic tools.
+    """
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, list):
         raise ValueError("Tool registry must be a list.")
-    return [ToolRegistryEntry.model_validate(item) for item in payload]
+    entries = [ToolRegistryEntry.model_validate(item) for item in payload]
+    if active_only:
+        entries = [e for e in entries if e.tool_name in ORCHESTRATOR_ACTIVE_TOOLS]
+    return entries

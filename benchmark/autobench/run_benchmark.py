@@ -52,7 +52,10 @@ def _build_agent_loop(settings: Settings) -> AgentLoop:
     """Construct an AgentLoop exactly as app.py does."""
     doc_registry = load_document_registry(settings.resolved_document_registry_path)
     clauses = load_all_clauses(settings.project_root, doc_registry)
-    tool_registry = load_tool_registry(settings.resolved_tool_registry_path)
+    full_tool_registry = load_tool_registry(settings.resolved_tool_registry_path)
+    orchestrator_tool_registry = load_tool_registry(
+        settings.resolved_tool_registry_path, active_only=True,
+    )
 
     search_provider = get_search_provider(settings)
     orchestrator_provider = get_orchestrator_provider(settings)
@@ -63,14 +66,14 @@ def _build_agent_loop(settings: Settings) -> AgentLoop:
         clauses=clauses,
     )
 
-    tool_runner = MCPToolRunner(project_root=settings.project_root, registry=tool_registry)
+    tool_runner = MCPToolRunner(project_root=settings.project_root, registry=full_tool_registry)
 
     orchestrator = CentralIntelligenceOrchestrator(
         settings=settings,
         orchestrator_llm=orchestrator_provider,
         retriever=retriever,
         tool_runner=tool_runner,
-        tool_registry=tool_registry,
+        tool_registry=orchestrator_tool_registry,
         document_registry=doc_registry,
         clauses=clauses,
     )

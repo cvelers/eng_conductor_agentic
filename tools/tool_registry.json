@@ -4198,5 +4198,270 @@
         "output_key": "F_local_kN"
       }
     ]
+  },
+  {
+    "tool_name": "math_calculator",
+    "description": "Safe AST-based math expression evaluator. Takes a sequential list of named equations (with units) and a variables dict. Evaluates them in order so later equations can reference earlier results. Supports: +, -, *, /, **, sqrt(), min(), max(), abs(), round(), trig functions, conditionals (x if cond else y), comparisons. Use this for ANY Eurocode calculation by extracting equations from clause text.",
+    "tags": [
+      "calculator",
+      "math",
+      "equations",
+      "generic",
+      "eurocode"
+    ],
+    "script_path": "tools/mcp/math_calculator.py",
+    "input_schema": {
+      "type": "object",
+      "required": [
+        "equations",
+        "variables"
+      ],
+      "properties": {
+        "equations": {
+          "type": "array",
+          "description": "Ordered list of equations to evaluate sequentially. Each result is available to subsequent equations by name.",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "expression"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Variable name for the result (e.g. 'A_net', 'N_t_Rd'). Later equations can reference this."
+              },
+              "expression": {
+                "type": "string",
+                "description": "Math expression. Can reference variables and earlier results by name. Example: 'A - n_holes * d0 * t'"
+              },
+              "unit": {
+                "type": "string",
+                "description": "Unit of the result (e.g. 'mm2', 'kN', 'MPa')"
+              },
+              "description": {
+                "type": "string",
+                "description": "Human-readable description of what this equation computes"
+              }
+            }
+          }
+        },
+        "variables": {
+          "type": "object",
+          "description": "Input variables with numeric values. Example: {'A': 5380, 'n_holes': 2, 'd0': 22, 't': 10.7}",
+          "additionalProperties": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "output_schema": {
+      "type": "object",
+      "properties": {
+        "outputs": {
+          "type": "object",
+          "description": "All computed equation results as {name: value} pairs",
+          "additionalProperties": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "units": {},
+    "constraints": [
+      "Only safe math operations are allowed (no exec/eval/imports)",
+      "Equations are evaluated in order; later equations can reference earlier results",
+      "Available functions: sqrt, pow, abs, min, max, round, sin, cos, tan, asin, acos, atan, atan2, log, log10, exp, ceil, floor, radians, degrees",
+      "Available constants: pi, e",
+      "Conditional expressions supported: 'x if condition else y'",
+      "Division by zero will raise an error"
+    ],
+    "examples": [
+      {
+        "description": "Net area calculation per EC3 6.2.2.2",
+        "input": {
+          "equations": [
+            {
+              "name": "A_net",
+              "expression": "A - n_holes * d0 * t",
+              "unit": "mm2",
+              "description": "Net cross-section area"
+            },
+            {
+              "name": "N_u_Rd",
+              "expression": "0.9 * A_net * f_u / gamma_M2",
+              "unit": "N",
+              "description": "Ultimate resistance of net section"
+            },
+            {
+              "name": "N_u_Rd_kN",
+              "expression": "N_u_Rd / 1000",
+              "unit": "kN",
+              "description": "Ultimate resistance in kN"
+            }
+          ],
+          "variables": {
+            "A": 5380,
+            "n_holes": 2,
+            "d0": 22,
+            "t": 10.7,
+            "f_u": 510,
+            "gamma_M2": 1.25
+          }
+        },
+        "output_key": "N_u_Rd_kN"
+      },
+      {
+        "description": "Tension resistance per EC3 6.2.3",
+        "input": {
+          "equations": [
+            {
+              "name": "N_pl_Rd",
+              "expression": "A * f_y / gamma_M0",
+              "unit": "N",
+              "description": "Plastic resistance of gross section"
+            },
+            {
+              "name": "N_pl_Rd_kN",
+              "expression": "N_pl_Rd / 1000",
+              "unit": "kN"
+            }
+          ],
+          "variables": {
+            "A": 5380,
+            "f_y": 355,
+            "gamma_M0": 1.0
+          }
+        },
+        "output_key": "N_pl_Rd_kN"
+      }
+    ]
+  },
+  {
+    "tool_name": "section_properties",
+    "description": "Looks up geometric properties (area, moment of inertia, section modulus, dimensions, etc.) for standard rolled steel profiles. Supports IPE (80-600), HEA (100-600), HEB (100-600), and HEM (100-600) families.",
+    "tags": [
+      "section",
+      "properties",
+      "geometry",
+      "IPE",
+      "HEA",
+      "HEB",
+      "HEM",
+      "profile",
+      "rolled"
+    ],
+    "script_path": "tools/mcp/section_properties.py",
+    "input_schema": {
+      "type": "object",
+      "required": [
+        "section_name"
+      ],
+      "properties": {
+        "section_name": {
+          "type": "string",
+          "description": "Standard section designation, e.g. 'IPE300', 'HEA200', 'HEB300', 'HEM200'. Case-insensitive."
+        },
+        "properties": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Optional filter: list of specific properties to return. If omitted, all available properties are returned. Available: h_mm, b_mm, tw_mm, tf_mm, r_mm, area_cm2, I_y_cm4, I_z_cm4, wel_y_cm3, wpl_y_cm3, av_z_cm2"
+        }
+      }
+    },
+    "output_schema": {
+      "type": "object",
+      "properties": {
+        "outputs": {
+          "type": "object",
+          "properties": {
+            "h_mm": {
+              "type": "number",
+              "description": "Overall depth in mm"
+            },
+            "b_mm": {
+              "type": "number",
+              "description": "Flange width in mm"
+            },
+            "tw_mm": {
+              "type": "number",
+              "description": "Web thickness in mm"
+            },
+            "tf_mm": {
+              "type": "number",
+              "description": "Flange thickness in mm"
+            },
+            "r_mm": {
+              "type": "number",
+              "description": "Root fillet radius in mm"
+            },
+            "area_cm2": {
+              "type": "number",
+              "description": "Cross-section area in cm2"
+            },
+            "I_y_cm4": {
+              "type": "number",
+              "description": "Second moment of area about strong axis in cm4"
+            },
+            "I_z_cm4": {
+              "type": "number",
+              "description": "Second moment of area about weak axis in cm4"
+            },
+            "wel_y_cm3": {
+              "type": "number",
+              "description": "Elastic section modulus about strong axis in cm3"
+            },
+            "wpl_y_cm3": {
+              "type": "number",
+              "description": "Plastic section modulus about strong axis in cm3"
+            },
+            "av_z_cm2": {
+              "type": "number",
+              "description": "Shear area in cm2"
+            }
+          }
+        }
+      }
+    },
+    "units": {
+      "h_mm": "mm",
+      "b_mm": "mm",
+      "tw_mm": "mm",
+      "tf_mm": "mm",
+      "r_mm": "mm",
+      "area_cm2": "cm2",
+      "I_y_cm4": "cm4",
+      "I_z_cm4": "cm4",
+      "wel_y_cm3": "cm3",
+      "wpl_y_cm3": "cm3",
+      "av_z_cm2": "cm2"
+    },
+    "constraints": [
+      "Supported families: IPE, HEA, HEB, HEM",
+      "Section name must match a standard designation (e.g. IPE300, not IPE 300A)"
+    ],
+    "examples": [
+      {
+        "description": "Look up IPE300 properties",
+        "input": {
+          "section_name": "IPE300"
+        },
+        "output_key": "area_cm2"
+      },
+      {
+        "description": "Get specific HEB300 properties",
+        "input": {
+          "section_name": "HEB300",
+          "properties": [
+            "area_cm2",
+            "wpl_y_cm3",
+            "I_y_cm4"
+          ]
+        },
+        "output_key": "wpl_y_cm3"
+      }
+    ]
   }
 ]

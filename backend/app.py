@@ -88,7 +88,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     doc_registry = load_document_registry(active_settings.resolved_document_registry_path)
     clauses = load_all_clauses(active_settings.project_root, doc_registry)
-    tool_registry = load_tool_registry(active_settings.resolved_tool_registry_path)
+    # Full registry for the MCP runner (can execute any tool)
+    full_tool_registry = load_tool_registry(active_settings.resolved_tool_registry_path)
+    # Active-only registry for the orchestrator (LLM sees only the 5 generic tools)
+    orchestrator_tool_registry = load_tool_registry(
+        active_settings.resolved_tool_registry_path, active_only=True,
+    )
 
     search_provider = get_search_provider(active_settings)
     orchestrator_provider = get_orchestrator_provider(active_settings)
@@ -99,14 +104,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         clauses=clauses,
     )
 
-    tool_runner = MCPToolRunner(project_root=active_settings.project_root, registry=tool_registry)
+    tool_runner = MCPToolRunner(project_root=active_settings.project_root, registry=full_tool_registry)
 
     orchestrator = CentralIntelligenceOrchestrator(
         settings=active_settings,
         orchestrator_llm=orchestrator_provider,
         retriever=retriever,
         tool_runner=tool_runner,
-        tool_registry=tool_registry,
+        tool_registry=orchestrator_tool_registry,
         document_registry=doc_registry,
         clauses=clauses,
     )
@@ -304,7 +309,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 "description": entry.description,
                 "tags": entry.tags,
             }
-            for entry in tool_registry
+            for entry in full_tool_registry
         ]
 
     return app

@@ -40,6 +40,7 @@ _COGNITIVE_DEFAULTS: dict[str, dict[str, object]] = {
     "input_resolve":    {"temperature": 0.0,  "max_tokens": 2000, "reasoning_effort": None},
     "fix_inputs":       {"temperature": 0.0,  "max_tokens": 1024, "reasoning_effort": "low"},
     "upstream_resolve": {"temperature": 0.0,  "max_tokens": 2000, "reasoning_effort": None},
+    "equation_extract": {"temperature": 0.0,  "max_tokens": 4000, "reasoning_effort": None},
     "compose":          {"temperature": 0.15, "max_tokens": 8000, "reasoning_effort": "low"},
     "fea_analyst":      {"temperature": 0.0,  "max_tokens": 16000, "reasoning_effort": None},
 }
@@ -122,6 +123,10 @@ class Settings:
     upstream_resolve_temperature: float = 0.0
     upstream_resolve_max_tokens: int = 2000
     upstream_resolve_reasoning_effort: str = ""
+
+    equation_extract_temperature: float = 0.0
+    equation_extract_max_tokens: int = 4000
+    equation_extract_reasoning_effort: str = ""
 
     compose_temperature: float = 0.15
     compose_max_tokens: int = 8000

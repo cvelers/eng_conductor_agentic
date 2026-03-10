@@ -341,17 +341,28 @@ class CentralIntelligenceOrchestrator:
         valid_tools = set(self.tool_registry.keys())
         tool_lines: list[str] = []
         for name, entry in self.tool_registry.items():
-            in_params = list(entry.input_schema.get("properties", {}).keys())
+            props = entry.input_schema.get("properties", {})
             out_props = (
                 entry.output_schema
                 .get("properties", {})
                 .get("outputs", {})
                 .get("properties", {})
             )
-            out_params = list(out_props.keys())
+            input_desc = ", ".join(
+                f"{k} ({v.get('type', '?')})"
+                for k, v in props.items()
+            )
+            output_desc = ", ".join(
+                f"{k} ({v.get('type', '?')})"
+                for k, v in out_props.items()
+            )
+            constraints = entry.constraints
+            constraint_str = f"\n  Constraints: {'; '.join(constraints)}" if constraints else ""
             tool_lines.append(
-                f"- {name}: {entry.description}  "
-                f"inputs={in_params}  outputs={out_params}"
+                f"- {name}: {entry.description}\n"
+                f"  Inputs: {input_desc or '(none)'}\n"
+                f"  Outputs: {output_desc or '(see tool result)'}"
+                + constraint_str
             )
 
         skippable = already_run - explicitly_requested
@@ -406,6 +417,7 @@ class CentralIntelligenceOrchestrator:
         current_inputs: dict[str, Any],
         all_tool_outputs: dict[str, dict[str, Any]],
         plan_context: list[dict] | None = None,
+        original_query: str | None = None,
     ) -> dict[str, Any]:
         """Use the LLM to resolve ALL tool inputs from session context.
 
@@ -442,6 +454,10 @@ class CentralIntelligenceOrchestrator:
             "###TASK:RESOLVE_INPUTS###\n"
             f"Tool: {tool_name}\n"
             f"Description: {tool_desc}\n\n"
+        )
+        if original_query:
+            prompt += f"Original user query: {original_query}\n\n"
+        prompt += (
             f"Parameters to resolve:\n{json.dumps(params_info, indent=2)}\n\n"
             f"Known inputs: {json.dumps({k: v for k, v in current_inputs.items() if v is not None})}\n\n"
             "Previous tool executions and their outputs:\n"

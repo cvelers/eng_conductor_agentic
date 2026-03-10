@@ -74,7 +74,13 @@ _COMPOSE_SYSTEM = (
     "STRUCTURE:\n"
     "- Use markdown structure: paragraphs, bullet points, and line breaks.\n"
     "- Break different aspects into separate paragraphs.\n"
-    "- Display key formulas on their own line using $$...$$ display math."
+    "- Display key formulas on their own line using $$...$$ display math.\n\n"
+    "CLAUSE REFERENCES:\n"
+    "At the very end of your answer, on a new line, output a JSON array of clause IDs\n"
+    "you actually used to produce the answer, formatted as:\n"
+    "<!--USED_CLAUSES:[\"5.5.2\", \"6.2.3\", \"Table 3.1\"]-->\n"
+    "Include ONLY clauses whose content directly informed your answer. If none, output:\n"
+    "<!--USED_CLAUSES:[]-->"
 )
 
 _DECOMPOSE_SYSTEM = (
@@ -93,12 +99,20 @@ _DECOMPOSE_SYSTEM = (
     "- If the query asks for only ONE thing, return a single-element array.\n"
     "- Only split when there are genuinely separate engineering questions.\n"
     "- Order tasks logically (dependencies first).\n"
-    "- Only include tools that are directly relevant.\n"
+    "- Only include tools that are directly relevant from the available tools list.\n"
     "- In 'inputs', only include values the user explicitly states in their query.\n"
     "- NEVER guess or invent values for parameters that an earlier task's tool\n"
     "  will compute (e.g. section_class from section_classification, fy_mpa from\n"
     "  steel_grade_properties).  Omit those parameters entirely — the orchestrator\n"
     "  will resolve them automatically from the session context.\n"
+    "- For Eurocode calculations: use 'math_calculator' as the tool. The orchestrator\n"
+    "  will extract equations from the retrieved clause text and build the input\n"
+    "  automatically. You do NOT need to specify the equations — just select\n"
+    "  math_calculator and ensure needs_search is true so relevant clauses are retrieved.\n"
+    "- Use 'section_properties' to look up geometric properties of standard sections.\n"
+    "- Use 'steel_grade_properties' for material property lookups.\n"
+    "- Use 'section_classification_ec3' for cross-section classification.\n"
+    "- Use 'unit_converter' when unit conversion is needed.\n"
     "- Return valid JSON only, no markdown fences, no explanation."
 )
 
@@ -120,6 +134,7 @@ class AgentLoop:
         self.cio = orchestrator
         self.settings = settings
         self._current_tasks: list[_TaskSpec] = []
+        self._original_query: str = ""
 
     # ── Public API ──────────────────────────────────────────────────
 
@@ -190,6 +205,7 @@ class AgentLoop:
 
         tasks = self._decompose(query, selected_mode)
         self._current_tasks = tasks  # Store for plan context in LLM resolution
+        self._original_query = query  # Preserve for all downstream resolution
         logger.info(
             "agent_tasks_decomposed",
             extra={"task_count": len(tasks), "summaries": [t.summary for t in tasks]},
@@ -211,6 +227,7 @@ class AgentLoop:
         all_retrieval_trace: list[RetrievalTraceStep] = []
         all_retrieved: list = []
         all_tool_outputs: dict[str, dict[str, Any]] = {}
+        all_llm_clause_ids: set[str] = set()
         answer_parts: list[str] = []
         all_user_inputs: dict[str, Any] = {}
         all_assumed_inputs: dict[str, Any] = {}
@@ -289,9 +306,16 @@ class AgentLoop:
                 )
                 yield ("machine", {"node": "tools", "status": "active", "title": "Tools", "detail": "Executing tool chain."})
                 for tool_name in ordered:
-                    inputs = self._build_task_tool_inputs(
-                        tool_name, task, all_tool_outputs
-                    )
+                    # Equation extraction: for math_calculator, extract equations
+                    # from retrieved clause text instead of normal input resolution
+                    if tool_name == "math_calculator":
+                        inputs = self._extract_equations(
+                            task, task_clauses, all_tool_outputs,
+                        )
+                    else:
+                        inputs = self._build_task_tool_inputs(
+                            tool_name, task, all_tool_outputs
+                        )
                     success = False
                     last_error = ""
                     error_log: list[str] = []
@@ -353,15 +377,26 @@ class AgentLoop:
                                 },
                             )
                             if attempt == 0:
-                                # Attempt 1 retry: local fix — ask LLM to fix inputs
-                                fixed = self._fix_tool_inputs(
-                                    tool_name, inputs, last_error, task
-                                )
-                                if fixed and fixed != inputs:
-                                    inputs = fixed
-                                    yield ("machine", {"node": "tools", "status": "active", "title": "Tools", "detail": f"Retrying {tool_name} with corrected inputs..."})
+                                if tool_name == "math_calculator":
+                                    # Re-run equation extraction with error context
+                                    retried = self._extract_equations(
+                                        task, task_clauses, all_tool_outputs,
+                                        error_hint=last_error,
+                                    )
+                                    if retried and retried != inputs:
+                                        inputs = retried
+                                        yield ("machine", {"node": "tools", "status": "active", "title": "Tools", "detail": "Re-extracting equations..."})
+                                    else:
+                                        break
                                 else:
-                                    break  # LLM couldn't fix — stop retrying
+                                    fixed = self._fix_tool_inputs(
+                                        tool_name, inputs, last_error, task
+                                    )
+                                    if fixed and fixed != inputs:
+                                        inputs = fixed
+                                        yield ("machine", {"node": "tools", "status": "active", "title": "Tools", "detail": f"Retrying {tool_name} with corrected inputs..."})
+                                    else:
+                                        break
                             elif attempt == 1:
                                 # Attempt 2 retry: UPSTREAM — re-resolve all
                                 # params from full context + error log
@@ -399,7 +434,7 @@ class AgentLoop:
                 {"content": f"Composing answer for: {task.summary}"},
             )
 
-            partial = self._compose_task_answer(
+            raw_partial = self._compose_task_answer(
                 task=task,
                 original_query=query,
                 retrieved=task_clauses,
@@ -408,11 +443,15 @@ class AgentLoop:
                 thinking_mode=selected_mode,
             )
 
+            # Extract LLM-declared clause references from the narrative
+            partial, llm_clause_ids = _extract_used_clauses(raw_partial)
+
             # Stream the partial answer in natural chunks
             for chunk in _chunk_naturally(partial):
                 yield ("delta", {"content": chunk})
 
             answer_parts.append(partial)
+            all_llm_clause_ids.update(llm_clause_ids)
 
             # Collect sources for this task
             task_sources = self.cio._collect_sources(
@@ -439,6 +478,7 @@ class AgentLoop:
             sources=all_sources,
             retrieved=all_retrieved,
             narrative=full_answer,
+            llm_clause_ids=all_llm_clause_ids,
         )
         if appendix:
             full_answer = full_answer + "\n\n" + appendix
@@ -478,11 +518,12 @@ class AgentLoop:
         sources: list[Citation],
         retrieved: list,
         narrative: str,
+        llm_clause_ids: set[str] | None = None,
     ) -> str:
         """Build the structured appendix (tool tables, assumptions, references).
 
-        Mirrors the appendix sections from
-        ``CentralIntelligenceOrchestrator._build_markdown_answer()``.
+        When *llm_clause_ids* is provided (from the compose LLM), those are
+        used to filter references instead of programmatic regex matching.
         """
         lines: list[str] = []
 
@@ -557,13 +598,22 @@ class AgentLoop:
 
         # ── References ──
         if sources:
-            try:
-                filtered = self.cio._select_relevant_sources(
-                    narrative=narrative, sources=sources,
-                    retrieved=retrieved, tool_outputs=tool_outputs,
-                )
-            except Exception:
-                filtered = sources
+            # Primary: use LLM-declared clause IDs from the compose step
+            if llm_clause_ids:
+                norm_llm = {self.cio._normalize_clause_id(cid) for cid in llm_clause_ids}
+                filtered = [
+                    s for s in sources
+                    if self.cio._normalize_clause_id(s.clause_id) in norm_llm
+                ]
+            else:
+                # Fallback: programmatic filter on narrative + tool refs
+                try:
+                    filtered = self.cio._select_relevant_sources(
+                        narrative=narrative, sources=sources,
+                        retrieved=retrieved, tool_outputs=tool_outputs,
+                    )
+                except Exception:
+                    filtered = sources
             if not filtered:
                 filtered = sources
             relevant = [
@@ -675,11 +725,34 @@ class AgentLoop:
 
     def _llm_decompose(self, query: str, thinking_mode: str) -> list[_TaskSpec]:
         valid_tools = list(self.cio.tool_registry.keys())
-        tool_list = "\n".join(
-            f"- {name}: {self.cio.tool_registry[name].description} "
-            f"| inputs: {list(self.cio.tool_registry[name].input_schema.get('properties', {}).keys())}"
-            for name in valid_tools
-        )
+        # Build rich tool capability descriptions from the registry
+        tool_sections: list[str] = []
+        for name in valid_tools:
+            entry = self.cio.tool_registry[name]
+            props = entry.input_schema.get("properties", {})
+            out_props = (
+                entry.output_schema
+                .get("properties", {})
+                .get("outputs", {})
+                .get("properties", {})
+            )
+            input_desc = ", ".join(
+                f"{k} ({v.get('type', '?')})"
+                for k, v in props.items()
+            )
+            output_desc = ", ".join(
+                f"{k} ({v.get('type', '?')})"
+                for k, v in out_props.items()
+            )
+            constraints = entry.constraints
+            constraint_str = f"  Constraints: {'; '.join(constraints)}" if constraints else ""
+            tool_sections.append(
+                f"- {name}: {entry.description}\n"
+                f"  Inputs: {input_desc or '(none)'}\n"
+                f"  Outputs: {output_desc or '(see tool result)'}"
+                + (f"\n{constraint_str}" if constraint_str else "")
+            )
+        tool_list = "\n".join(tool_sections)
 
         doc_list = "\n".join(
             f"- {e.standard} ({e.year_version}): {e.title}"
@@ -845,6 +918,7 @@ class AgentLoop:
                 resolved = self.cio._llm_resolve_inputs(
                     tool_name, props, list(expected), base,
                     all_tool_outputs, plan_context=plan_context,
+                    original_query=self._original_query or None,
                 )
                 base.update(resolved)
 
@@ -898,7 +972,8 @@ class AgentLoop:
                 ),
                 user_prompt=(
                     f"Tool: {tool_name}\n"
-                    f"User query: {task.query}\n"
+                    f"Original user query: {self._original_query or task.query}\n"
+                    f"Sub-task: {task.query}\n"
                     f"Input schema:\n{schema_desc}\n\n"
                     f"Failed inputs: {json.dumps(failed_inputs, default=str)}\n"
                     f"Error: {error_msg}\n\n"
@@ -976,7 +1051,8 @@ class AgentLoop:
                 user_prompt=(
                     f"Tool: {tool_name}\n"
                     f"Description: {entry.description}\n"
-                    f"User query: {task.query}\n\n"
+                    f"Original user query: {self._original_query or task.query}\n"
+                    f"Sub-task: {task.query}\n\n"
                     f"Input schema:\n{json.dumps({'properties': props, 'required': required}, indent=2)}\n\n"
                     f"Prior tool outputs:\n" + ("\n".join(context_lines) or "(none)") + "\n\n"
                     f"Error history (all failed attempts):\n{error_history}\n\n"
@@ -1001,6 +1077,128 @@ class AgentLoop:
             logger.warning("upstream_resolve_failed", extra={"error": str(exc)})
 
         return None
+
+    # ── Equation extraction for math_calculator ─────────────────────
+
+    _EQUATION_EXTRACT_SYSTEM = (
+        "You are a Eurocode equation extraction engine.\n"
+        "Given retrieved clause text and a user's engineering query, extract the\n"
+        "relevant equation(s) needed to answer the query.\n\n"
+        "Return ONLY a JSON object with two keys:\n"
+        '  "equations": [{...}, ...],\n'
+        '  "variables": {...}\n\n'
+        "Each equation object:\n"
+        '  "name": result variable name (e.g. "N_pl_Rd", "A_net")\n'
+        '  "expression": math expression using Python syntax (e.g. "A * f_y / gamma_M0")\n'
+        '  "unit": unit string (e.g. "N", "mm2", "kN")\n'
+        '  "description": what this computes (e.g. "Plastic resistance of gross section")\n\n'
+        "The variables dict maps variable names to numeric values.\n\n"
+        "EXPRESSION SYNTAX — CRITICAL:\n"
+        "- Use Python math syntax: sqrt(), **, /, *, +, -, min(), max()\n"
+        "- Conditionals MUST use Python ternary syntax: value_if_true if condition else value_if_false\n"
+        "  Example: 0.7 if n_bolts >= 3 else (0.6 if n_bolts == 2 else 0.45)\n"
+        "  NEVER use Excel-style if(): if(cond, a, b) is INVALID.\n"
+        "- Nested conditionals: wrap inner ternaries in parentheses.\n\n"
+        "TABLE LOOKUPS — use piecewise conditionals:\n"
+        "When a clause references a table with discrete values (e.g. Table 3.8 for beta),\n"
+        "encode it as a chained ternary expression.\n"
+        "Example — Table 3.8 beta_3 with linear interpolation between p1=55mm and p1=250mm:\n"
+        '  "expression": "0.7 + (p_1 - 55) * (0.9 - 0.7) / (250 - 55) if 55 < p_1 < 250 else (0.7 if p_1 <= 55 else 0.9)"\n\n'
+        "Rules:\n"
+        "- Extract equations directly from the clause text. Follow the Eurocode formulas exactly.\n"
+        "- Equations are evaluated sequentially — later equations can reference earlier results by name.\n"
+        "- Include ALL intermediate steps (don't skip steps).\n"
+        "- For variables: use values from the user query and prior tool outputs.\n"
+        "  If a value is available from prior tool outputs, use the EXACT numeric value.\n"
+        "  If a standard value is needed (e.g. gamma_M0=1.0, gamma_M1=1.0, gamma_M2=1.25), include it.\n"
+        "- Convert units where needed (e.g. cm2 to mm2: multiply by 100).\n"
+        "- Add a final equation converting the result to practical units (e.g. N to kN).\n"
+        "- Keep equations concise. Avoid overly long expressions.\n"
+        "- Return valid JSON only, no markdown fences, no explanation."
+    )
+
+    def _extract_equations(
+        self,
+        task: _TaskSpec,
+        task_clauses: list,
+        all_tool_outputs: dict[str, dict[str, Any]],
+        error_hint: str | None = None,
+    ) -> dict[str, Any]:
+        """Extract equations from clause text for math_calculator.
+
+        Uses LLM to analyze retrieved clause text against the user's query
+        and produce structured {equations, variables} input for math_calculator.
+
+        When *error_hint* is provided (retry after a failed attempt), it is
+        appended to the prompt so the LLM can avoid the same mistake.
+        """
+        if not self.cio.orchestrator_llm.available:
+            return task.inputs
+
+        # Build clause text
+        clause_evidence = []
+        for r in task_clauses:
+            text = r.clause.text.strip()
+            clause_evidence.append(
+                f"[{r.clause.clause_id} — {r.clause.clause_title}]: {text}"
+            )
+        clause_text = "\n\n".join(clause_evidence) if clause_evidence else "(no clauses retrieved)"
+
+        # Build prior tool outputs context
+        context_lines: list[str] = []
+        for src_tool, result in all_tool_outputs.items():
+            outputs = result.get("outputs", {})
+            if outputs:
+                context_lines.append(f"  {src_tool}: {json.dumps(outputs)}")
+        prior_outputs = "\n".join(context_lines) if context_lines else "(none)"
+
+        # User-provided values
+        user_vals = json.dumps(task.inputs, default=str) if task.inputs else "(none)"
+
+        # Use original query so LLM sees all user-stated values (S355, d0=22, etc.)
+        original_query = self._original_query or task.query
+
+        error_section = ""
+        if error_hint:
+            error_section = (
+                f"\n\nPREVIOUS ATTEMPT FAILED with error:\n{error_hint}\n"
+                "Fix the expression syntax. Remember: use Python ternary "
+                "(value if cond else other), NEVER Excel-style if().\n"
+            )
+
+        try:
+            raw = self.cio.orchestrator_llm.generate(
+                system_prompt=self._EQUATION_EXTRACT_SYSTEM,
+                user_prompt=(
+                    f"Original user query: {original_query}\n\n"
+                    f"Current sub-task: {task.query}\n\n"
+                    f"User-provided values: {user_vals}\n\n"
+                    f"Prior tool outputs (available as known values):\n{prior_outputs}\n\n"
+                    f"Retrieved Eurocode clause text:\n{clause_text}\n\n"
+                    f"{error_section}"
+                    "Extract the equations and variables needed to answer the query. "
+                    "Return JSON with 'equations' and 'variables' keys."
+                ),
+                temperature=self.settings.equation_extract_temperature,
+                max_tokens=self.settings.equation_extract_max_tokens,
+                **({"reasoning_effort": self.settings.equation_extract_reasoning_effort} if self.settings.equation_extract_reasoning_effort else {}),
+            )
+            parsed = parse_json_loose(raw)
+            if isinstance(parsed, dict) and "equations" in parsed and "variables" in parsed:
+                return parsed
+            logger.warning(
+                "equation_extract_unexpected_format",
+                extra={"raw_preview": raw[:200]},
+            )
+        except Exception as exc:
+            logger.warning(
+                "equation_extract_failed",
+                extra={"error": str(exc), "task": task.summary},
+            )
+
+        # Fallback: return task inputs as-is (math_calculator will likely fail,
+        # but the retry mechanism can attempt to fix it)
+        return task.inputs
 
     # ── Task-level composition ──────────────────────────────────────
 
@@ -1149,6 +1347,29 @@ class AgentLoop:
 
 
 # ── Module-level helpers ────────────────────────────────────────────
+
+_USED_CLAUSES_RE = re.compile(
+    r"<!--\s*USED_CLAUSES\s*:\s*(\[.*?\])\s*-->",
+    re.DOTALL,
+)
+
+
+def _extract_used_clauses(raw: str) -> tuple[str, set[str]]:
+    """Strip the <!--USED_CLAUSES:[...]-->  tag from the LLM output.
+
+    Returns (cleaned_narrative, set_of_clause_ids).
+    """
+    match = _USED_CLAUSES_RE.search(raw)
+    if not match:
+        return raw, set()
+    cleaned = raw[: match.start()].rstrip() + raw[match.end() :]
+    try:
+        ids = json.loads(match.group(1))
+        if isinstance(ids, list):
+            return cleaned, {str(c) for c in ids if c}
+    except (json.JSONDecodeError, ValueError):
+        pass
+    return cleaned, set()
 
 
 def _chunk_naturally(text: str, target: int = 80) -> list[str]:
