@@ -571,61 +571,81 @@ async def run_agent_loop(
 
 
 def _build_tool_context(all_messages: list[dict]) -> str:
-    """Build a condensed summary of tool calls and key results for session memory.
+    """Build a full-fidelity record of tool calls and results for session memory.
 
-    This is appended to the assistant's stored response so future turns
-    can see what tools were used and what data was retrieved.
+    Preserves all tool arguments, all clause content, all calculation outputs
+    and intermediate steps. The only data dropped are clauses with low
+    relevance scores (< 5.0) from search results.
     """
-    lines: list[str] = []
+    blocks: list[str] = []
     skip_tools = {"todo_write"}
+    _MIN_CLAUSE_SCORE = 5.0
+
+    # Map tool_call_id → tool name so we can label tool results
+    tc_id_to_name: dict[str, str] = {}
 
     for msg in all_messages:
-        # Extract tool calls from assistant messages
+        # ── Assistant tool calls: capture full args ──────────────────
         if msg.get("role") == "assistant" and msg.get("tool_calls"):
             for tc in msg["tool_calls"]:
                 fn = tc.get("function", {})
                 name = fn.get("name", "")
+                tc_id = tc.get("id", "")
+                if tc_id:
+                    tc_id_to_name[tc_id] = name
                 if name in skip_tools:
                     continue
                 try:
                     args = json.loads(fn.get("arguments", "{}"))
                 except (json.JSONDecodeError, TypeError):
                     args = {}
-                args_brief = ", ".join(f"{k}={v}" for k, v in list(args.items())[:3])
-                lines.append(f"- {name}({args_brief})")
+                args_str = json.dumps(args, ensure_ascii=False)
+                blocks.append(f"[tool_call] {name}({args_str})")
 
-        # Extract key values from tool results
+        # ── Tool results: preserve full data ─────────────────────────
         if msg.get("role") == "tool":
+            tool_name = tc_id_to_name.get(msg.get("tool_call_id", ""), "")
+            if tool_name in skip_tools:
+                continue
+
             content = msg.get("content", "")
+            # Strip system-reminder suffixes before parsing
+            raw = content.split("<system-reminder>")[0].strip()
+
             try:
-                data = json.loads(content.split("<system-reminder>")[0].strip())
+                data = json.loads(raw)
             except (json.JSONDecodeError, TypeError, IndexError):
+                # Non-JSON results (fetch_url, read_file): store as-is
+                if raw:
+                    blocks.append(f"[tool_result] {tool_name}:\n{raw}")
                 continue
+
             if not isinstance(data, dict):
+                blocks.append(f"[tool_result] {tool_name}: {raw}")
                 continue
 
-            # Extract clause IDs from search results
+            # ── Clauses: keep all relevant ones with full text ───────
             if "clauses" in data:
-                ids = [c.get("clause_id", "") for c in data["clauses"][:5]]
-                if ids:
-                    lines.append(f"  → clauses: {', '.join(ids)}")
+                kept_clauses = []
+                for c in data["clauses"]:
+                    score = c.get("score", 10)
+                    if isinstance(score, (int, float)) and score < _MIN_CLAUSE_SCORE:
+                        continue  # drop irrelevant clauses
+                    kept_clauses.append(c)
+                data["clauses"] = kept_clauses
 
-            # Extract calculation outputs
-            if "outputs" in data and isinstance(data["outputs"], dict):
-                for k, v in list(data["outputs"].items())[:6]:
-                    lines.append(f"  → {k} = {v}")
+            # Remove empty/noise fields but keep everything else
+            for drop_key in ("_referenced_but_not_retrieved",):
+                data.pop(drop_key, None)
 
-            # Extract section/material properties
-            if "results" in data and isinstance(data["results"], list):
-                for r in data["results"][:3]:
-                    if isinstance(r, dict):
-                        name = r.get("name", r.get("tool_name", ""))
-                        if name:
-                            lines.append(f"  → result: {name}")
+            blocks.append(
+                f"[tool_result] {tool_name}:\n"
+                + json.dumps(data, ensure_ascii=False, default=str)
+            )
 
-    if not lines:
+    if not blocks:
         return ""
-    return "<tool-context>\n" + "\n".join(lines) + "\n</tool-context>"
+    return "<tool-context>\n" + "\n".join(blocks) + "\n</tool-context>"
 
 
 def _summarize_result(result_str: str, tool_name: str, elapsed_ms: int = 0) -> str:
