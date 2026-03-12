@@ -67,6 +67,12 @@ _SYSTEM_REMINDERS: dict[str, str] = {
         "If any input was assumed rather than looked up, state this clearly."
         "</system-reminder>"
     ),
+    "todo_write": (
+        "\n\n<system-reminder>"
+        "Good — your plan is recorded. Now execute the steps in order. "
+        "Call todo_write again to update step statuses as you complete them."
+        "</system-reminder>"
+    ),
 }
 
 # Default reminder for tools without a specific one
@@ -212,45 +218,6 @@ def _parse_tool_calls(store: dict[int, dict], tool_round: int) -> list[dict]:
     return calls
 
 
-# ── Observation compression ──────────────────────────────────────────
-
-
-def _compress_old_tool_results(
-    messages: list[dict[str, Any]],
-    keep_full: int = FULL_FIDELITY_TOOL_RESULTS,
-) -> list[dict[str, Any]]:
-    """Compress older tool results to summaries, keeping recent ones full.
-
-    This is the SWE-Agent "observation compression" pattern: the agent sees
-    full detail for recent actions and summaries for older ones. Keeps the
-    context window lean while preserving the information trail.
-    """
-    # Find indices of tool messages (from the end)
-    tool_indices: list[int] = []
-    for i in range(len(messages) - 1, -1, -1):
-        if messages[i].get("role") == "tool":
-            tool_indices.append(i)
-
-    # Keep the most recent `keep_full` tool results at full fidelity
-    indices_to_compress = tool_indices[keep_full:]
-    if not indices_to_compress:
-        return messages
-
-    for idx in indices_to_compress:
-        content = messages[idx].get("content", "")
-        if not isinstance(content, str) or len(content) < 500:
-            continue  # Already short enough
-
-        # Compress: keep first 200 chars + indicator
-        compressed = content[:200].rstrip()
-        messages[idx] = {
-            **messages[idx],
-            "content": f"{compressed}\n[... compressed — {len(content)} chars total]",
-        }
-
-    return messages
-
-
 # ── Novelty tracking ─────────────────────────────────────────────────
 
 
@@ -291,6 +258,8 @@ async def run_agent_loop(
       {"type": "delta", "content": str}
       {"type": "tool_start", "tool": str, "args": dict}
       {"type": "tool_result", "tool": str, "result": Any, "status": str, "summary": str}
+      {"type": "plan", "steps": list[dict]}
+      {"type": "plan_update", "step_id": str, "status": str}
       {"type": "done", "content": str}
       {"type": "error", "message": str}
     """
@@ -305,12 +274,18 @@ async def run_agent_loop(
     # Novelty tracking — detect circular retrieval
     search_result_sets: list[set[str]] = []
 
+    # Plan tracking — TodoWrite pattern (Claude Code "progress anchor")
+    # Stores the latest plan steps so we can emit plan_update events
+    plan_steps: list[dict[str, str]] = []
+    plan_emitted = False
+
     all_messages = [{"role": "system", "content": system_prompt}] + messages
 
     while tool_round < max_rounds:
-        # Compress older tool results before sending (keeps context lean)
-        if tool_round > 2:
-            _compress_old_tool_results(all_messages)
+        # NOTE: No per-query compression here — tool results are kept at
+        # full fidelity within a single query. Session-level compaction
+        # (in context.py) handles long conversations via the context usage
+        # indicator, using semantic compression when triggered.
 
         request_kwargs: dict[str, Any] = {
             "model": model,
@@ -433,9 +408,11 @@ async def run_agent_loop(
             break
 
         # ── Loop detection ───────────────────────────────────────────
-        for tc in tool_calls:
+        # Don't count todo_write toward tool budget — it's a planning no-op
+        real_calls = [tc for tc in tool_calls if tc["name"] != "todo_write"]
+        for tc in real_calls:
             consecutive_names.append(tc["name"])
-        total_tool_calls += len(tool_calls)
+        total_tool_calls += len(real_calls)
 
         force_stop = False
         force_reason = ""
@@ -476,6 +453,24 @@ async def run_agent_loop(
                 result_str = json.dumps({"error": str(e)})
                 status = "error"
             elapsed_ms = int((time.time() - t0) * 1000)
+
+            # ── TodoWrite → plan events (Claude Code pattern) ─────
+            if tc["name"] == "todo_write" and status == "ok":
+                new_steps = tc["args"].get("todos", [])
+                if not plan_emitted:
+                    # First call → emit full plan card
+                    yield {"type": "plan", "steps": new_steps}
+                    plan_steps = new_steps
+                    plan_emitted = True
+                else:
+                    # Subsequent calls → emit per-step updates for changed statuses
+                    old_map = {s["id"]: s.get("status", "pending") for s in plan_steps}
+                    for step in new_steps:
+                        sid = step.get("id", "")
+                        new_status = step.get("status", "pending")
+                        if sid and old_map.get(sid) != new_status:
+                            yield {"type": "plan_update", "step_id": sid, "status": new_status}
+                    plan_steps = new_steps
 
             # Build summary for UI
             summary = _summarize_result(result_str, tc["name"], elapsed_ms)

@@ -42,6 +42,19 @@ def adapt_event(event: dict[str, Any]) -> dict[str, Any]:
             "summary": event.get("summary", ""),
         }
 
+    if t == "plan":
+        return {
+            "type": "plan",
+            "steps": event.get("steps", []),
+        }
+
+    if t == "plan_update":
+        return {
+            "type": "plan_update",
+            "step_id": event.get("step_id", ""),
+            "status": event.get("status", "pending"),
+        }
+
     if t == "done":
         return {
             "type": "final",

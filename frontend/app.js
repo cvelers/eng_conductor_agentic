@@ -1746,11 +1746,19 @@ function appendThinkingCard(msgNode, content) {
 function renderPlanCard(msgNode, steps) {
   const feed = _getActivityFeed(msgNode);
   if (!feed) return;
-  const items = steps.map(s =>
-    `<div class="plan-step pending" data-step-id="${s.id}"><span class="step-icon">${_STEP_ICONS.pending}</span><span>${escHtml(s.text)}</span></div>`
-  ).join("");
-  const card = _makeCard("plan", "Plan", `<div class="plan-checklist">${items}</div>`);
-  feed.appendChild(card);
+  // Reuse existing plan card if one exists (update in place)
+  let card = feed.querySelector(".activity-card.plan-card");
+  const items = steps.map(s => {
+    const st = s.status || "pending";
+    const icon = _STEP_ICONS[st] || _STEP_ICONS.pending;
+    return `<div class="plan-step ${st}" data-step-id="${s.id}"><span class="step-icon">${icon}</span><span>${escHtml(s.text)}</span></div>`;
+  }).join("");
+  if (card) {
+    card.querySelector(".plan-checklist").innerHTML = items;
+  } else {
+    card = _makeCard("plan", "Plan", `<div class="plan-checklist">${items}</div>`);
+    feed.appendChild(card);
+  }
   _autoScrollThinkingPanel(msgNode);
 }
 
@@ -2160,6 +2168,42 @@ function _cleanupFloatingDiagrams() {
   document.querySelectorAll("body > .diagram-panel").forEach(el => el.remove());
 }
 
+// ---- Context Usage Circle ----
+function renderContextUsage(usage) {
+  const btn = document.getElementById("context-usage-btn");
+  const ring = document.getElementById("context-usage-ring");
+  const primary = document.getElementById("context-usage-primary");
+  const secondary = document.getElementById("context-usage-secondary");
+  if (!btn || !ring) return;
+
+  const radius = 8.5;
+  const circumference = 2 * Math.PI * radius;
+  ring.style.strokeDasharray = `${circumference}`;
+
+  if (!usage) {
+    ring.style.strokeDashoffset = `${circumference}`;
+    btn.classList.remove("low", "medium", "high", "critical");
+    if (primary) primary.textContent = "No usage data";
+    if (secondary) secondary.textContent = "\u2014";
+    return;
+  }
+
+  const usedPercent = Math.max(0, Number(usage.used_percent) || 0);
+  const fraction = Math.min(1, usedPercent / 100);
+  ring.style.strokeDashoffset = `${circumference * (1 - fraction)}`;
+
+  btn.classList.remove("low", "medium", "high", "critical");
+  const level = String(usage.level || "low").toLowerCase();
+  btn.classList.add(level);
+
+  const usedRounded = Math.round(usedPercent);
+  const leftPercent = Math.max(0, 100 - usedRounded);
+  if (primary) primary.textContent = `${usedRounded}% used (${leftPercent}% left)`;
+
+  const fmt = n => n >= 1_000_000 ? (n / 1_000_000).toFixed(1) + "M" : n >= 1000 ? (n / 1000).toFixed(0) + "k" : String(n);
+  if (secondary) secondary.textContent = `${fmt(usage.estimated_tokens || 0)} / ${fmt(usage.context_window || 0)} tokens`;
+}
+
 function renderMessages() {
   _cleanupFloatingDiagrams();
   messagesEl.innerHTML = "";
@@ -2284,13 +2328,18 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         updatePlanStep(assistantNode, event.step_id, event.status);
       }
       if (event.type === "tool_start") {
-        appendToolCard(assistantNode, event.tool, event.args, "running");
-        appendLog(assistantNode, `Running ${event.tool}...`);
+        // Skip activity card for planning tool — the plan card handles it
+        if (event.tool !== "todo_write") {
+          appendToolCard(assistantNode, event.tool, event.args, "running");
+          appendLog(assistantNode, `Running ${event.tool}...`);
+        }
         assistantNode.__toolTrace.push({ tool_name: event.tool, status: "running" });
         // ── Agent→Flow bridge: highlight the right node ──
         if (assistantNode.__flow) {
           const f = assistantNode.__flow;
-          if (_DB_TOOLS.has(event.tool)) {
+          if (event.tool === "todo_write") {
+            // Planning tool — keep orchestrator active, don't highlight any external node
+          } else if (_DB_TOOLS.has(event.tool)) {
             // Database tool → highlight database
             clearPopupLane(f, "docs");
             setNS(f, "orchestrator", "done");
@@ -2321,13 +2370,15 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         }
       }
       if (event.type === "tool_result") {
-        updateToolCard(assistantNode, event.tool, event.result, event.status, event.summary);
-        appendLog(assistantNode, `${event.tool}: ${event.status}${event.summary ? " — " + event.summary : ""}`);
+        if (event.tool !== "todo_write") {
+          updateToolCard(assistantNode, event.tool, event.result, event.status, event.summary);
+          appendLog(assistantNode, `${event.tool}: ${event.status}${event.summary ? " — " + event.summary : ""}`);
+        }
         // Update tool trace status
         const traceEntry = assistantNode.__toolTrace.findLast(t => t.tool_name === event.tool && t.status === "running");
         if (traceEntry) traceEntry.status = event.status === "error" ? "error" : "ok";
         // ── Agent→Flow bridge: mark node done, return to orchestrator ──
-        if (assistantNode.__flow) {
+        if (assistantNode.__flow && event.tool !== "todo_write") {
           const f = assistantNode.__flow;
           const isDone = event.status !== "error";
           const st = isDone ? "done" : "error";
@@ -2574,6 +2625,11 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
           renderThreadList();
           finalized = true;
         }
+      }
+
+      // Context usage update (circle indicator)
+      if (event.type === "context_usage") {
+        renderContextUsage(event);
       }
     }
   }

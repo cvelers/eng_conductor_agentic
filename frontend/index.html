@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Eurocodes Chatbot (EC3)</title>
-    <link rel="stylesheet" href="/static/styles.css?v=24" />
+    <link rel="stylesheet" href="/static/styles.css?v=25" />
     <script type="importmap">
       { "imports": {
           "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js",
@@ -197,6 +197,19 @@
                 </select>
               </div>
               </div>
+              <div id="context-usage-wrap" title="Context window usage">
+                <button id="context-usage-btn" type="button" aria-label="Context window usage">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle class="context-ring-track" cx="12" cy="12" r="8.5" stroke-width="2.2"></circle>
+                    <circle id="context-usage-ring" class="context-ring-progress" cx="12" cy="12" r="8.5" stroke-width="2.2" stroke-linecap="round"></circle>
+                  </svg>
+                </button>
+                <div id="context-usage-popover" role="status" aria-live="polite">
+                  <div class="context-usage-title">Context window</div>
+                  <div class="context-usage-primary" id="context-usage-primary">0% used</div>
+                  <div class="context-usage-secondary" id="context-usage-secondary">—</div>
+                </div>
+              </div>
               <button id="send-btn" type="submit" aria-label="Send">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                   <line x1="12" y1="19" x2="12" y2="5"></line>
@@ -278,6 +291,7 @@
             <button class="diagram-close-btn" type="button" aria-label="Close diagram">&times;</button>
           </div>
           <div class="flow-graph" aria-hidden="true"></div>
+          <div class="search-matrix hidden" aria-hidden="true"></div>
         </section>
         <section class="msg-panel thinking-panel hidden">
           <div class="panel-header">
@@ -332,6 +346,8 @@
           <div class="fea-results-table hidden"></div>
         </section>
         <div class="msg-panel response-panel content"></div>
+        <div class="calc-tabs hidden"></div>
+        <div class="ref-section hidden"></div>
         <details class="trace hidden">
           <summary>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
@@ -342,6 +358,6 @@
       </article>
     </template>
 
-    <script src="/static/app.js?v=25" defer></script>
+    <script src="/static/app.js?v=26" defer></script>
   </body>
 </html>

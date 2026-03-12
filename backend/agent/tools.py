@@ -171,6 +171,47 @@ TOOLS: list[dict[str, Any]] = [
             },
         },
     },
+    # ── Planning ──────────────────────────────────────────────────────
+    {
+        "type": "function",
+        "function": {
+            "name": "todo_write",
+            "description": (
+                "Create or update your task plan. Call this FIRST before using any other tool. "
+                "List the steps you intend to follow to answer the user's question. "
+                "You can update the plan later to mark steps as completed or add new ones."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "todos": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "string",
+                                    "description": "Short unique step ID (e.g. 'search', 'calc', 'fetch_table').",
+                                },
+                                "text": {
+                                    "type": "string",
+                                    "description": "Brief description of this step.",
+                                },
+                                "status": {
+                                    "type": "string",
+                                    "enum": ["pending", "in_progress", "done"],
+                                    "description": "Step status. Use 'pending' for initial plan, update later.",
+                                },
+                            },
+                            "required": ["id", "text", "status"],
+                        },
+                        "description": "Ordered list of plan steps.",
+                    },
+                },
+                "required": ["todos"],
+            },
+        },
+    },
     # ── General ───────────────────────────────────────────────────────
     {
         "type": "function",
@@ -563,6 +604,25 @@ def _handle_search_files(args: dict) -> str:
         return json.dumps({"files": results})
 
 
+def _handle_todo_write(args: dict) -> str:
+    """No-op planning tool (Claude Code TodoWrite pattern).
+
+    The tool simply echoes the plan back. Its value is forcing the LLM to
+    articulate its approach before acting. The agent loop intercepts the call
+    to emit plan/plan_update events for the frontend.
+    """
+    todos = args.get("todos", [])
+    summary_lines = []
+    for step in todos:
+        icon = {"pending": "○", "in_progress": "▶", "done": "✓"}.get(step.get("status", "pending"), "○")
+        summary_lines.append(f"  {icon} {step.get('id', '?')}: {step.get('text', '')}")
+    return json.dumps({
+        "status": "ok",
+        "plan": todos,
+        "summary": "\n".join(summary_lines),
+    })
+
+
 def _handle_run_command(args: dict) -> str:
     command = args.get("command", "")
     timeout = min(args.get("timeout", 30), 60)
@@ -624,6 +684,7 @@ def build_tool_dispatcher(
         "math_calculator": _handle_math_calculator,
         "section_lookup": _handle_section_lookup,
         "material_lookup": _handle_material_lookup,
+        "todo_write": _handle_todo_write,
         "web_search": _handle_web_search,
         "fetch_url": _handle_fetch_url,
         "read_file": _handle_read_file,
