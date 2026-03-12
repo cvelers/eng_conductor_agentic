@@ -67,6 +67,20 @@ _SYSTEM_REMINDERS: dict[str, str] = {
         "If any input was assumed rather than looked up, state this clearly."
         "</system-reminder>"
     ),
+    "search_engineering_tools": (
+        "\n\n<system-reminder>"
+        "Review the engineering tools found. To use one, call `engineering_calculator` "
+        "with the exact tool_name and the required parameters from the schema. "
+        "If no suitable tool was found, try different search terms or a different category."
+        "</system-reminder>"
+    ),
+    "engineering_calculator": (
+        "\n\n<system-reminder>"
+        "Check the calculation result. Verify inputs match the design requirements. "
+        "If additional calculations are needed (e.g., you computed capacity but still "
+        "need to check utilization), search for more tools or use math_calculator."
+        "</system-reminder>"
+    ),
 }
 
 # Default reminder for tools without a specific one

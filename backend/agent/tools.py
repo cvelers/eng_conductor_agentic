@@ -8,9 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
-import os
 import re
-import subprocess
 from pathlib import Path
 from typing import Any, Callable
 
@@ -121,48 +119,70 @@ TOOLS: list[dict[str, Any]] = [
             },
         },
     },
+    # ── Engineering Calculator (eurocodepy) ─────────────────────────
     {
         "type": "function",
         "function": {
-            "name": "section_lookup",
+            "name": "search_engineering_tools",
             "description": (
-                "Look up geometric properties for a standard rolled steel profile. "
-                "Supports IPE, HEA, HEB, HEM families. Returns area, moments of inertia, "
-                "section moduli, and dimensions."
+                "Search for available engineering calculation tools by topic. "
+                "Returns matching tools with descriptions and parameter schemas. "
+                "Covers EC3 steel design: combined section checks (N+M+V), LTB, "
+                "flexural buckling, Ncr, profile lookups (IPE/HEA/HEB/HEM/CHS/RHS/SHS), "
+                "steel grade lookups, bolt lookups. "
+                "Use this first to discover which tool to call, then call "
+                "engineering_calculator with the tool name and parameters."
             ),
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "section_name": {
+                    "query": {
                         "type": "string",
-                        "description": "Section designation, e.g. 'IPE300', 'HEA200', 'HEB300', 'HEM200'.",
+                        "description": (
+                            "Search query describing what you need to calculate. "
+                            "E.g., 'concrete beam shear design', 'steel IPE profile lookup', "
+                            "'load combination ULS', 'bearing capacity shallow foundation'."
+                        ),
+                    },
+                    "category": {
+                        "type": "string",
+                        "enum": ["EC3"],
+                        "description": "Optional: filter by Eurocode standard.",
                     },
                 },
-                "required": ["section_name"],
+                "required": ["query"],
             },
         },
     },
     {
         "type": "function",
         "function": {
-            "name": "material_lookup",
+            "name": "engineering_calculator",
             "description": (
-                "Look up steel grade material properties per EN 10025 / EC3 Table 3.1. "
-                "Returns fy, fu, E, epsilon for S235, S275, S355, S420, S460."
+                "Execute an engineering calculation using a specific tool from the "
+                "eurocodepy library. First use search_engineering_tools to find the "
+                "right tool name and its parameter schema, then call this with the "
+                "tool name and parameters."
             ),
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "steel_grade": {
+                    "tool_name": {
                         "type": "string",
-                        "description": "Steel grade, e.g. 'S355', 'S235'.",
+                        "description": (
+                            "Exact name of the engineering tool to execute. "
+                            "Get this from search_engineering_tools results."
+                        ),
                     },
-                    "thickness_mm": {
-                        "type": "number",
-                        "description": "Element thickness in mm (affects fy if > 40mm). Optional.",
+                    "params": {
+                        "type": "object",
+                        "description": (
+                            "Parameters for the tool. Schema varies by tool — "
+                            "check the parameter schema returned by search_engineering_tools."
+                        ),
                     },
                 },
-                "required": ["steel_grade"],
+                "required": ["tool_name", "params"],
             },
         },
     },
@@ -214,21 +234,6 @@ TOOLS: list[dict[str, Any]] = [
     {
         "type": "function",
         "function": {
-            "name": "write_file",
-            "description": "Write or create a file on disk.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "path": {"type": "string", "description": "File path to write."},
-                    "content": {"type": "string", "description": "File content."},
-                },
-                "required": ["path", "content"],
-            },
-        },
-    },
-    {
-        "type": "function",
-        "function": {
             "name": "list_directory",
             "description": "List files and subdirectories in a directory.",
             "parameters": {
@@ -262,28 +267,7 @@ TOOLS: list[dict[str, Any]] = [
             },
         },
     },
-    {
-        "type": "function",
-        "function": {
-            "name": "run_command",
-            "description": "Execute a shell command. Use for running scripts, tests, or other CLI tools.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "command": {"type": "string", "description": "Shell command to execute."},
-                    "timeout": {"type": "integer", "description": "Timeout in seconds (default 30)."},
-                },
-                "required": ["command"],
-            },
-        },
-    },
 ]
-
-# Tools kept in code but hidden from the LLM (not sent in the tools array).
-# Handlers remain in the dispatcher so they still work if called.
-_HIDDEN_TOOLS = {"section_lookup", "material_lookup", "write_file", "run_command"}
-
-TOOLS = [t for t in TOOLS if t["function"]["name"] not in _HIDDEN_TOOLS]
 
 
 # ── Tool handlers ────────────────────────────────────────────────────
@@ -411,23 +395,6 @@ def _handle_math_calculator(args: dict) -> str:
     return json.dumps(result, default=str)
 
 
-def _handle_section_lookup(args: dict) -> str:
-    from tools.mcp.section_properties import SectionPropertiesInput, lookup
-    inp = SectionPropertiesInput(section_name=args["section_name"])
-    result = lookup(inp)
-    return json.dumps(result, default=str)
-
-
-def _handle_material_lookup(args: dict) -> str:
-    from tools.mcp.steel_grade_properties import SteelGradeInput, lookup
-    inp = SteelGradeInput(
-        steel_grade=args["steel_grade"],
-        thickness_mm=args.get("thickness_mm"),
-    )
-    result = lookup(inp)
-    return json.dumps(result, default=str)
-
-
 def _handle_web_search(args: dict) -> str:
     import httpx
     query = args.get("query", "")
@@ -485,17 +452,6 @@ def _handle_read_file(args: dict) -> str:
         return json.dumps({"error": f"Read failed: {e}"})
 
 
-def _handle_write_file(args: dict) -> str:
-    path = Path(args.get("path", "")).expanduser()
-    content = args.get("content", "")
-    try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(content, encoding="utf-8")
-        return json.dumps({"status": "ok", "path": str(path), "bytes": len(content.encode())})
-    except Exception as e:
-        return json.dumps({"error": f"Write failed: {e}"})
-
-
 def _handle_list_directory(args: dict) -> str:
     path = Path(args.get("path", ".")).expanduser()
     if not path.is_dir():
@@ -541,28 +497,27 @@ def _handle_search_files(args: dict) -> str:
         return json.dumps({"files": results})
 
 
-def _handle_run_command(args: dict) -> str:
-    command = args.get("command", "")
-    timeout = min(args.get("timeout", 30), 60)
-    # Basic safety
-    dangerous = ["rm -rf /", "mkfs", "dd if=", ":(){", "fork bomb"]
-    for d in dangerous:
-        if d in command.lower():
-            return json.dumps({"error": f"Blocked dangerous command pattern: {d}"})
-    try:
-        result = subprocess.run(
-            command, shell=True, capture_output=True, text=True,
-            timeout=timeout, cwd=os.getcwd(),
-        )
+def _handle_search_engineering_tools(args: dict, llm_provider: Any = None) -> str:
+    from backend.eurocodepy.search import search_engineering_tools, list_categories
+    query = args.get("query", "")
+    category = args.get("category")
+    results = search_engineering_tools(
+        query, category=category, llm_provider=llm_provider,
+    )
+    if not results:
         return json.dumps({
-            "exit_code": result.returncode,
-            "stdout": result.stdout[:5000],
-            "stderr": result.stderr[:2000],
+            "results": [],
+            "note": "No matching engineering tools found. Try different search terms.",
+            "available_categories": list_categories(),
         })
-    except subprocess.TimeoutExpired:
-        return json.dumps({"error": f"Command timed out after {timeout}s"})
-    except Exception as e:
-        return json.dumps({"error": str(e)})
+    return json.dumps({"results": results, "total_found": len(results)})
+
+
+def _handle_engineering_calculator(args: dict) -> str:
+    from backend.eurocodepy.dispatcher import execute_engineering_tool
+    tool_name = args.get("tool_name", "")
+    params = args.get("params", {})
+    return execute_engineering_tool(tool_name, params)
 
 
 # ── Dispatcher factory ───────────────────────────────────────────────
@@ -571,8 +526,14 @@ def _handle_run_command(args: dict) -> str:
 def build_tool_dispatcher(
     retriever: Any,
     clauses: list,
+    search_provider: Any = None,
 ) -> Callable[[str, dict], str]:
     """Build a closure that dispatches tool calls by name.
+
+    *search_provider* is an optional :class:`LLMProvider` used for
+    LLM-scored engineering tool selection (passed to
+    ``search_engineering_tools``).  When ``None``, keyword-based
+    fallback is used.
 
     Returns a ``(tool_name, args) -> result_str`` callable.
     """
@@ -600,15 +561,13 @@ def build_tool_dispatcher(
         "eurocode_search": lambda args: _handle_eurocode_search(args, retriever),
         "read_clause": lambda args: _handle_read_clause(args, clause_index),
         "math_calculator": _handle_math_calculator,
-        "section_lookup": _handle_section_lookup,
-        "material_lookup": _handle_material_lookup,
         "web_search": _handle_web_search,
         "fetch_url": _handle_fetch_url,
         "read_file": _handle_read_file,
-        "write_file": _handle_write_file,
         "list_directory": _handle_list_directory,
         "search_files": _handle_search_files,
-        "run_command": _handle_run_command,
+        "search_engineering_tools": lambda args: _handle_search_engineering_tools(args, search_provider),
+        "engineering_calculator": _handle_engineering_calculator,
     }
 
     def dispatch(tool_name: str, args: dict) -> str:

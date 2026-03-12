@@ -121,7 +121,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     )
 
     # ── Tool dispatcher ──────────────────────────────────────────────
-    tool_dispatcher = build_tool_dispatcher(retriever, clauses)
+    tool_dispatcher = build_tool_dispatcher(retriever, clauses, search_provider)
 
     # ── FEA (separate mode, unchanged) ───────────────────────────────
     fea_sessions: dict[str, FEAAnalystLoop] = {}

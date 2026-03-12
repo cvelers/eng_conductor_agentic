@@ -52,25 +52,27 @@ class Settings:
     log_level: str = "INFO"
 
     # ── Main LLM (agent loop) ────────────────────────────────────────
+    # Defaults match cognitive_config.json — that file is the single
+    # source of truth; these are fallbacks if the file is missing.
     orchestrator_provider: str = "gemini"
-    orchestrator_model: str = "gemini-2.5-pro"
+    orchestrator_model: str = "gemini-3.1-flash-lite-preview"
     orchestrator_api_key: str = ""
     orchestrator_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai"
-    orchestrator_reasoning_effort: str = ""
+    orchestrator_reasoning_effort: str = "high"
 
     # Agent loop parameters
     agent_temperature: float = 0.2
-    agent_max_tokens: int = 16000
+    agent_max_tokens: int = 32000
     agent_max_rounds: int = 25
     agent_context_window: int = 1_000_000
 
-    # ── Search provider (for retriever's internal LLM reranking) ─────
-    search_provider: str = "openrouter"
-    search_model: str = "moonshotai/kimi-k2.5"
+    # ── Search provider (for retriever reranking + eng tool selection)
+    search_provider: str = "gemini"
+    search_model: str = "gemini-3.1-flash-lite-preview"
     search_api_key: str = ""
-    search_base_url: str = "https://openrouter.ai/api/v1"
-    search_decompose_max_tokens: int = 1200
-    search_decompose_reasoning_effort: str = ""
+    search_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai"
+    search_decompose_max_tokens: int = 4000
+    search_decompose_reasoning_effort: str = "high"
     search_reasoning_effort: str = ""
 
     # ── Retrieval settings ───────────────────────────────────────────
@@ -81,15 +83,15 @@ class Settings:
     top_k_clauses: int = 8
 
     # Retriever LLM params (used internally by AgenticRetriever)
-    rerank_temperature: float = 0.0
-    rerank_max_tokens: int = 1200
+    rerank_temperature: float = 0.2
+    rerank_max_tokens: int = 2000
     rerank_reasoning_effort: str = ""
-    gap_analysis_temperature: float = 0.0
-    gap_analysis_max_tokens: int = 600
+    gap_analysis_temperature: float = 0.2
+    gap_analysis_max_tokens: int = 2000
     gap_analysis_reasoning_effort: str = ""
 
     # ── FEA analyst (separate mode) ──────────────────────────────────
-    fea_analyst_temperature: float = 0.0
+    fea_analyst_temperature: float = 0.2
     fea_analyst_max_tokens: int = 16000
     fea_analyst_reasoning_effort: str = ""
 
@@ -138,33 +140,34 @@ class Settings:
 
             # ── Orchestrator (from cognitive_config.json) ──
             orchestrator_provider=orch.get("provider", "gemini"),
-            orchestrator_model=orch.get("model", "gemini-2.5-pro"),
+            orchestrator_model=orch.get("model", "gemini-3.1-flash-lite-preview"),
             orchestrator_api_key=os.getenv("ORCHESTRATOR_API_KEY", ""),
             orchestrator_base_url=orch.get(
                 "base_url",
                 "https://generativelanguage.googleapis.com/v1beta/openai",
             ),
-            orchestrator_reasoning_effort=orch.get("reasoning_effort", ""),
+            orchestrator_reasoning_effort=orch.get("reasoning_effort", "high"),
             agent_temperature=float(orch.get("temperature", 0.2)),
-            agent_max_tokens=int(orch.get("max_tokens", 16000)),
+            agent_max_tokens=int(orch.get("max_tokens", 32000)),
             agent_max_rounds=int(orch.get("max_rounds", 25)),
             agent_context_window=int(orch.get("context_window", 1_000_000)),
 
             # ── Search (from cognitive_config.json) ──
-            search_provider=search.get("provider", "openrouter"),
-            search_model=search.get("model", "moonshotai/kimi-k2.5"),
+            search_provider=search.get("provider", "gemini"),
+            search_model=search.get("model", "gemini-3.1-flash-lite-preview"),
             search_api_key=os.getenv("SEARCH_API_KEY", ""),
             search_base_url=search.get(
-                "base_url", "https://openrouter.ai/api/v1",
+                "base_url",
+                "https://generativelanguage.googleapis.com/v1beta/openai",
             ),
-            search_decompose_max_tokens=int(decompose.get("max_tokens", 1200)),
-            search_decompose_reasoning_effort=decompose.get("reasoning_effort", ""),
+            search_decompose_max_tokens=int(decompose.get("max_tokens", 4000)),
+            search_decompose_reasoning_effort=decompose.get("reasoning_effort", "high"),
             search_reasoning_effort=decompose.get("reasoning_effort", ""),
-            rerank_temperature=float(rerank.get("temperature", 0.0)),
-            rerank_max_tokens=int(rerank.get("max_tokens", 1200)),
+            rerank_temperature=float(rerank.get("temperature", 0.2)),
+            rerank_max_tokens=int(rerank.get("max_tokens", 2000)),
             rerank_reasoning_effort=rerank.get("reasoning_effort", ""),
-            gap_analysis_temperature=float(gap.get("temperature", 0.0)),
-            gap_analysis_max_tokens=int(gap.get("max_tokens", 600)),
+            gap_analysis_temperature=float(gap.get("temperature", 0.2)),
+            gap_analysis_max_tokens=int(gap.get("max_tokens", 2000)),
             gap_analysis_reasoning_effort=gap.get("reasoning_effort", ""),
 
             # ── Retrieval feature flags (still from env) ──
