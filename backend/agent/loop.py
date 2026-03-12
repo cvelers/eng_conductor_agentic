@@ -89,6 +89,13 @@ _SYSTEM_REMINDERS: dict[str, str] = {
         "need to check utilization), search for more tools or use math_calculator."
         "</system-reminder>"
     ),
+    "validate_response": (
+        "\n\n<system-reminder>"
+        "Review the validation result. If 'valid' is false, fix each issue: "
+        "either fetch the missing data with the right tool, or remove the "
+        "ungrounded claim from your answer. Do NOT proceed until validation passes."
+        "</system-reminder>"
+    ),
     "todo_write": (
         "\n\n<system-reminder>"
         "Plan updated. Now call the next tool for the step marked 'in_progress'. "
@@ -431,8 +438,9 @@ async def run_agent_loop(
             break
 
         # ── Loop detection ───────────────────────────────────────────
-        # Don't count todo_write toward tool budget — it's a planning no-op
-        real_calls = [tc for tc in tool_calls if tc["name"] != "todo_write"]
+        # Don't count meta-tools toward tool budget
+        _META_TOOLS = {"todo_write", "validate_response"}
+        real_calls = [tc for tc in tool_calls if tc["name"] not in _META_TOOLS]
         for tc in real_calls:
             consecutive_names.append(tc["name"])
         total_tool_calls += len(real_calls)
@@ -476,6 +484,10 @@ async def run_agent_loop(
                 result_str = json.dumps({"error": str(e)})
                 status = "error"
             elapsed_ms = int((time.time() - t0) * 1000)
+
+            # Record result for validate_response grounding checks
+            if hasattr(tool_dispatcher, "record_result"):
+                tool_dispatcher.record_result(tc["name"], result_str)
 
             # ── TodoWrite → plan events (Claude Code pattern) ─────
             if tc["name"] == "todo_write" and status == "ok":
@@ -578,7 +590,7 @@ def _build_tool_context(all_messages: list[dict]) -> str:
     relevance scores (< 5.0) from search results.
     """
     blocks: list[str] = []
-    skip_tools = {"todo_write"}
+    skip_tools = {"todo_write", "validate_response"}
     _MIN_CLAUSE_SCORE = 5.0
 
     # Map tool_call_id → tool name so we can label tool results

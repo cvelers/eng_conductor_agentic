@@ -191,6 +191,72 @@ TOOLS: list[dict[str, Any]] = [
             },
         },
     },
+    # ── Validation ────────────────────────────────────────────────────
+    {
+        "type": "function",
+        "function": {
+            "name": "validate_response",
+            "description": (
+                "Validate that your draft response is grounded in actual tool results. "
+                "Call this as your LAST step before writing your final answer. "
+                "Pass the clause IDs, numeric values, and calculation results you intend to cite. "
+                "The tool checks each against the actual tool results from this session and "
+                "flags anything that was not retrieved or calculated."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "cited_clauses": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "clause_id": {"type": "string"},
+                                "standard": {"type": "string"},
+                            },
+                            "required": ["clause_id"],
+                        },
+                        "description": "Clauses you plan to reference in your answer.",
+                    },
+                    "cited_values": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "Variable name, e.g. 'fy', 'Wpl_y'.",
+                                },
+                                "value": {"type": "number"},
+                                "source": {
+                                    "type": "string",
+                                    "description": "Tool that provided it, e.g. 'engineering_calculator'.",
+                                },
+                            },
+                            "required": ["name", "value"],
+                        },
+                        "description": "Key numeric values you plan to state in your answer.",
+                    },
+                    "cited_results": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "Result variable name, e.g. 'M_Rd_kNm'.",
+                                },
+                                "value": {"type": "number"},
+                            },
+                            "required": ["name", "value"],
+                        },
+                        "description": "Calculation results you plan to report.",
+                    },
+                },
+                "required": ["cited_clauses"],
+            },
+        },
+    },
     # ── Planning ──────────────────────────────────────────────────────
     {
         "type": "function",
@@ -561,6 +627,116 @@ def _handle_search_files(args: dict) -> str:
         return json.dumps({"files": results})
 
 
+def _handle_validate_response(args: dict, session_ledger: list[dict]) -> str:
+    """Check that cited data traces back to actual tool results in this session."""
+    issues: list[str] = []
+
+    # Build sets of what was actually retrieved/calculated
+    retrieved_clauses: set[str] = set()  # "en 1993-1-1:6.2.5", "6.2.5"
+    retrieved_values: dict[str, float] = {}  # name → value
+    calculated_results: dict[str, float] = {}  # name → value
+
+    for entry in session_ledger:
+        tool = entry.get("tool", "")
+        result = entry.get("result", {})
+        if isinstance(result, str):
+            try:
+                result = json.loads(result)
+            except (json.JSONDecodeError, TypeError):
+                continue
+        if not isinstance(result, dict):
+            continue
+
+        # Clauses from eurocode_search / read_clause
+        for clause in result.get("clauses", []):
+            cid = clause.get("clause_id", "")
+            std = clause.get("standard", "")
+            if cid:
+                retrieved_clauses.add(f"{std}:{cid}".lower())
+                retrieved_clauses.add(cid.lower())
+
+        # Values from engineering_calculator
+        if tool == "engineering_calculator":
+            for k, v in result.get("outputs", {}).items():
+                if isinstance(v, (int, float)):
+                    retrieved_values[k.lower()] = v
+            for k, v in result.get("inputs_used", {}).items():
+                if isinstance(v, (int, float)):
+                    retrieved_values[k.lower()] = v
+
+        # Values from math_calculator
+        if tool == "math_calculator":
+            for k, v in result.get("outputs", {}).items():
+                if isinstance(v, (int, float)):
+                    calculated_results[k.lower()] = v
+            inputs = result.get("variables") or result.get("inputs_used") or {}
+            for k, v in inputs.items():
+                if isinstance(v, (int, float)):
+                    retrieved_values[k.lower()] = v
+
+    # Check cited clauses
+    for cc in args.get("cited_clauses", []):
+        cid = cc.get("clause_id", "")
+        std = cc.get("standard", "")
+        key_full = f"{std}:{cid}".lower()
+        key_bare = cid.lower()
+        if key_full not in retrieved_clauses and key_bare not in retrieved_clauses:
+            issues.append(
+                f"Clause '{cid}' ({std}) was NOT retrieved by any tool in this session."
+            )
+
+    # Check cited values
+    for cv in args.get("cited_values", []):
+        name = cv.get("name", "").lower()
+        value = cv.get("value")
+        if name not in retrieved_values and name not in calculated_results:
+            issues.append(
+                f"Value '{cv.get('name')}' = {value} has no source in tool results."
+            )
+        elif name in retrieved_values and value is not None:
+            actual = retrieved_values[name]
+            if abs(actual - value) > 0.01:
+                issues.append(
+                    f"Value '{cv.get('name')}': you cited {value} but tool returned {actual}."
+                )
+
+    # Check cited calculation results
+    for cr in args.get("cited_results", []):
+        name = cr.get("name", "").lower()
+        value = cr.get("value")
+        if name not in calculated_results:
+            issues.append(
+                f"Result '{cr.get('name')}' = {value} was NOT produced by "
+                f"math_calculator or engineering_calculator."
+            )
+        elif value is not None:
+            actual = calculated_results[name]
+            if abs(actual - value) > 0.5:
+                issues.append(
+                    f"Result '{cr.get('name')}': you cited {value} but calculator returned {actual}."
+                )
+
+    if issues:
+        return json.dumps({
+            "valid": False,
+            "issues": issues,
+            "action_required": (
+                "Fix the issues above. Either fetch the missing data with the "
+                "appropriate tool, or remove the ungrounded claims from your answer."
+            ),
+        })
+
+    return json.dumps({
+        "valid": True,
+        "checked": {
+            "clauses": len(args.get("cited_clauses", [])),
+            "values": len(args.get("cited_values", [])),
+            "results": len(args.get("cited_results", [])),
+        },
+        "message": "All cited data is grounded in tool results. Proceed with your answer.",
+    })
+
+
 def _handle_todo_write(args: dict) -> str:
     """No-op planning tool (Claude Code TodoWrite pattern).
 
@@ -665,10 +841,14 @@ def build_tool_dispatcher(
                 key = f"table {m.group(1)}"
                 clause_index.setdefault(key, []).append(c)
 
+    # Session ledger: records all tool results for validate_response
+    session_ledger: list[dict] = []
+
     _handlers: dict[str, Callable] = {
         "eurocode_search": lambda args: _handle_eurocode_search(args, retriever),
         "read_clause": lambda args: _handle_read_clause(args, clause_index),
         "math_calculator": _handle_math_calculator,
+        "validate_response": lambda args: _handle_validate_response(args, session_ledger),
         "todo_write": _handle_todo_write,
         "web_search": _handle_web_search,
         "fetch_url": _handle_fetch_url,
@@ -689,4 +869,9 @@ def build_tool_dispatcher(
             logger.exception("Tool %s failed", tool_name)
             return json.dumps({"error": f"{tool_name} failed: {e}"})
 
+    def record_result(tool_name: str, result_str: str) -> None:
+        """Record a tool result for later validation by validate_response."""
+        session_ledger.append({"tool": tool_name, "result": result_str})
+
+    dispatch.record_result = record_result  # type: ignore[attr-defined]
     return dispatch
