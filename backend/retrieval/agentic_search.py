@@ -255,11 +255,6 @@ class AgenticRetriever:
             and self.semantic_scorer.available
         )
 
-        # Decomposition disabled — single query for now
-        # sub_queries = (
-        #     self._decompose_query(query) if agentic_enabled
-        #     else [self._sanitize(query)]
-        # )
         sub_queries = [self._sanitize(query)]
         trace.append({
             "iteration": 1, "phase": "decompose",
@@ -792,37 +787,6 @@ class AgenticRetriever:
     # ------------------------------------------------------------------
     # LLM-powered search operations
     # ------------------------------------------------------------------
-
-    def _decompose_query(self, query: str) -> list[str]:
-        try:
-            raw = self.search_provider.generate(
-                system_prompt=(
-                    "You decompose engineering queries into focused search sub-queries "
-                    "for a Eurocode clause database.\n"
-                    "Return a JSON array of 1-4 concise search strings. "
-                    "Each should target a different aspect of the question.\n"
-                    "Always include the original query (possibly simplified) as the first element.\n"
-                    "Think about what Eurocode clauses, tables, and formulas would be needed."
-                ),
-                user_prompt=(
-                    "###TASK:DECOMPOSE###\n"
-                    f"Query: {query}\n\n"
-                    "Return JSON array of search strings only."
-                ),
-                temperature=0,
-                max_tokens=self.settings.search_decompose_max_tokens,
-                **({"reasoning_effort": self.settings.search_decompose_reasoning_effort}
-                   if self.settings.search_decompose_reasoning_effort else {}),
-            )
-            data = parse_json_loose(raw)
-            if isinstance(data, list) and data:
-                queries = [self._sanitize(str(q)) for q in data[:4] if str(q).strip()]
-                if queries:
-                    return queries
-        except Exception as exc:
-            logger.warning("query_decomposition_failed", extra={"error": str(exc)})
-
-        return [self._sanitize(query)]
 
     def _llm_score_relevance(
         self, query: str, candidates: list[RetrievedClause],
