@@ -255,10 +255,12 @@ class AgenticRetriever:
             and self.semantic_scorer.available
         )
 
-        sub_queries = (
-            self._decompose_query(query) if agentic_enabled
-            else [self._sanitize(query)]
-        )
+        # Decomposition disabled — single query for now
+        # sub_queries = (
+        #     self._decompose_query(query) if agentic_enabled
+        #     else [self._sanitize(query)]
+        # )
+        sub_queries = [self._sanitize(query)]
         trace.append({
             "iteration": 1, "phase": "decompose",
             "query": query, "sub_queries": sub_queries,
