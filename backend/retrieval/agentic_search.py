@@ -31,6 +31,7 @@ from typing import Any, Iterator
 from backend.config import Settings
 from backend.llm.base import LLMProvider
 from backend.registries.document_registry import ClauseRecord
+from backend.retrieval.semantic_scorer import SemanticScorer
 from backend.utils.json_utils import parse_json_loose, strip_code_fences
 
 logger = logging.getLogger(__name__)
@@ -101,10 +102,12 @@ class AgenticRetriever:
         settings: Settings,
         search_provider: LLMProvider,
         clauses: list[ClauseRecord],
+        semantic_scorer: SemanticScorer | None = None,
     ) -> None:
         self.settings = settings
         self.search_provider = search_provider
         self.clauses = clauses
+        self.semantic_scorer = semantic_scorer
         self._entries: list[_IndexedClause] = []
         self._inverted_index: dict[str, set[int]] = defaultdict(set)
         self._doc_freq: dict[str, int] = {}
@@ -243,6 +246,11 @@ class AgenticRetriever:
                 return
 
         # ---- Phase 2B: Blanket search ----
+        use_semantic = (
+            self.semantic_scorer is not None
+            and self.semantic_scorer.available
+        )
+
         sub_queries = (
             self._decompose_query(query) if agentic_enabled
             else [self._sanitize(query)]
@@ -252,28 +260,36 @@ class AgenticRetriever:
             "query": query, "sub_queries": sub_queries,
         })
 
-        candidate_pool: dict[str, RetrievedClause] = {}
-        for sq in sub_queries:
-            for hit in self._search_lexical(sq, limit=limit * 4):
-                key = hit.clause.citation_address
-                if key not in candidate_pool or hit.score > candidate_pool[key].score:
-                    candidate_pool[key] = hit
+        if use_semantic:
+            # ── Semantic retrieval (bi-encoder) ──────────────────────
+            candidates = self._search_semantic(
+                query, limit=limit * 3, sub_queries=sub_queries,
+            )
+            search_mode = "semantic"
+        else:
+            # ── TF-IDF fallback (wire cut — only used if semantic unavailable)
+            candidate_pool: dict[str, RetrievedClause] = {}
+            for sq in sub_queries:
+                for hit in self._search_lexical(sq, limit=limit * 4):
+                    key = hit.clause.citation_address
+                    if key not in candidate_pool or hit.score > candidate_pool[key].score:
+                        candidate_pool[key] = hit
+            candidates = sorted(candidate_pool.values(), key=lambda x: -x.score)[: limit * 3]
+            search_mode = "lexical"
 
-        candidates = sorted(candidate_pool.values(), key=lambda x: -x.score)[: limit * 3]
-
-        step_lexical = {
-            "iteration": 1, "phase": "lexical", "query": query,
+        step_retrieval = {
+            "iteration": 1, "phase": search_mode, "query": query,
             "top_clause_ids": [
                 f"{c.clause.doc_id}:{c.clause.clause_id}" for c in candidates[:limit]
             ],
         }
-        trace.append(step_lexical)
+        trace.append(step_retrieval)
         logger.info(
-            "retrieval_lexical",
+            "retrieval_%s", search_mode,
             extra={"hits": len(candidates), "top": [c.clause.clause_id for c in candidates[:3]]},
         )
         yield {
-            "type": "iteration", "step": step_lexical,
+            "type": "iteration", "step": step_retrieval,
             "top": [
                 {"doc_id": c.clause.doc_id, "clause_id": c.clause.clause_id,
                  "title": c.clause.clause_title, "score": c.score}
@@ -391,7 +407,10 @@ class AgenticRetriever:
             gap_query = evaluation.follow_up_query
             if gap_query and gap_query not in seen_queries:
                 seen_queries.add(gap_query)
-                gap_hits = self._search_lexical(gap_query, limit=limit * 2)
+                if use_semantic:
+                    gap_hits = self._search_semantic(gap_query, limit=limit * 2)
+                else:
+                    gap_hits = self._search_lexical(gap_query, limit=limit * 2)
                 new_candidates = [
                     h for h in gap_hits if h.clause.citation_address not in aggregated
                 ][:15]
@@ -721,6 +740,50 @@ class AgenticRetriever:
         return ranked[:limit]
 
     # ------------------------------------------------------------------
+    # Semantic search (bi-encoder)
+    # ------------------------------------------------------------------
+
+    def _search_semantic(
+        self,
+        query: str,
+        limit: int,
+        sub_queries: list[str] | None = None,
+    ) -> list[RetrievedClause]:
+        """Retrieve clauses using the bi-encoder semantic scorer.
+
+        If sub_queries are provided, searches with all of them and merges
+        results by taking the max similarity per clause.
+
+        Scores are scaled from cosine [0,1] to [0,10] range for downstream
+        compatibility with the LLM reranker and sufficiency loop.
+        """
+        if not self.semantic_scorer or not self.semantic_scorer.available:
+            return []
+
+        queries = sub_queries if sub_queries and len(sub_queries) > 1 else None
+        if queries:
+            hits = self.semantic_scorer.search_multi(queries, top_k=limit)
+        else:
+            hits = self.semantic_scorer.search(query, top_k=limit)
+
+        results: list[RetrievedClause] = []
+        for hit in hits:
+            clause = self.clauses[hit.index]
+            entry = self._entries[hit.index]
+            # Scale cosine similarity [0,1] → [0,10]
+            scaled_score = round(hit.score * 10.0, 2)
+            # Identify which query tokens matched (for diagnostics)
+            q_tokens = self._tokenize(query)
+            matched = q_tokens & entry.all_tokens
+            results.append(RetrievedClause(
+                clause=clause,
+                score=scaled_score,
+                matched_terms=sorted(matched) + ["semantic"],
+            ))
+
+        return results
+
+    # ------------------------------------------------------------------
     # LLM-powered search operations
     # ------------------------------------------------------------------
 
@@ -767,7 +830,8 @@ class AgenticRetriever:
         for i, c in enumerate(candidates):
             snippet = c.clause.text[:250].replace("\n", " ")
             descriptions.append(
-                f"{i + 1}. [{c.clause.clause_id}] {c.clause.clause_title}: {snippet}"
+                f"{i + 1}. [{c.clause.standard} — {c.clause.clause_id}] "
+                f"{c.clause.clause_title}: {snippet}"
             )
 
         try:
@@ -775,10 +839,16 @@ class AgenticRetriever:
                 system_prompt=(
                     "You are a Eurocode relevance scorer. "
                     "Score each clause for relevance to the engineering query.\n"
+                    "Each clause shows [STANDARD — ClauseID]. The standard matters: "
+                    "if the query mentions a specific standard (e.g. EN 1993-1-1), "
+                    "clauses from that standard should score higher than equivalent "
+                    "clauses from other parts (EN 1993-1-3, 1-4, 1-5, etc.).\n"
+                    "A clause that IS the primary source (e.g. 6.2.6 in EN 1993-1-1 "
+                    "for shear) should score higher than clauses that merely reference it.\n\n"
                     "Return a JSON array: [{\"idx\": 1, \"score\": 0-10}, ...]\n"
-                    "10 = directly answers the query with key formulas/rules.\n"
+                    "10 = directly answers the query with key formulas/rules, from the right standard.\n"
                     "7-9 = highly relevant, contains needed information.\n"
-                    "4-6 = related context.\n"
+                    "4-6 = related context or from a secondary standard.\n"
                     "0-3 = tangentially related or irrelevant."
                 ),
                 user_prompt=(
