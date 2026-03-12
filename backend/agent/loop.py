@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 MAX_ROUNDS = 25
 MAX_CONSECUTIVE_SAME_TOOL = 4
 LOOP_BREAKER_HARD_LIMIT = 3
-MAX_VALIDATION_RETRIES = 1
+MAX_VALIDATION_RETRIES = 2
 
 # Number of recent tool results to keep at full fidelity.
 # Older ones are compressed to summaries (SWE-Agent pattern).
@@ -453,6 +453,18 @@ async def run_agent_loop(
         stream_tool_calls: dict[int, dict] = {}
         got_response = False
 
+        # Buffer text events — only flushed after we know the round's
+        # outcome (tool calls → flush immediately; final answer → hold
+        # for grounding validation, flush only if validation passes).
+        pending_events: list[dict] = []
+
+        # Should we buffer deltas? Yes when validation could run.
+        may_validate = (
+            grounding_validation
+            and validator_client is not None
+            and validator_model
+        )
+
         try:
             async for chunk_type, payload in _iter_stream_chunks(client, request_kwargs):
                 if chunk_type == "completion":
@@ -466,7 +478,10 @@ async def run_agent_loop(
                             yield {"type": "thinking", "content": reasoning}
                         if visible:
                             assistant_content = visible
-                            yield {"type": "delta", "content": visible}
+                            if may_validate:
+                                pending_events.append({"type": "delta", "content": visible})
+                            else:
+                                yield {"type": "delta", "content": visible}
                     for idx, tc in enumerate(getattr(msg, "tool_calls", None) or []):
                         got_response = True
                         tc_entry: dict[str, Any] = {
@@ -501,7 +516,10 @@ async def run_agent_loop(
                         yield {"type": "thinking", "content": reasoning}
                     if visible:
                         assistant_content += visible
-                        yield {"type": "delta", "content": visible}
+                        if may_validate:
+                            pending_events.append({"type": "delta", "content": visible})
+                        else:
+                            yield {"type": "delta", "content": visible}
 
                 # Tool call deltas
                 delta_tc = getattr(delta, "tool_calls", None)
@@ -549,13 +567,12 @@ async def run_agent_loop(
 
         if not tool_calls:
             # ── Grounding validation (independent LLM) ───────────────
-            # Only validate if there was meaningful tool usage and text
+            # Always validate the final response if there was tool usage.
             has_tool_results = any(m.get("role") == "tool" for m in all_messages)
             if (
                 grounding_validation
                 and has_tool_results
                 and full_response.strip()
-                and validation_retries < MAX_VALIDATION_RETRIES
                 and validator_client is not None
                 and validator_model
             ):
@@ -577,10 +594,13 @@ async def run_agent_loop(
                     "summary": "Grounded" if verdict.get("valid") else f"{len(verdict.get('issues', []))} issue(s)",
                 }
 
-                if not verdict.get("valid"):
+                if not verdict.get("valid") and validation_retries < MAX_VALIDATION_RETRIES:
                     issues = verdict.get("issues", [])
                     issues_text = "\n".join(f"- {i}" for i in issues)
                     validation_retries += 1
+
+                    # Discard buffered events — user never sees the bad response
+                    pending_events.clear()
 
                     # Inject issues as a message and let the agent try again
                     all_messages.append({
@@ -597,6 +617,11 @@ async def run_agent_loop(
                     full_response = ""
                     tool_round += 1
                     continue
+
+            # Validation passed (or not needed) — flush buffered deltas
+            for evt in pending_events:
+                yield evt
+            pending_events.clear()
             break
 
         # ── Loop detection ───────────────────────────────────────────
@@ -633,6 +658,13 @@ async def run_agent_loop(
                 })
                 tool_round += 1
                 continue
+
+        # ── Flush buffered events for intermediate rounds ─────────
+        # When the agent is calling tools, we flush any buffered text
+        # so the user sees intermediate reasoning before tool execution.
+        for evt in pending_events:
+            yield evt
+        pending_events.clear()
 
         # ── Execute tool calls ───────────────────────────────────────
         for tc in tool_calls:
