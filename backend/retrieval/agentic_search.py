@@ -24,7 +24,7 @@ import json
 import logging
 import math
 import re
-from collections import defaultdict
+from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from typing import Any, Iterator
 
@@ -62,14 +62,18 @@ class RetrievedClause:
 
 @dataclass
 class _IndexedClause:
-    """Pre-processed clause data for fast search."""
+    """Pre-processed clause data for BM25F search."""
     clause: ClauseRecord
-    title_tokens: set[str]
-    text_tokens: set[str]
-    keyword_tokens: set[str]
-    standard_tokens: set[str]
+    title_tf: Counter
+    text_tf: Counter
+    keyword_tf: Counter
+    standard_tf: Counter
     all_tokens: set[str]
     full_text_lower: str
+    title_len: int
+    text_len: int
+    keyword_len: int
+    standard_len: int
 
 
 @dataclass
@@ -117,6 +121,11 @@ class AgenticRetriever:
         # Direct lookup indices
         self._by_clause_id: dict[str, list[ClauseRecord]] = defaultdict(list)
         self._by_title_lower: dict[str, list[ClauseRecord]] = defaultdict(list)
+        # BM25F average field lengths (populated by _build_index)
+        self._avg_title_len: float = 0.0
+        self._avg_text_len: float = 0.0
+        self._avg_keyword_len: float = 0.0
+        self._avg_standard_len: float = 0.0
         self._build_index()
 
     # ------------------------------------------------------------------
@@ -124,12 +133,27 @@ class AgenticRetriever:
     # ------------------------------------------------------------------
 
     def _build_index(self) -> None:
+        total_title_len = 0
+        total_text_len = 0
+        total_keyword_len = 0
+        total_standard_len = 0
+
         for idx, clause in enumerate(self.clauses):
-            title_tokens = self._tokenize(clause.clause_title)
-            text_tokens = self._tokenize(clause.text)
-            keyword_tokens = self._tokenize(" ".join(clause.keywords))
-            standard_tokens = self._tokenize(clause.standard)
-            all_tokens = title_tokens | text_tokens | keyword_tokens | standard_tokens
+            title_tf = self._tokenize_counted(clause.clause_title)
+            text_tf = self._tokenize_counted(clause.text)
+            keyword_tf = self._tokenize_counted(" ".join(clause.keywords))
+            standard_tf = self._tokenize_counted(clause.standard)
+            all_tokens = set(title_tf) | set(text_tf) | set(keyword_tf) | set(standard_tf)
+
+            title_len = sum(title_tf.values())
+            text_len = sum(text_tf.values())
+            keyword_len = sum(keyword_tf.values())
+            standard_len = sum(standard_tf.values())
+
+            total_title_len += title_len
+            total_text_len += text_len
+            total_keyword_len += keyword_len
+            total_standard_len += standard_len
 
             full_text = " ".join([
                 clause.standard, clause.clause_id, clause.clause_title,
@@ -138,12 +162,16 @@ class AgenticRetriever:
 
             entry = _IndexedClause(
                 clause=clause,
-                title_tokens=title_tokens,
-                text_tokens=text_tokens,
-                keyword_tokens=keyword_tokens,
-                standard_tokens=standard_tokens,
+                title_tf=title_tf,
+                text_tf=text_tf,
+                keyword_tf=keyword_tf,
+                standard_tf=standard_tf,
                 all_tokens=all_tokens,
                 full_text_lower=full_text,
+                title_len=title_len,
+                text_len=text_len,
+                keyword_len=keyword_len,
+                standard_len=standard_len,
             )
             self._entries.append(entry)
 
@@ -163,6 +191,12 @@ class AgenticRetriever:
         self._doc_freq = {
             token: len(indices) for token, indices in self._inverted_index.items()
         }
+
+        n = max(len(self._entries), 1)
+        self._avg_title_len = total_title_len / n
+        self._avg_text_len = total_text_len / n
+        self._avg_keyword_len = total_keyword_len / n
+        self._avg_standard_len = total_standard_len / n
 
     # ------------------------------------------------------------------
     # Public API
@@ -681,8 +715,19 @@ class AgenticRetriever:
         return _SufficiencyResult(score=5, sufficient=True)
 
     # ------------------------------------------------------------------
-    # Lexical search with TF-IDF field-weighted scoring
+    # BM25F lexical search
     # ------------------------------------------------------------------
+
+    # BM25F parameters
+    _BM25_K1 = 1.2
+    _BM25_B_TITLE = 0.0      # no length norm (titles are 2-3 tokens)
+    _BM25_B_TEXT = 0.5        # moderate norm (short docs, high variance)
+    _BM25_B_KEYWORD = 0.0    # no length norm (currently empty / low variance)
+    _BM25_B_STANDARD = 0.0   # no length norm (always ~2 tokens)
+    _BM25_W_TITLE = 3.0
+    _BM25_W_TEXT = 1.0
+    _BM25_W_KEYWORD = 2.0
+    _BM25_W_STANDARD = 2.5
 
     def _sanitize(self, query: str) -> str:
         clean = QUERY_SANITIZE_RE.sub(" ", query).strip().lower()
@@ -692,49 +737,98 @@ class AgenticRetriever:
         tokens = TOKEN_RE.findall(value.lower())
         return {t for t in tokens if len(t) > 1 and t not in STOPWORDS}
 
+    def _tokenize_counted(self, value: str) -> Counter:
+        """Tokenize and return term frequency counts."""
+        tokens = TOKEN_RE.findall(value.lower())
+        return Counter(t for t in tokens if len(t) > 1 and t not in STOPWORDS)
+
     def _idf(self, token: str) -> float:
+        """BM25 IDF (Robertson-Sparck Jones)."""
         df = self._doc_freq.get(token, 0)
         if df == 0:
             return 0.0
-        return math.log(1.0 + self._total_docs / df)
+        n = self._total_docs
+        return math.log((n - df + 0.5) / (df + 0.5) + 1.0)
+
+    def _bm25f_tf(self, token: str, entry: _IndexedClause) -> float:
+        """BM25F weighted term frequency with per-field length normalization.
+
+        Computes length-normalized TF per field, weights and sums them,
+        then applies BM25 saturation: tf*(k1+1)/(tf+k1).
+        """
+        fields = (
+            (entry.title_tf, entry.title_len, self._avg_title_len,
+             self._BM25_B_TITLE, self._BM25_W_TITLE),
+            (entry.text_tf, entry.text_len, self._avg_text_len,
+             self._BM25_B_TEXT, self._BM25_W_TEXT),
+            (entry.keyword_tf, entry.keyword_len, self._avg_keyword_len,
+             self._BM25_B_KEYWORD, self._BM25_W_KEYWORD),
+            (entry.standard_tf, entry.standard_len, self._avg_standard_len,
+             self._BM25_B_STANDARD, self._BM25_W_STANDARD),
+        )
+
+        tf_weighted = 0.0
+        for tf_counter, dl, avgdl, b, w in fields:
+            raw_tf = tf_counter.get(token, 0)
+            if raw_tf == 0:
+                continue
+            norm = 1.0 + b * (dl / avgdl - 1.0) if avgdl > 0 else 1.0
+            tf_weighted += w * (raw_tf / norm)
+
+        if tf_weighted == 0.0:
+            return 0.0
+
+        k1 = self._BM25_K1
+        return tf_weighted * (k1 + 1.0) / (tf_weighted + k1)
 
     def _search_lexical(self, query: str, limit: int) -> list[RetrievedClause]:
+        """BM25F lexical search with field weighting and score normalization."""
         safe_query = self._sanitize(query)
         tokens = self._tokenize(safe_query)
         if not tokens:
             return []
 
-        candidate_indices: dict[int, float] = {}
+        # Candidate retrieval via inverted index
+        candidate_indices: set[int] = set()
         for token in tokens:
-            idf = self._idf(token)
-            for idx in self._inverted_index.get(token, set()):
-                candidate_indices[idx] = candidate_indices.get(idx, 0) + idf
+            candidate_indices.update(self._inverted_index.get(token, set()))
 
-        clause_id_patterns = set(CLAUSE_ID_RE.findall(safe_query))
-        for idx, entry in enumerate(self._entries):
-            cid = entry.clause.clause_id.lower()
-            for qid in clause_id_patterns:
-                if cid == qid or cid.startswith(qid):
-                    candidate_indices[idx] = candidate_indices.get(idx, 0) + 5.0
+        if not candidate_indices:
+            return []
 
-        ranked: list[RetrievedClause] = []
+        # BM25F scoring
+        scored: list[tuple[float, int, list[str]]] = []
         for idx in candidate_indices:
             entry = self._entries[idx]
+            score = 0.0
+            matched: list[str] = []
+            for token in tokens:
+                if token not in entry.all_tokens:
+                    continue
+                matched.append(token)
+                score += self._idf(token) * self._bm25f_tf(token, entry)
 
-            title_score = sum(self._idf(t) * 3.0 for t in tokens if t in entry.title_tokens)
-            keyword_score = sum(self._idf(t) * 2.0 for t in tokens if t in entry.keyword_tokens)
-            standard_score = sum(self._idf(t) * 2.5 for t in tokens if t in entry.standard_tokens)
-            text_score = sum(self._idf(t) for t in tokens if t in entry.text_tokens)
+            if score > 0.0:
+                scored.append((score, idx, sorted(matched)))
 
-            phrase_bonus = 4.0 if (len(safe_query) > 5 and safe_query in entry.full_text_lower) else 0.0
+        if not scored:
+            return []
 
-            matched = tokens & entry.all_tokens
-            coverage_bonus = (len(matched) / len(tokens)) * 2.0 if tokens else 0.0
+        # Normalize scores to [0, 10] for downstream compatibility
+        max_score = max(s[0] for s in scored)
+        min_score = min(s[0] for s in scored)
+        score_range = max_score - min_score
 
-            total = title_score + keyword_score + standard_score + text_score + phrase_bonus + coverage_bonus
-
+        ranked: list[RetrievedClause] = []
+        for raw_score, idx, matched in scored:
+            if score_range > 0:
+                normalized = ((raw_score - min_score) / score_range) * 10.0
+            else:
+                normalized = 5.0
             ranked.append(RetrievedClause(
-                clause=entry.clause, score=total, matched_terms=sorted(matched),
+                clause=self._entries[idx].clause,
+                score=round(normalized, 2),
+                matched_terms=matched,
             ))
 
         ranked.sort(key=lambda x: (-x.score, x.clause.doc_id, x.clause.clause_id))
