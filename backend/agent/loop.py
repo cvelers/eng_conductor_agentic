@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 MAX_ROUNDS = 25
 MAX_CONSECUTIVE_SAME_TOOL = 4
 LOOP_BREAKER_HARD_LIMIT = 3
+MAX_VALIDATION_RETRIES = 1
 
 # Number of recent tool results to keep at full fidelity.
 # Older ones are compressed to summaries (SWE-Agent pattern).
@@ -87,13 +88,6 @@ _SYSTEM_REMINDERS: dict[str, str] = {
         "Check the calculation result. Verify inputs match the design requirements. "
         "If additional calculations are needed (e.g., you computed capacity but still "
         "need to check utilization), search for more tools or use math_calculator."
-        "</system-reminder>"
-    ),
-    "validate_response": (
-        "\n\n<system-reminder>"
-        "Review the validation result. If 'valid' is false, fix each issue: "
-        "either fetch the missing data with the right tool, or remove the "
-        "ungrounded claim from your answer. Do NOT proceed until validation passes."
         "</system-reminder>"
     ),
     "todo_write": (
@@ -265,6 +259,116 @@ def _extract_clause_ids_from_result(result_str: str) -> set[str]:
     return set()
 
 
+# ── Grounding validation (independent LLM check) ────────────────────
+
+_GROUNDING_VALIDATOR_PROMPT = """\
+You are a grounding validator for an engineering assistant. Your ONLY job is to \
+check whether the response below is fully supported by the tool results from \
+this session. You are an independent auditor — the response author has no \
+control over your verdict.
+
+## Tool Results From This Session
+{tool_results}
+
+## Response to Validate
+{response}
+
+## Instructions
+Check EVERY factual claim in the response against the tool results above:
+1. Every Eurocode clause cited (e.g. "Cl. 6.2.5") — is it in the tool results?
+2. Every numeric value stated (fy, Wpl, dimensions, safety factors) — does it \
+match a tool output? Check the actual numbers.
+3. Every calculation result — was it produced by math_calculator or \
+engineering_calculator?
+4. Any formula or rule — is it from a retrieved clause, or recited from memory?
+
+Respond with ONLY a JSON object (no markdown, no explanation):
+- If fully grounded: {{"valid": true}}
+- If issues found: {{"valid": false, "issues": ["issue1", "issue2", ...]}}\
+"""
+
+
+def _build_tool_results_for_validator(all_messages: list[dict]) -> str:
+    """Extract tool call/result pairs from message history for the validator."""
+    blocks: list[str] = []
+    skip = {"todo_write"}
+    tc_id_to_name: dict[str, str] = {}
+
+    for msg in all_messages:
+        if msg.get("role") == "assistant" and msg.get("tool_calls"):
+            for tc in msg["tool_calls"]:
+                fn = tc.get("function", {})
+                name = fn.get("name", "")
+                tc_id = tc.get("id", "")
+                if tc_id:
+                    tc_id_to_name[tc_id] = name
+                if name in skip:
+                    continue
+                try:
+                    args = json.loads(fn.get("arguments", "{}"))
+                except (json.JSONDecodeError, TypeError):
+                    args = {}
+                blocks.append(f"[CALL] {name}({json.dumps(args, ensure_ascii=False)})")
+
+        if msg.get("role") == "tool":
+            tool_name = tc_id_to_name.get(msg.get("tool_call_id", ""), "")
+            if tool_name in skip:
+                continue
+            content = msg.get("content", "")
+            raw = content.split("<system-reminder>")[0].strip()
+            if len(raw) > 6000:
+                raw = raw[:6000] + "\n... (truncated)"
+            blocks.append(f"[RESULT] {tool_name}:\n{raw}")
+
+    return "\n\n".join(blocks) if blocks else "(no tool calls in this session)"
+
+
+async def _validate_grounding(
+    client: OpenAI,
+    model: str,
+    response_text: str,
+    all_messages: list[dict],
+    temperature: float = 0.0,
+    max_tokens: int = 2000,
+    reasoning_effort: str | None = None,
+) -> dict:
+    """Call an independent LLM to validate grounding of the agent's response."""
+    tool_results = _build_tool_results_for_validator(all_messages)
+    prompt = _GROUNDING_VALIDATOR_PROMPT.format(
+        tool_results=tool_results,
+        response=response_text,
+    )
+
+    request_kwargs: dict[str, Any] = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+        "stream": False,
+    }
+    if reasoning_effort:
+        request_kwargs["reasoning_effort"] = reasoning_effort
+
+    loop = asyncio.get_running_loop()
+    try:
+        completion = await loop.run_in_executor(
+            None,
+            lambda: client.chat.completions.create(**request_kwargs),
+        )
+        raw = (completion.choices[0].message.content or "").strip()
+        # Strip markdown code fences if present
+        if raw.startswith("```"):
+            raw = re.sub(r"^```\w*\n?", "", raw)
+            raw = re.sub(r"\n?```$", "", raw)
+        return json.loads(raw)
+    except (json.JSONDecodeError, TypeError):
+        logger.warning("Grounding validator returned non-JSON: %s", raw[:200] if raw else "")
+        return {"valid": True}
+    except Exception:
+        logger.exception("Grounding validation LLM call failed")
+        return {"valid": True}
+
+
 # ── Main agent loop ──────────────────────────────────────────────────
 
 
@@ -280,6 +384,12 @@ async def run_agent_loop(
     temperature: float = 0.2,
     max_tokens: int = 16_000,
     reasoning_effort: str | None = None,
+    grounding_validation: bool = True,
+    validator_client: OpenAI | None = None,
+    validator_model: str | None = None,
+    validator_temperature: float = 0.0,
+    validator_max_tokens: int = 2000,
+    validator_reasoning_effort: str | None = None,
 ) -> AsyncIterator[dict[str, Any]]:
     """Core agent loop. Yields event dicts for the stream adapter.
 
@@ -308,6 +418,9 @@ async def run_agent_loop(
     # Stores the latest plan steps so we can emit plan_update events
     plan_steps: list[dict[str, str]] = []
     plan_emitted = False
+
+    # Grounding validation retry tracking
+    validation_retries = 0
 
     all_messages = [{"role": "system", "content": system_prompt}] + messages
 
@@ -435,12 +548,60 @@ async def run_agent_loop(
         full_response += assistant_content
 
         if not tool_calls:
+            # ── Grounding validation (independent LLM) ───────────────
+            # Only validate if there was meaningful tool usage and text
+            has_tool_results = any(m.get("role") == "tool" for m in all_messages)
+            if (
+                grounding_validation
+                and has_tool_results
+                and full_response.strip()
+                and validation_retries < MAX_VALIDATION_RETRIES
+                and validator_client is not None
+                and validator_model
+            ):
+                yield {"type": "tool_start", "tool": "grounding_validator", "args": {}}
+                verdict = await _validate_grounding(
+                    client=validator_client,
+                    model=validator_model,
+                    response_text=full_response,
+                    all_messages=all_messages,
+                    temperature=validator_temperature,
+                    max_tokens=validator_max_tokens,
+                    reasoning_effort=validator_reasoning_effort or None,
+                )
+                yield {
+                    "type": "tool_result",
+                    "tool": "grounding_validator",
+                    "result": json.dumps(verdict),
+                    "status": "ok" if verdict.get("valid") else "warning",
+                    "summary": "Grounded" if verdict.get("valid") else f"{len(verdict.get('issues', []))} issue(s)",
+                }
+
+                if not verdict.get("valid"):
+                    issues = verdict.get("issues", [])
+                    issues_text = "\n".join(f"- {i}" for i in issues)
+                    validation_retries += 1
+
+                    # Inject issues as a message and let the agent try again
+                    all_messages.append({
+                        "role": "user",
+                        "content": (
+                            "GROUNDING VALIDATION FAILED. An independent validator found these issues "
+                            "with your response:\n\n"
+                            f"{issues_text}\n\n"
+                            "Fix these issues: either fetch the missing data with the appropriate tool, "
+                            "or remove the ungrounded claims. Then provide a corrected response."
+                        ),
+                    })
+                    # Reset full_response — the agent will produce a new one
+                    full_response = ""
+                    tool_round += 1
+                    continue
             break
 
         # ── Loop detection ───────────────────────────────────────────
         # Don't count meta-tools toward tool budget
-        _META_TOOLS = {"todo_write", "validate_response"}
-        real_calls = [tc for tc in tool_calls if tc["name"] not in _META_TOOLS]
+        real_calls = [tc for tc in tool_calls if tc["name"] != "todo_write"]
         for tc in real_calls:
             consecutive_names.append(tc["name"])
         total_tool_calls += len(real_calls)
@@ -485,9 +646,6 @@ async def run_agent_loop(
                 status = "error"
             elapsed_ms = int((time.time() - t0) * 1000)
 
-            # Record result for validate_response grounding checks
-            if hasattr(tool_dispatcher, "record_result"):
-                tool_dispatcher.record_result(tc["name"], result_str)
 
             # ── TodoWrite → plan events (Claude Code pattern) ─────
             if tc["name"] == "todo_write" and status == "ok":
@@ -590,7 +748,7 @@ def _build_tool_context(all_messages: list[dict]) -> str:
     relevance scores (< 5.0) from search results.
     """
     blocks: list[str] = []
-    skip_tools = {"todo_write", "validate_response"}
+    skip_tools = {"todo_write"}
     _MIN_CLAUSE_SCORE = 5.0
 
     # Map tool_call_id → tool name so we can label tool results

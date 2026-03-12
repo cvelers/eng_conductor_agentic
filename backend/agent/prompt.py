@@ -74,7 +74,6 @@ todo_write(todos=[
   {"id": "material", "text": "Look up S355 material properties (fy)", "status": "pending"},
   {"id": "classify", "text": "Check cross-section classification (Table 5.2)", "status": "pending"},
   {"id": "calc", "text": "Calculate Mc,Rd", "status": "pending"},
-  {"id": "validate", "text": "Validate response is grounded in tool data", "status": "pending"},
 ])
 ```
 
@@ -90,7 +89,6 @@ todo_write(todos=[
   {"id": "material", "text": "Look up S355 material properties (fy)", "status": "pending"},
   {"id": "classify", "text": "Check cross-section classification (Table 5.2)", "status": "pending"},
   {"id": "calc", "text": "Calculate Mc,Rd", "status": "pending"},
-  {"id": "validate", "text": "Validate response is grounded in tool data", "status": "pending"},
 ])
 ```
 
@@ -112,10 +110,8 @@ EC3 design checks. Do NOT assume properties from memory.
 referenced in results but not included.
 6. **Calculate** — Use `engineering_calculator` for EC3 steel design checks (bending, \
 shear, buckling, LTB, etc.) and `math_calculator` for custom calculations.
-7. **Validate** — Call `validate_response` with the clauses, values, and results you plan \
-to cite. Fix any issues it flags before writing your answer.
-8. **Finish plan** — Call `todo_write` with all steps 'done', then write your answer.
-9. **Cite sources** — Reference the specific Eurocode clauses you used.
+7. **Finish plan** — Call `todo_write` with all steps 'done', then write your answer.
+8. **Cite sources** — Reference the specific Eurocode clauses you used.
 
 You may call multiple tools, or the same tool multiple times. The conversation continues \
 until you have enough information to give a complete answer.
@@ -181,10 +177,9 @@ than guessing or recalling from training data.
 - Do NOT paraphrase or restate Eurocode formulas from memory — reference the retrieved clause text.
 - When referencing a clause, use the EXACT clause_id and standard from the tool result.
 
-**Before writing your final answer**, call `validate_response` with the clause IDs, numeric \
-values, and calculation results you plan to cite. This tool checks that everything traces \
-back to actual tool results from this session. If validation fails, fix the issues before \
-responding.
+Your response will be automatically validated by an independent system that checks every \
+claim against the actual tool results from this session. Ungrounded claims will be flagged \
+and you will be asked to fix them.
 
 ## RULES
 
