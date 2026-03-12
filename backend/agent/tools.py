@@ -70,10 +70,15 @@ TOOLS: list[dict[str, Any]] = [
                     },
                     "standard": {
                         "type": "string",
-                        "description": "Optional standard filter, e.g. 'EN 1993-1-1'.",
+                        "description": (
+                            "The Eurocode standard this clause belongs to, e.g. 'EN 1993-1-1', "
+                            "'EN 1993-1-8'. ALWAYS specify this — the same clause ID (e.g. "
+                            "'Table 3.1') exists in multiple standards and you must name the "
+                            "correct one."
+                        ),
                     },
                 },
-                "required": ["clause_id"],
+                "required": ["clause_id", "standard"],
             },
         },
     },
@@ -338,6 +343,7 @@ def _handle_eurocode_search(args: dict, retriever: Any) -> str:
 def _handle_read_clause(args: dict, clause_index: dict) -> str:
     clause_id = args.get("clause_id", "").strip()
     standard = args.get("standard", "").strip().lower()
+    logger.info("read_clause called: clause_id=%r, standard=%r", clause_id, standard)
 
     # Normalize: "Table 6.2" → try both "table 6.2" and "6.2"
     lookup_keys = [clause_id.lower()]
@@ -351,14 +357,14 @@ def _handle_read_clause(args: dict, clause_index: dict) -> str:
         candidates.extend(clause_index.get(key, []))
 
     if standard:
-        candidates = [c for c in candidates if standard in c.standard.lower()]
+        candidates = [c for c in candidates if c.standard.lower() == standard]
     if not candidates:
         # Try partial match
         for key, vals in clause_index.items():
             if clause_id.lower() in key or key in clause_id.lower():
                 candidates.extend(vals)
         if standard:
-            candidates = [c for c in candidates if standard in c.standard.lower()]
+            candidates = [c for c in candidates if c.standard.lower() == standard]
     if not candidates:
         # Provide a helpful error with suggestions
         similar = []
@@ -375,6 +381,22 @@ def _handle_read_clause(args: dict, clause_index: dict) -> str:
             error_data["similar_ids"] = sorted(set(similar))[:5]
             error_data["_hint"] = "Try one of the similar IDs, or use eurocode_search to find it."
         return json.dumps(error_data)
+
+    # If no standard was specified and multiple standards matched, REJECT — force retry
+    matched_stds = sorted({c.standard for c in candidates})
+    logger.info("read_clause: standard=%r, matched_standards=%r, count=%d", standard, matched_stds, len(candidates))
+    if not standard:
+        matched_standards = sorted({c.standard for c in candidates})
+        if len(matched_standards) > 1:
+            return json.dumps({
+                "error": (
+                    f"AMBIGUOUS: Clause '{clause_id}' exists in {len(matched_standards)} "
+                    f"different standards: {matched_standards}. "
+                    f"You MUST call read_clause again with the 'standard' parameter set "
+                    f"to the correct standard (e.g. standard='EN 1993-1-1')."
+                ),
+                "matching_standards": matched_standards,
+            })
 
     # Deduplicate
     seen: set[str] = set()
