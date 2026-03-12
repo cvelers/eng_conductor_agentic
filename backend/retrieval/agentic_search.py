@@ -614,12 +614,10 @@ class AgenticRetriever:
         # Build content summaries — show actual text, not just titles
         result_summaries: list[str] = []
         for i, r in enumerate(current_results[:10]):
-            # Show enough text to see cross-references
-            text_preview = r.clause.text[:500].replace("\n", " ")
             result_summaries.append(
                 f"{i + 1}. [{r.clause.standard} {r.clause.clause_id}] "
                 f"{r.clause.clause_title}\n"
-                f"   Content preview: {text_preview}"
+                f"   {r.clause.text}"
             )
 
         try:
@@ -834,10 +832,9 @@ class AgenticRetriever:
 
         descriptions: list[str] = []
         for i, c in enumerate(candidates):
-            snippet = c.clause.text[:250].replace("\n", " ")
             descriptions.append(
                 f"{i + 1}. [{c.clause.standard} — {c.clause.clause_id}] "
-                f"{c.clause.clause_title}: {snippet}"
+                f"{c.clause.clause_title}\n{c.clause.text}"
             )
 
         try:
