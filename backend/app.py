@@ -86,9 +86,10 @@ def _history_payload(history: list) -> list[dict]:
 
 
 _FEA_KEYWORDS = frozenset([
-    "fea", "finite element", "fem", "mesh", "node", "element",
-    "stiffness matrix", "analyse the frame", "analyze the frame",
-    "run fea", "structural analysis model",
+    "run fea", "finite element analysis", "finite element model",
+    "fem model", "fem analysis", "stiffness matrix",
+    "analyse the frame", "analyze the frame",
+    "structural analysis model", "run structural analysis",
 ])
 
 
