@@ -1229,7 +1229,7 @@ function _smAddColumn(msgNode, phase, query) {
   return idx;
 }
 
-function _smPopulateColumn(msgNode, colIdx, clauses, topN) {
+function _smPopulateColumn(msgNode, colIdx, clauses, isFetch) {
   const sm = msgNode.__searchMatrix;
   if (!sm || colIdx < 0 || colIdx >= sm.columns.length) return;
 
@@ -1244,14 +1244,15 @@ function _smPopulateColumn(msgNode, colIdx, clauses, topN) {
     const score = c.score || 0;
     const normScore = maxScore > 0 ? score / maxScore : 0;
     const tier = normScore >= 0.8 ? 1 : normScore >= 0.5 ? 2 : 3;
-    const isTop = i < (topN || 3);
+    // Use backend's selected flag; fetched clauses are always selected
+    const isSelected = isFetch || !!c.selected;
 
     // Build label with Eurocode reference
     const stdShort = (c.standard || "").replace("EN 1993-", "EC3-").replace("EN ", "");
     const label = stdShort ? `${stdShort} ${cid}` : cid;
 
     const row = document.createElement("div");
-    row.className = `sm-row tier-${tier}${isTop ? " selected" : ""}`;
+    row.className = `sm-row tier-${tier}${isSelected ? " selected" : ""}`;
     row.innerHTML = `<span class="sm-row-id" title="${escHtml(c.title || cid)}">${escHtml(clamp(label, 22))}</span><span class="sm-row-bar" style="width:0;min-width:${Math.max(4, Math.round(normScore * 28))}px"></span>`;
     rowsEl.appendChild(row);
     colData.rows.push(row);
@@ -1259,7 +1260,7 @@ function _smPopulateColumn(msgNode, colIdx, clauses, topN) {
     // Track in global map
     const key = `${c.standard || ""}:${cid}`;
     if (!sm.allClauses.has(key) || score > (sm.allClauses.get(key).score || 0)) {
-      sm.allClauses.set(key, { id: cid, title: c.title, score, selected: isTop });
+      sm.allClauses.set(key, { id: cid, title: c.title, score, selected: isSelected });
     }
 
     // Staggered reveal animation
@@ -1337,14 +1338,13 @@ function onSearchToolResult(msgNode, toolName, result) {
       title: c.title,
       standard: c.standard,
       score: c.score || (isFetch ? 10 : 0),
+      selected: isFetch || !!c.selected,  // backend LLM marks selected; fetches always selected
     }));
-    // Top N are "selected" — all for fetch, top 3 for search
-    const topN = isFetch ? mapped.length : 3;
-    _smPopulateColumn(msgNode, colIdx, mapped, topN);
+    _smPopulateColumn(msgNode, colIdx, mapped, isFetch);
     _smFinalizeColumn(msgNode, colIdx);
 
     // Track selected (green) clause keys — these are the only ones that become references
-    const selected = mapped.slice(0, topN);
+    const selected = mapped.filter(c => c.selected);
     if (msgNode.__selectedRefKeys) {
       for (const c of selected) {
         msgNode.__selectedRefKeys.add(`${c.standard || ""}:${c.clause_id || ""}`);

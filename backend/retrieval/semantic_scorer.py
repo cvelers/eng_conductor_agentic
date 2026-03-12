@@ -1,17 +1,10 @@
-"""Bi-encoder semantic scorer for clause retrieval (chunked).
+"""Bi-encoder semantic scorers for clause retrieval.
 
-Uses all-MiniLM-L6-v2 (384-dim, 256-token window) with a chunking strategy
-to handle full clause text without truncation.
-
-Strategy:
-  1. Each clause is split into overlapping chunks of ~200 tokens (~800 chars),
-     each prefixed with the clause's standard + ID + title for context.
-  2. All chunks are embedded at startup (~80 MB model, fast on CPU/MPS).
-  3. At query time, the query is embedded and scored against all chunks.
-  4. Per-clause scores are aggregated: mean of top-3 chunk similarities,
-     weighted by coverage (what fraction of chunks scored above a threshold).
-     This rewards clauses where the content is broadly relevant, not just
-     one lucky fragment.
+Two scorer implementations:
+  - SimpleSemanticScorer: MiniLM with 1200-char truncation per clause.
+    Fast, lightweight, currently wired in.
+  - SemanticScorer: Chunked approach with overlapping chunks.
+    More thorough but heavier. Wire cut for now.
 
 Falls back gracefully if sentence-transformers is not installed.
 """
@@ -300,5 +293,137 @@ class SemanticScorer:
 
         return [
             ScoredHit(index=int(i), score=max(0.0, float(max_scores[i])))
+            for i in top_idx
+        ]
+
+
+# ======================================================================
+# Simple scorer — MiniLM, 1200 chars, no chunking (currently active)
+# ======================================================================
+
+_MAX_DOC_CHARS = 1200
+_MIN_BODY_CHARS = 50  # clauses shorter than this are section headings — skip
+
+
+class SimpleSemanticScorer:
+    """Simple bi-encoder scorer using all-MiniLM-L6-v2.
+
+    Embeds each clause as: "standard — clause_id — title. body[:1200]".
+    Clauses with less than 50 chars of body text (section headings, empty
+    stubs) are excluded from the index entirely.
+
+    At query time, computes cosine similarity via a single matrix multiply.
+    """
+
+    def __init__(
+        self,
+        clauses: list[ClauseRecord],
+        model_name: str = _DEFAULT_MODEL,
+    ) -> None:
+        self.clauses = clauses
+        self._model_name = model_name
+        self._model = None
+        self._embeddings: np.ndarray | None = None
+        # Mapping from embedding row → original clause index
+        # (skipped clauses are not embedded)
+        self._emb_to_clause: np.ndarray | None = None
+        self._build_index()
+
+    @staticmethod
+    def _clause_to_text(c: ClauseRecord) -> str | None:
+        """Build embedding text. Returns None for empty/stub clauses."""
+        body = c.text.replace("\n", " ").strip()
+        if len(body) < _MIN_BODY_CHARS:
+            return None
+        parts = [c.standard, f"Clause {c.clause_id}", c.clause_title]
+        if c.keywords:
+            parts.append("Keywords: " + ", ".join(c.keywords[:10]))
+        parts.append(body[:_MAX_DOC_CHARS])
+        return ". ".join(parts)
+
+    def _build_index(self) -> None:
+        try:
+            from sentence_transformers import SentenceTransformer
+        except ImportError:
+            logger.warning(
+                "sentence-transformers not installed — semantic scorer disabled."
+            )
+            return
+
+        try:
+            logger.info("Loading semantic model: %s", self._model_name)
+            self._model = SentenceTransformer(self._model_name)
+
+            docs: list[str] = []
+            emb_to_clause: list[int] = []
+            skipped = 0
+
+            for idx, clause in enumerate(self.clauses):
+                text = self._clause_to_text(clause)
+                if text is None:
+                    skipped += 1
+                    continue
+                docs.append(text)
+                emb_to_clause.append(idx)
+
+            self._emb_to_clause = np.array(emb_to_clause, dtype=np.int32)
+
+            logger.info(
+                "Encoding %d clauses (%d empty/stubs skipped) …",
+                len(docs), skipped,
+            )
+
+            self._embeddings = self._model.encode(
+                docs,
+                show_progress_bar=False,
+                batch_size=64,
+                normalize_embeddings=True,
+                convert_to_numpy=True,
+            )
+
+            logger.info(
+                "Simple semantic index ready — %d clauses, dim %d",
+                len(docs), self._embeddings.shape[1],
+            )
+        except Exception:
+            logger.exception("Failed to build simple semantic index")
+            self._model = None
+            self._embeddings = None
+
+    @property
+    def available(self) -> bool:
+        return self._model is not None and self._embeddings is not None
+
+    def _encode_queries(self, queries: list[str]) -> np.ndarray:
+        return self._model.encode(
+            queries, normalize_embeddings=True, convert_to_numpy=True,
+        )
+
+    def search(self, query: str, top_k: int = 50) -> list[ScoredHit]:
+        if not self.available:
+            return []
+        q_emb = self._encode_queries([query])
+        sims = (self._embeddings @ q_emb.T).flatten()
+        top_idx = np.argsort(sims)[::-1][:top_k]
+        return [
+            ScoredHit(
+                index=int(self._emb_to_clause[i]),
+                score=max(0.0, float(sims[i])),
+            )
+            for i in top_idx
+        ]
+
+    def search_multi(self, queries: list[str], top_k: int = 50) -> list[ScoredHit]:
+        if not self.available or not queries:
+            return []
+        q_embs = self._encode_queries(queries)
+        sims_matrix = self._embeddings @ q_embs.T
+        max_sims = sims_matrix.max(axis=1)
+        top_idx = np.argsort(max_sims)[::-1][:top_k]
+        return [
+            ScoredHit(
+                index=int(self._emb_to_clause[i]),
+                score=max(0.0, float(max_sims[i])),
+            )
             for i in top_idx
         ]
