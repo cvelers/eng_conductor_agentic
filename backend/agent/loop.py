@@ -538,12 +538,80 @@ async def run_agent_loop(
 
         tool_round += 1
 
-    # Emit final token count from the full agent conversation (including
-    # all tool calls + results) so the context circle reports accurately.
-    from backend.agent.context import estimate_messages_tokens
-    loop_tokens = estimate_messages_tokens(all_messages, system_prompt)
-    yield {"type": "_loop_tokens", "tokens": loop_tokens}
+    # Build a condensed tool context summary so future turns remember
+    # what tools were called and key results from this turn.
+    tool_summary = _build_tool_context(all_messages)
+    if tool_summary:
+        yield {"type": "_tool_context", "summary": tool_summary}
+
+    # Emit token count of what the NEXT request's input will look like:
+    # prior history + this turn's text + tool context summary.
+    from backend.agent.context import estimate_messages_tokens, estimate_tokens
+    # Approximate next-turn input: current messages + assistant response + tool context
+    next_turn_msgs = list(messages) + [
+        {"role": "assistant", "content": full_response + ("\n\n" + tool_summary if tool_summary else "")},
+    ]
+    session_tokens = estimate_messages_tokens(next_turn_msgs, system_prompt)
+    yield {"type": "_session_tokens", "tokens": session_tokens}
     yield {"type": "done", "content": full_response}
+
+
+def _build_tool_context(all_messages: list[dict]) -> str:
+    """Build a condensed summary of tool calls and key results for session memory.
+
+    This is appended to the assistant's stored response so future turns
+    can see what tools were used and what data was retrieved.
+    """
+    lines: list[str] = []
+    skip_tools = {"todo_write"}
+
+    for msg in all_messages:
+        # Extract tool calls from assistant messages
+        if msg.get("role") == "assistant" and msg.get("tool_calls"):
+            for tc in msg["tool_calls"]:
+                fn = tc.get("function", {})
+                name = fn.get("name", "")
+                if name in skip_tools:
+                    continue
+                try:
+                    args = json.loads(fn.get("arguments", "{}"))
+                except (json.JSONDecodeError, TypeError):
+                    args = {}
+                args_brief = ", ".join(f"{k}={v}" for k, v in list(args.items())[:3])
+                lines.append(f"- {name}({args_brief})")
+
+        # Extract key values from tool results
+        if msg.get("role") == "tool":
+            content = msg.get("content", "")
+            try:
+                data = json.loads(content.split("<system-reminder>")[0].strip())
+            except (json.JSONDecodeError, TypeError, IndexError):
+                continue
+            if not isinstance(data, dict):
+                continue
+
+            # Extract clause IDs from search results
+            if "clauses" in data:
+                ids = [c.get("clause_id", "") for c in data["clauses"][:5]]
+                if ids:
+                    lines.append(f"  → clauses: {', '.join(ids)}")
+
+            # Extract calculation outputs
+            if "outputs" in data and isinstance(data["outputs"], dict):
+                for k, v in list(data["outputs"].items())[:6]:
+                    lines.append(f"  → {k} = {v}")
+
+            # Extract section/material properties
+            if "results" in data and isinstance(data["results"], list):
+                for r in data["results"][:3]:
+                    if isinstance(r, dict):
+                        name = r.get("name", r.get("tool_name", ""))
+                        if name:
+                            lines.append(f"  → result: {name}")
+
+    if not lines:
+        return ""
+    return "<tool-context>\n" + "\n".join(lines) + "\n</tool-context>"
 
 
 def _summarize_result(result_str: str, tool_name: str, elapsed_ms: int = 0) -> str:

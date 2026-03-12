@@ -2582,11 +2582,17 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         appendLog(assistantNode, "Response complete.");
 
         if (!finalized) {
-          thread.messages.push({ id: uid(), role: "assistant", content: payload.answer, responsePayload: payload, createdAt: now() });
+          // Append tool context summary to stored content so future turns
+          // remember what tools were used and key data retrieved.
+          const toolCtx = event.tool_context || "";
+          const storedContent = toolCtx
+            ? payload.answer + "\n\n" + toolCtx
+            : payload.answer;
+          thread.messages.push({ id: uid(), role: "assistant", content: storedContent, responsePayload: payload, createdAt: now() });
           thread.updatedAt = now();
           if (canUseStoredThreads()) {
             if (auth.threadsSync) {
-              await addMessageToApi(thread.id, "assistant", payload.answer, payload);
+              await addMessageToApi(thread.id, "assistant", storedContent, payload);
             } else {
               save();
             }
