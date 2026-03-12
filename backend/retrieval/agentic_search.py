@@ -31,7 +31,7 @@ from typing import Any, Iterator
 from backend.config import Settings
 from backend.llm.base import LLMProvider
 from backend.registries.document_registry import ClauseRecord
-from backend.retrieval.semantic_scorer import SemanticScorer
+from backend.retrieval.semantic_scorer import SemanticScorer, SimpleSemanticScorer
 from backend.utils.json_utils import parse_json_loose, strip_code_fences
 
 logger = logging.getLogger(__name__)
@@ -57,6 +57,7 @@ class RetrievedClause:
     clause: ClauseRecord
     score: float
     matched_terms: list[str]
+    selected: bool = False  # LLM-marked as sufficient/relevant
 
 
 @dataclass
@@ -103,7 +104,7 @@ class AgenticRetriever:
         settings: Settings,
         search_provider: LLMProvider,
         clauses: list[ClauseRecord],
-        semantic_scorer: SemanticScorer | None = None,
+        semantic_scorer: SemanticScorer | SimpleSemanticScorer | None = None,
     ) -> None:
         self.settings = settings
         self.search_provider = search_provider
@@ -249,8 +250,10 @@ class AgenticRetriever:
                 return
 
         # ---- Phase 2B: Blanket search ----
-        # Semantic scorer exists but wire is cut — using lexical for now.
-        use_semantic = False
+        use_semantic = (
+            self.semantic_scorer is not None
+            and self.semantic_scorer.available
+        )
 
         sub_queries = (
             self._decompose_query(query) if agentic_enabled
@@ -847,17 +850,21 @@ class AgenticRetriever:
                     "clauses from other parts (EN 1993-1-3, 1-4, 1-5, etc.).\n"
                     "A clause that IS the primary source (e.g. 6.2.6 in EN 1993-1-1 "
                     "for shear) should score higher than clauses that merely reference it.\n\n"
-                    "Return a JSON array: [{\"idx\": 1, \"score\": 0-10}, ...]\n"
+                    "Return a JSON array: [{\"idx\": 1, \"score\": 0-10, \"selected\": true/false}, ...]\n"
                     "10 = directly answers the query with key formulas/rules, from the right standard.\n"
                     "7-9 = highly relevant, contains needed information.\n"
                     "4-6 = related context or from a secondary standard.\n"
-                    "0-3 = tangentially related or irrelevant."
+                    "0-3 = tangentially related or irrelevant.\n\n"
+                    "\"selected\": true means this clause is NEEDED to answer the query — "
+                    "it contains formulas, tables, rules, or definitions that are required. "
+                    "Only mark clauses as selected if they are truly necessary, not merely related. "
+                    "A typical query needs 2-5 selected clauses."
                 ),
                 user_prompt=(
                     "###TASK:RELEVANCE###\n"
                     f"Query: {query}\n\n"
                     "Clauses:\n" + "\n".join(descriptions) + "\n\n"
-                    "Score each clause. Return JSON array only."
+                    "Score each clause and mark which are selected (needed). Return JSON array only."
                 ),
                 temperature=self.settings.rerank_temperature,
                 max_tokens=self.settings.rerank_max_tokens,
@@ -867,20 +874,25 @@ class AgenticRetriever:
             data = parse_json_loose(raw)
             if isinstance(data, list):
                 score_map: dict[int, float] = {}
+                selected_map: dict[int, bool] = {}
                 for item in data:
                     if isinstance(item, dict):
                         idx = int(item.get("idx", 0)) - 1
                         score = float(item.get("score", 0))
+                        sel = bool(item.get("selected", False))
                         if 0 <= idx < len(candidates):
                             score_map[idx] = score
+                            selected_map[idx] = sel
 
                 result: list[RetrievedClause] = []
                 for i, c in enumerate(candidates):
                     llm_score = score_map.get(i, c.score)
+                    llm_selected = selected_map.get(i, False)
                     result.append(RetrievedClause(
                         clause=c.clause,
                         score=llm_score,
                         matched_terms=c.matched_terms + ["llm_scored"],
+                        selected=llm_selected,
                     ))
                 result.sort(key=lambda x: (-x.score, x.clause.doc_id, x.clause.clause_id))
                 return result

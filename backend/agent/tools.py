@@ -354,6 +354,7 @@ def _handle_eurocode_search(args: dict, retriever: Any) -> str:
             "text": r.clause.text[:3000],
             "score": round(r.score, 2),
             "pointer": r.clause.pointer,
+            "selected": r.selected,
         }
         # Extract cross-references from clause text for progressive disclosure
         refs = _CROSS_REF_RE.findall(r.clause.text)
