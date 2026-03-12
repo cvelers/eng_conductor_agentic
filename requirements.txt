@@ -9,3 +9,5 @@ python-jose[cryptography]==3.3.0
 mcp>=1.0.0
 openai>=1.60.0
 eurocodepy>=2026.2.0
+sentence-transformers>=3.0.0
+numpy>=1.26.0
