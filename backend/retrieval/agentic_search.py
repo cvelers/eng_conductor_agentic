@@ -66,6 +66,7 @@ class _IndexedClause:
     title_tokens: set[str]
     text_tokens: set[str]
     keyword_tokens: set[str]
+    standard_tokens: set[str]
     all_tokens: set[str]
     full_text_lower: str
 
@@ -126,7 +127,8 @@ class AgenticRetriever:
             title_tokens = self._tokenize(clause.clause_title)
             text_tokens = self._tokenize(clause.text)
             keyword_tokens = self._tokenize(" ".join(clause.keywords))
-            all_tokens = title_tokens | text_tokens | keyword_tokens
+            standard_tokens = self._tokenize(clause.standard)
+            all_tokens = title_tokens | text_tokens | keyword_tokens | standard_tokens
 
             full_text = " ".join([
                 clause.standard, clause.clause_id, clause.clause_title,
@@ -138,6 +140,7 @@ class AgenticRetriever:
                 title_tokens=title_tokens,
                 text_tokens=text_tokens,
                 keyword_tokens=keyword_tokens,
+                standard_tokens=standard_tokens,
                 all_tokens=all_tokens,
                 full_text_lower=full_text,
             )
@@ -246,10 +249,8 @@ class AgenticRetriever:
                 return
 
         # ---- Phase 2B: Blanket search ----
-        use_semantic = (
-            self.semantic_scorer is not None
-            and self.semantic_scorer.available
-        )
+        # Semantic scorer exists but wire is cut — using lexical for now.
+        use_semantic = False
 
         sub_queries = (
             self._decompose_query(query) if agentic_enabled
@@ -723,6 +724,7 @@ class AgenticRetriever:
 
             title_score = sum(self._idf(t) * 3.0 for t in tokens if t in entry.title_tokens)
             keyword_score = sum(self._idf(t) * 2.0 for t in tokens if t in entry.keyword_tokens)
+            standard_score = sum(self._idf(t) * 2.5 for t in tokens if t in entry.standard_tokens)
             text_score = sum(self._idf(t) for t in tokens if t in entry.text_tokens)
 
             phrase_bonus = 4.0 if (len(safe_query) > 5 and safe_query in entry.full_text_lower) else 0.0
@@ -730,7 +732,7 @@ class AgenticRetriever:
             matched = tokens & entry.all_tokens
             coverage_bonus = (len(matched) / len(tokens)) * 2.0 if tokens else 0.0
 
-            total = title_score + keyword_score + text_score + phrase_bonus + coverage_bonus
+            total = title_score + keyword_score + standard_score + text_score + phrase_bonus + coverage_bonus
 
             ranked.append(RetrievedClause(
                 clause=entry.clause, score=total, matched_terms=sorted(matched),
