@@ -80,7 +80,7 @@ class Settings:
     recursive_retrieval_enabled: bool = False
     embeddings_enabled: bool = False
     max_retrieval_iters: int = 3
-    top_k_clauses: int = 8
+    top_k_clauses: int = 20
 
     # Retriever LLM params (used internally by AgenticRetriever)
     rerank_temperature: float = 0.2

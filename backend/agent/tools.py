@@ -321,7 +321,7 @@ TOOLS: list[dict[str, Any]] = [
 
 def _handle_eurocode_search(args: dict, retriever: Any) -> str:
     query = args.get("query", "")
-    top_k = min(args.get("top_k", 8), 20)
+    top_k = min(args.get("top_k", 20), 30)
     results, trace = retriever.retrieve(query, top_k=top_k)
 
     clauses_out = []
