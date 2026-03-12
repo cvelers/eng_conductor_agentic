@@ -303,7 +303,7 @@ class AgenticRetriever:
 
         # ---- Phase 3: LLM relevance re-ranking ----
         if agentic_enabled and candidates:
-            scored = self._llm_score_relevance(query, candidates[:30])
+            scored = self._llm_score_relevance(query, candidates[:10])
             for item in scored:
                 key = item.clause.citation_address
                 if key not in aggregated or item.score > aggregated[key].score:
@@ -883,7 +883,6 @@ class AgenticRetriever:
                         if 0 <= idx < len(candidates):
                             score_map[idx] = score
                             selected_map[idx] = sel
-
                 result: list[RetrievedClause] = []
                 for i, c in enumerate(candidates):
                     llm_score = score_map.get(i, c.score)

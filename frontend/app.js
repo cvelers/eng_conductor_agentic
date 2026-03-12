@@ -2387,7 +2387,8 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
             setES(f, "o_d", st);
             setES(f, "d_o", st);
             // Push doc badges from search results
-            const parsed = typeof event.result === "object" ? event.result : {};
+            let parsed = typeof event.result === "object" ? event.result : {};
+            if (typeof event.result === "string") { try { parsed = JSON.parse(event.result); } catch {} }
             const clauses = parsed.clauses || [];
             const topDocs = clauses.slice(0, 5).map(c => ({
               doc_id: c.standard || "", clause_id: c.clause_id || "",
@@ -2416,7 +2417,8 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
             setES(f, "t_o", st);
             // Collect calc results for tabs below response
             if (isDone) {
-              const calcParsed = typeof event.result === "object" ? event.result : {};
+              let calcParsed = typeof event.result === "object" ? event.result : {};
+              if (typeof event.result === "string") { try { calcParsed = JSON.parse(event.result); } catch {} }
               assistantNode.__calcResults.push({
                 tool: event.tool,
                 args: assistantNode.__pendingCalcArgs || {},

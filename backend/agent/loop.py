@@ -500,7 +500,7 @@ async def run_agent_loop(
             yield {
                 "type": "tool_result",
                 "tool": tc["name"],
-                "result": result_str[:20_000],
+                "result": result_str,
                 "status": status,
                 "summary": summary,
             }
