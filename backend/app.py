@@ -23,7 +23,7 @@ from backend.llm.factory import get_search_provider, get_orchestrator_provider
 from backend.logging_config import configure_logging
 from backend.registries.document_registry import load_all_clauses, load_document_registry
 from backend.retrieval.agentic_search import AgenticRetriever
-from backend.retrieval.semantic_scorer import SimpleSemanticScorer
+
 from backend.schemas import ChatRequest, FEAAnswerRequest, FEAResultsRequest
 
 # New agent imports
@@ -108,16 +108,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     doc_registry = load_document_registry(active_settings.resolved_document_registry_path)
     clauses = load_all_clauses(active_settings.project_root, doc_registry)
 
-    # ── Semantic scorer (bi-encoder embeddings for clause retrieval) ──
-    semantic_scorer = SimpleSemanticScorer(clauses)
-
     # ── Search provider (for retriever's internal LLM reranking) ─────
     search_provider = get_search_provider(active_settings)
     retriever = AgenticRetriever(
         settings=active_settings,
         search_provider=search_provider,
         clauses=clauses,
-        semantic_scorer=semantic_scorer,
     )
 
     # ── OpenAI client for agent loop ─────────────────────────────────
