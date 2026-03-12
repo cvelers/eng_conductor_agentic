@@ -30,7 +30,7 @@ from backend.agent.loop import run_agent_loop
 from backend.agent.tools import TOOLS, build_tool_dispatcher
 from backend.agent.prompt import SYSTEM_PROMPT
 from backend.agent.stream_adapter import adapt_event
-from backend.agent.context import convert_frontend_history, compact_if_needed
+from backend.agent.context import convert_frontend_history, compact_if_needed, context_usage_snapshot
 
 # FEA (kept as separate mode)
 from backend.orchestrator.fea_analyst import FEAAnalystLoop
@@ -252,6 +252,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     yield json.dumps(adapted, default=str) + "\n"
                     await asyncio.sleep(0.005)
 
+                # After agent loop completes, emit context usage snapshot
+                # so the frontend can update the context indicator circle
+                usage = context_usage_snapshot(
+                    messages, SYSTEM_PROMPT,
+                    context_window=active_settings.agent_context_window,
+                )
+                yield json.dumps({"type": "context_usage", **usage}) + "\n"
+
             except Exception as exc:
                 error_detail = str(exc)
                 logger.exception("chat_stream_failed")
@@ -300,6 +308,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             }
             for t in TOOLS
         ]
+
+    @app.post("/api/context-usage")
+    async def get_context_usage(request: ChatRequest):
+        """Return context usage snapshot for the frontend circle indicator.
+
+        Called after each message exchange to update the UI.
+        """
+        messages = convert_frontend_history(request.history)
+        if request.message:
+            messages.append({"role": "user", "content": request.message})
+        return context_usage_snapshot(
+            messages, SYSTEM_PROMPT,
+            context_window=active_settings.agent_context_window,
+        )
 
     return app
 

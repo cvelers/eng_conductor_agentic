@@ -557,7 +557,7 @@ class AgenticRetriever:
             # Apply standard filter
             if standard_filter:
                 std_lower = standard_filter.lower()
-                filtered = [c for c in candidates if std_lower in c.standard.lower()]
+                filtered = [c for c in candidates if c.standard.lower() == std_lower]
                 if filtered:
                     candidates = filtered
 

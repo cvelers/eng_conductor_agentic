@@ -21,6 +21,10 @@ const GRAPH_EDGES = [
   { id: "o_r",  from: "orchestrator", to: "response"     },
 ];
 
+// Tool classification for agent-mode flow graph bridge
+const _DB_TOOLS = new Set(["eurocode_search", "read_clause"]);
+const _CALC_TOOLS = new Set(["math_calculator", "section_lookup", "material_lookup"]);
+
 const NODE_ICONS = {
   person: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
   brain: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c-1.8-1.4-4.8-1.2-6.5.4-1.8 1.7-2 4.8-.5 6.8-.9 1.3-.9 3.2.1 4.5.8 1 2.1 1.6 3.4 1.6.7 2 2.6 3.4 4.5 3.4"/><path d="M12 3c1.8-1.4 4.8-1.2 6.5.4 1.8 1.7 2 4.8.5 6.8.9 1.3.9 3.2-.1 4.5-.8 1-2.1 1.6-3.4 1.6-.7 2-2.6 3.4-4.5 3.4"/><path d="M12 3v16"/><path d="M8.2 7.2c.8-.8 2-.9 2.8-.1"/><path d="M15.8 7.2c-.8-.8-2-.9-2.8-.1"/><path d="M7.6 11c1-.7 2.3-.7 3.2.1"/><path d="M16.4 11c-1-.7-2.3-.7-3.2.1"/><path d="M8.6 14.7c.9-.4 1.7-.3 2.4.3"/><path d="M15.4 14.7c-.9-.4-1.7-.3-2.4.3"/></svg>`,
@@ -143,6 +147,238 @@ function escHtml(s) {
   const d = document.createElement("div");
   d.textContent = s;
   return d.innerHTML;
+}
+
+// ---- Calculation Tabs (below response, one per calc tool result) ----
+
+const _CALC_TOOL_LABELS = {
+  math_calculator: "Calculation",
+  section_lookup: "Section Properties",
+  material_lookup: "Material Properties",
+};
+
+// ---- Key / value formatting (mirrors backend response_formatter.py) ----
+
+const _UNIT_SUFFIXES = [
+  ["_kNm", " (kNm)"], ["_kN", " (kN)"], ["_MPa", " (MPa)"], ["_GPa", " (GPa)"],
+  ["_mm3", " (mm³)"], ["_mm2", " (mm²)"], ["_mm", " (mm)"],
+  ["_cm2", " (cm²)"], ["_cm3", " (cm³)"], ["_cm4", " (cm⁴)"],
+  ["_m2", " (m²)"], ["_m", " (m)"],
+  ["_deg", " (°)"], ["_rad", " (rad)"],
+];
+const _KEY_SUBSCRIPTS = {
+  M_pl_Rd: "M<sub>pl,Rd</sub>", M_el_Rd: "M<sub>el,Rd</sub>",
+  M_b_Rd: "M<sub>b,Rd</sub>", M_c_Rd: "M<sub>c,Rd</sub>",
+  M_Rd: "M<sub>Rd</sub>", N_Rd: "N<sub>Rd</sub>", V_Rd: "V<sub>Rd</sub>",
+  M_Ed: "M<sub>Ed</sub>", N_Ed: "N<sub>Ed</sub>", V_Ed: "V<sub>Ed</sub>",
+  N_b_Rd: "N<sub>b,Rd</sub>", N_t_Rd: "N<sub>t,Rd</sub>",
+  N_pl_Rd: "N<sub>pl,Rd</sub>", V_pl_Rd: "V<sub>pl,Rd</sub>",
+  Fv_Rd: "F<sub>v,Rd</sub>", Fb_Rd: "F<sub>b,Rd</sub>", Fv: "F<sub>v</sub>",
+  fy: "f<sub>y</sub>", fu: "f<sub>u</sub>", fub: "f<sub>ub</sub>",
+  Wpl: "W<sub>pl</sub>", Wel: "W<sub>el</sub>", W_pl: "W<sub>pl</sub>", W_el: "W<sub>el</sub>",
+  W_pl_y: "W<sub>pl,y</sub>", W_el_y: "W<sub>el,y</sub>",
+  W_pl_z: "W<sub>pl,z</sub>", W_el_z: "W<sub>el,z</sub>",
+  I_y: "I<sub>y</sub>", I_z: "I<sub>z</sub>", I_w: "I<sub>w</sub>", I_t: "I<sub>t</sub>",
+  L_cr: "L<sub>cr</sub>", M_cr: "M<sub>cr</sub>", Mcr: "M<sub>cr</sub>",
+  gamma_M0: "γ<sub>M0</sub>", gamma_M1: "γ<sub>M1</sub>", gamma_M2: "γ<sub>M2</sub>",
+  alpha_v: "α<sub>v</sub>", alpha_LT: "α<sub>LT</sub>",
+  chi_LT: "χ<sub>LT</sub>", chi: "χ", lambda_LT: "λ̄<sub>LT</sub>",
+  Phi_LT: "Φ<sub>LT</sub>", A_net: "A<sub>net</sub>",
+};
+function prettyKey(key) {
+  let unit = "", base = key;
+  for (const [suf, label] of _UNIT_SUFFIXES) {
+    if (base.endsWith(suf)) { unit = label; base = base.slice(0, -suf.length); break; }
+  }
+  const sorted = Object.entries(_KEY_SUBSCRIPTS).sort((a, b) => b[0].length - a[0].length);
+  for (const [pat, repl] of sorted) {
+    if (base === pat) return repl + unit;
+    if (base.startsWith(pat + "_")) return repl + " " + base.slice(pat.length + 1).replace(/_/g, " ") + unit;
+  }
+  return base.replace(/_/g, " ") + unit;
+}
+function _guessUnit(key) {
+  const k = key.toLowerCase();
+  if (k.includes("knm")) return "kNm"; if (k.includes("kn")) return "kN";
+  if (k.includes("mpa")) return "MPa"; if (k.includes("gpa")) return "GPa";
+  if (k.includes("mm3")) return "mm³"; if (k.includes("mm2")) return "mm²";
+  if (k.includes("_mm")) return "mm"; if (k.endsWith("_m")) return "m";
+  if (k.includes("cm2")) return "cm²"; if (k.includes("cm3")) return "cm³"; if (k.includes("cm4")) return "cm⁴";
+  if (k.includes("m2")) return "m²";
+  if (k.includes("_deg")) return "°"; if (k.includes("_rad")) return "rad";
+  return "";
+}
+function formatValue(key, val) {
+  if (typeof val === "boolean") return val ? "PASS ✓" : "FAIL ✗";
+  if (typeof val === "number") {
+    const unit = _guessUnit(key);
+    if (Number.isInteger(val) || (val === Math.round(val) && Math.abs(val) < 1e6))
+      return `${Math.round(val)} ${unit}`.trim();
+    return `${val.toFixed(2)} ${unit}`.trim();
+  }
+  return String(val);
+}
+
+function buildCalcTabs(msgNode) {
+  const calcContainer = msgNode.querySelector(".calc-tabs");
+  if (!calcContainer) return;
+  const results = msgNode.__calcResults || [];
+  if (!results.length) return;
+
+  calcContainer.classList.remove("hidden");
+
+  // ── Group results: merge all math_calculator calls into ONE tab,
+  //    keep section_lookup / material_lookup as separate tabs each ──
+  const mathResults = results.filter(r => r.tool === "math_calculator");
+  const otherResults = results.filter(r => r.tool !== "math_calculator");
+
+  // Merged inputs & outputs across all math_calculator invocations
+  const mergedInputs = {};
+  const mergedOutputs = {};
+  const mergedNotes = [];
+  for (const r of mathResults) {
+    const res = r.result;
+    if (!res || typeof res !== "object") continue;
+    // Collect variables (inputs)
+    const vars = res.inputs_used?.variables || {};
+    for (const [k, v] of Object.entries(vars)) {
+      if (typeof v !== "object" || v === null) mergedInputs[k] = v;
+    }
+    // Collect outputs
+    const outs = res.outputs || {};
+    for (const [k, v] of Object.entries(outs)) {
+      if (typeof v !== "object" || v === null) mergedOutputs[k] = v;
+    }
+    // Collect notes
+    const notes = res.notes || [];
+    for (const n of notes) mergedNotes.push(typeof n === "string" ? n : String(n));
+  }
+
+  // Build groups to render: one merged "Calculation" + one per other tool
+  const groups = [];
+  if (Object.keys(mergedOutputs).length) {
+    groups.push({ label: "Calculation", inputs: mergedInputs, outputs: mergedOutputs, notes: mergedNotes });
+  }
+  for (const r of otherResults) {
+    const res = r.result;
+    if (!res || typeof res !== "object") continue;
+    const label = _CALC_TOOL_LABELS[r.tool] || r.tool.replace(/_/g, " ");
+    const inputs = r.args || {};
+    let outputs = {};
+    const skip = new Set(["inputs_used", "intermediate", "notes", "clause_references", "error"]);
+    for (const [k, v] of Object.entries(res)) {
+      if (!skip.has(k) && (typeof v === "number" || typeof v === "string" || typeof v === "boolean"))
+        outputs[k] = v;
+    }
+    if (!Object.keys(outputs).length) continue;
+    groups.push({ label, inputs, outputs, notes: res.notes || [] });
+  }
+
+  // Render each group as a <details class="tool-result">
+  for (const g of groups) {
+    const details = document.createElement("details");
+    details.className = "tool-result";
+
+    const summary = document.createElement("summary");
+    summary.innerHTML = `<strong>${escHtml(g.label)}</strong> detailed results`;
+    details.appendChild(summary);
+
+    // ── Inputs table ──
+    const inputEntries = Object.entries(g.inputs).filter(([, v]) => typeof v !== "object" || v === null);
+    if (inputEntries.length) {
+      const tbl = document.createElement("table");
+      tbl.className = "tool-io-table";
+      tbl.innerHTML = `<thead><tr><th scope="col">Parameter</th><th scope="col">Value</th></tr></thead>`;
+      const tbody = document.createElement("tbody");
+      for (const [k, v] of inputEntries) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${prettyKey(k)}</td><td>${escHtml(formatValue(k, v))}</td>`;
+        tbody.appendChild(tr);
+      }
+      tbl.appendChild(tbody);
+      details.appendChild(tbl);
+    }
+
+    // ── Outputs table ──
+    const outputEntries = Object.entries(g.outputs).filter(([, v]) => typeof v !== "object" || v === null);
+    if (outputEntries.length) {
+      const tbl = document.createElement("table");
+      tbl.className = "tool-io-table tool-output";
+      tbl.innerHTML = `<thead><tr><th scope="col">Output</th><th scope="col">Value</th></tr></thead>`;
+      const tbody = document.createElement("tbody");
+      for (const [k, v] of outputEntries) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${prettyKey(k)}</td><td><strong>${escHtml(formatValue(k, v))}</strong></td>`;
+        tbody.appendChild(tr);
+      }
+      tbl.appendChild(tbody);
+      details.appendChild(tbl);
+    }
+
+    // ── Notes ──
+    if (g.notes.length) {
+      const notesDiv = document.createElement("div");
+      notesDiv.innerHTML = `<strong>Notes</strong><ul>${g.notes.map(n => `<li>${escHtml(n)}</li>`).join("")}</ul>`;
+      details.appendChild(notesDiv);
+    }
+
+    calcContainer.appendChild(details);
+  }
+}
+
+// ---- Expandable References (Eurocode clauses used) ----
+
+function buildReferences(msgNode) {
+  const refSection = msgNode.querySelector(".ref-section");
+  if (!refSection) return;
+  const allClauses = msgNode.__refClauses || [];
+  if (!allClauses.length) return;
+
+  // Only show clauses that were selected (green) in the search matrix
+  const selectedKeys = msgNode.__selectedRefKeys;
+  const clauses = selectedKeys && selectedKeys.size > 0
+    ? allClauses.filter(c => selectedKeys.has(`${c.standard}:${c.clause_id}`))
+    : allClauses; // fallback: show all if no matrix exists
+  if (!clauses.length) return;
+
+  refSection.classList.remove("hidden");
+
+  // Header
+  const header = document.createElement("div");
+  header.className = "ref-header";
+  header.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span>References</span><span class="ref-count">${clauses.length}</span>`;
+  refSection.appendChild(header);
+
+  // Each clause as an expandable card
+  for (const c of clauses) {
+    const details = document.createElement("details");
+    details.className = "ref-clause";
+
+    const label = c.clause_id.startsWith("Table")
+      ? `${c.standard} ${c.clause_id}`
+      : `${c.standard} Cl. ${c.clause_id}`;
+
+    const summary = document.createElement("summary");
+    summary.innerHTML = `<span class="ref-clause-id">${escHtml(label)}</span>${c.title ? `<span class="ref-clause-title">${escHtml(c.title)}</span>` : ""}`;
+    details.appendChild(summary);
+
+    if (c.text) {
+      const textDiv = document.createElement("div");
+      textDiv.className = "clause-text";
+      // Split text into paragraphs
+      const paragraphs = c.text.split(/\n\n+/);
+      for (const p of paragraphs) {
+        if (!p.trim()) continue;
+        const pEl = document.createElement("p");
+        pEl.className = "clause-p";
+        pEl.textContent = p.trim();
+        textDiv.appendChild(pEl);
+      }
+      details.appendChild(textDiv);
+    }
+
+    refSection.appendChild(details);
+  }
 }
 
 // ---- Attachments ----
@@ -810,6 +1046,7 @@ function initFlowGraph(msgNode, prompt) {
   msgNode.__thinkStart = Date.now();
   msgNode.__stepCount = 0;
   applyFlow(msgNode);
+  initSearchMatrix(msgNode);
 }
 
 function setNS(f, id, s) {
@@ -918,6 +1155,220 @@ function clearPopupLane(f, lane) {
 }
 
 function normTool(n) { return String(n || "").replace(/_ec3/g, "").replace(/_/g, " ").trim(); }
+
+// ---- Search Matrix (Database Tunnel Visualization) ----
+
+const _SM_SEARCH_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>`;
+
+function initSearchMatrix(msgNode) {
+  const panel = msgNode.__flow?.diagramPanel || msgNode;
+  const container = panel.querySelector(".search-matrix");
+  if (!container) return;
+  container.innerHTML = "";
+  container.classList.add("hidden");
+
+  const header = document.createElement("div");
+  header.className = "search-matrix-header";
+  header.innerHTML = `<span class="sm-icon">${_SM_SEARCH_ICON}</span><span>Database Tunnel</span><span class="sm-count"></span>`;
+  container.appendChild(header);
+
+  const body = document.createElement("div");
+  body.className = "search-matrix-body";
+  container.appendChild(body);
+
+  const summary = document.createElement("div");
+  summary.className = "sm-summary hidden";
+  container.appendChild(summary);
+
+  msgNode.__searchMatrix = {
+    container,
+    body,
+    summary,
+    countEl: header.querySelector(".sm-count"),
+    columns: [],
+    allClauses: new Map(), // clauseKey → {id, title, score, selected}
+    totalHits: 0,
+  };
+}
+
+function _smAddColumn(msgNode, phase, query) {
+  const sm = msgNode.__searchMatrix;
+  if (!sm) return -1;
+
+  sm.container.classList.remove("hidden");
+
+  // Deactivate previous column
+  const prev = sm.body.querySelector(".sm-col.active");
+  if (prev) {
+    prev.classList.remove("active");
+    prev.classList.add("done");
+  }
+
+  // Arrow between columns
+  if (sm.columns.length > 0) {
+    const arrow = document.createElement("div");
+    arrow.className = "sm-arrow";
+    arrow.textContent = "\u203A"; // single right-pointing angle quotation mark
+    sm.body.appendChild(arrow);
+    requestAnimationFrame(() => arrow.classList.add("show"));
+  }
+
+  const col = document.createElement("div");
+  col.className = "sm-col active";
+  col.innerHTML = `<div class="sm-col-head"><span class="sm-col-phase">${escHtml(phase)}</span>${query ? `<span class="sm-col-query" title="${escHtml(query)}">${escHtml(clamp(query, 18))}</span>` : ""}</div><div class="sm-col-rows"></div>`;
+  sm.body.appendChild(col);
+
+  const idx = sm.columns.length;
+  sm.columns.push({ el: col, phase, query, rows: [] });
+
+  requestAnimationFrame(() => {
+    col.classList.add("show");
+    sm.body.scrollLeft = sm.body.scrollWidth;
+  });
+
+  return idx;
+}
+
+function _smPopulateColumn(msgNode, colIdx, clauses, topN) {
+  const sm = msgNode.__searchMatrix;
+  if (!sm || colIdx < 0 || colIdx >= sm.columns.length) return;
+
+  const colData = sm.columns[colIdx];
+  const rowsEl = colData.el.querySelector(".sm-col-rows");
+  if (!rowsEl) return;
+
+  const maxScore = Math.max(...clauses.map(c => c.score || 0), 1);
+
+  clauses.forEach((c, i) => {
+    const cid = c.clause_id || c.id || "?";
+    const score = c.score || 0;
+    const normScore = maxScore > 0 ? score / maxScore : 0;
+    const tier = normScore >= 0.8 ? 1 : normScore >= 0.5 ? 2 : 3;
+    const isTop = i < (topN || 3);
+
+    // Build label with Eurocode reference
+    const stdShort = (c.standard || "").replace("EN 1993-", "EC3-").replace("EN ", "");
+    const label = stdShort ? `${stdShort} ${cid}` : cid;
+
+    const row = document.createElement("div");
+    row.className = `sm-row tier-${tier}${isTop ? " selected" : ""}`;
+    row.innerHTML = `<span class="sm-row-id" title="${escHtml(c.title || cid)}">${escHtml(clamp(label, 22))}</span><span class="sm-row-bar" style="width:0;min-width:${Math.max(4, Math.round(normScore * 28))}px"></span>`;
+    rowsEl.appendChild(row);
+    colData.rows.push(row);
+
+    // Track in global map
+    const key = `${c.standard || ""}:${cid}`;
+    if (!sm.allClauses.has(key) || score > (sm.allClauses.get(key).score || 0)) {
+      sm.allClauses.set(key, { id: cid, title: c.title, score, selected: isTop });
+    }
+
+    // Staggered reveal animation
+    setTimeout(() => {
+      row.classList.add("show");
+      const bar = row.querySelector(".sm-row-bar");
+      if (bar) bar.style.width = `${Math.max(4, Math.round(normScore * 28))}px`;
+    }, 60 + i * 50);
+  });
+
+  sm.totalHits += clauses.length;
+  if (sm.countEl) sm.countEl.textContent = `${sm.totalHits} hits`;
+}
+
+function _smFinalizeColumn(msgNode, colIdx) {
+  const sm = msgNode.__searchMatrix;
+  if (!sm || colIdx < 0 || colIdx >= sm.columns.length) return;
+  const col = sm.columns[colIdx];
+  col.el.classList.remove("active");
+  col.el.classList.add("done");
+}
+
+function _smShowSummary(msgNode, selectedClauses) {
+  const sm = msgNode.__searchMatrix;
+  if (!sm || !selectedClauses.length) return;
+  if (!sm.shownChipIds) sm.shownChipIds = new Set();
+  sm.summary.classList.remove("hidden");
+
+  const existingCount = sm.summary.children.length;
+  let added = 0;
+  selectedClauses.forEach((c) => {
+    const id = c.clause_id || c.id || "?";
+    const chipKey = `${c.standard || ""}:${id}`;
+    if (sm.shownChipIds.has(chipKey)) return;
+    sm.shownChipIds.add(chipKey);
+    const stdShort = (c.standard || "").replace("EN 1993-", "EC3-").replace("EN ", "");
+    const chip = document.createElement("span");
+    chip.className = "sm-summary-chip";
+    chip.textContent = stdShort ? `${stdShort} ${id}` : id;
+    chip.title = c.title || "";
+    sm.summary.appendChild(chip);
+    setTimeout(() => chip.classList.add("show"), 80 + (existingCount + added) * 60);
+    added++;
+  });
+}
+
+/** Bridge: called from streaming handler when a search tool starts */
+function onSearchToolStart(msgNode, toolName, args) {
+  const isSearch = toolName === "eurocode_search";
+  const isRead = toolName === "read_clause";
+  if (!isSearch && !isRead) return;
+
+  const phase = isSearch ? "SEARCH" : "FETCH";
+  const query = isSearch ? (args?.query || "") : (args?.clause_id || "");
+  const colIdx = _smAddColumn(msgNode, phase, query);
+  // Stash the column index for later population
+  msgNode.__smPendingCol = colIdx;
+}
+
+/** Bridge: called from streaming handler when a search tool finishes */
+function onSearchToolResult(msgNode, toolName, result) {
+  const sm = msgNode.__searchMatrix;
+  if (!sm) return;
+  const colIdx = msgNode.__smPendingCol;
+  if (colIdx === undefined || colIdx < 0) return;
+
+  const parsed = typeof result === "object" ? result : {};
+  const clauses = parsed.clauses || [];
+
+  if (clauses.length > 0) {
+    // read_clause returns no score — give targeted fetches a high default
+    const isFetch = toolName === "read_clause";
+    const mapped = clauses.map(c => ({
+      clause_id: c.clause_id,
+      title: c.title,
+      standard: c.standard,
+      score: c.score || (isFetch ? 10 : 0),
+    }));
+    // Top N are "selected" — all for fetch, top 3 for search
+    const topN = isFetch ? mapped.length : 3;
+    _smPopulateColumn(msgNode, colIdx, mapped, topN);
+    _smFinalizeColumn(msgNode, colIdx);
+
+    // Track selected (green) clause keys — these are the only ones that become references
+    const selected = mapped.slice(0, topN);
+    if (msgNode.__selectedRefKeys) {
+      for (const c of selected) {
+        msgNode.__selectedRefKeys.add(`${c.standard || ""}:${c.clause_id || ""}`);
+      }
+    }
+
+    // Update summary — only the actually-selected (green) clauses
+    _smShowSummary(msgNode, selected);
+  } else {
+    // Empty result — show "no hits"
+    const col = sm.columns[colIdx];
+    if (col) {
+      const rowsEl = col.el.querySelector(".sm-col-rows");
+      if (rowsEl) {
+        rowsEl.innerHTML = `<div class="sm-row show"><span class="sm-row-id" style="color:var(--muted);font-style:italic">no hits</span></div>`;
+      }
+    }
+    _smFinalizeColumn(msgNode, colIdx);
+  }
+
+  delete msgNode.__smPendingCol;
+}
+
+// ---- Flow Graph Event Processing ----
 
 function processEvent(f, ev) {
   const s = ev.status || "active", node = ev.node, m = ev.meta || {};
@@ -1295,11 +1746,19 @@ function appendThinkingCard(msgNode, content) {
 function renderPlanCard(msgNode, steps) {
   const feed = _getActivityFeed(msgNode);
   if (!feed) return;
-  const items = steps.map(s =>
-    `<div class="plan-step pending" data-step-id="${s.id}"><span class="step-icon">${_STEP_ICONS.pending}</span><span>${escHtml(s.text)}</span></div>`
-  ).join("");
-  const card = _makeCard("plan", "Plan", `<div class="plan-checklist">${items}</div>`);
-  feed.appendChild(card);
+  // Reuse existing plan card if one exists (update in place)
+  let card = feed.querySelector(".activity-card.plan-card");
+  const items = steps.map(s => {
+    const st = s.status || "pending";
+    const icon = _STEP_ICONS[st] || _STEP_ICONS.pending;
+    return `<div class="plan-step ${st}" data-step-id="${s.id}"><span class="step-icon">${icon}</span><span>${escHtml(s.text)}</span></div>`;
+  }).join("");
+  if (card) {
+    card.querySelector(".plan-checklist").innerHTML = items;
+  } else {
+    card = _makeCard("plan", "Plan", `<div class="plan-checklist">${items}</div>`);
+    feed.appendChild(card);
+  }
   _autoScrollThinkingPanel(msgNode);
 }
 
@@ -1709,6 +2168,42 @@ function _cleanupFloatingDiagrams() {
   document.querySelectorAll("body > .diagram-panel").forEach(el => el.remove());
 }
 
+// ---- Context Usage Circle ----
+function renderContextUsage(usage) {
+  const btn = document.getElementById("context-usage-btn");
+  const ring = document.getElementById("context-usage-ring");
+  const primary = document.getElementById("context-usage-primary");
+  const secondary = document.getElementById("context-usage-secondary");
+  if (!btn || !ring) return;
+
+  const radius = 8.5;
+  const circumference = 2 * Math.PI * radius;
+  ring.style.strokeDasharray = `${circumference}`;
+
+  if (!usage) {
+    ring.style.strokeDashoffset = `${circumference}`;
+    btn.classList.remove("low", "medium", "high", "critical");
+    if (primary) primary.textContent = "No usage data";
+    if (secondary) secondary.textContent = "\u2014";
+    return;
+  }
+
+  const usedPercent = Math.max(0, Number(usage.used_percent) || 0);
+  const fraction = Math.min(1, usedPercent / 100);
+  ring.style.strokeDashoffset = `${circumference * (1 - fraction)}`;
+
+  btn.classList.remove("low", "medium", "high", "critical");
+  const level = String(usage.level || "low").toLowerCase();
+  btn.classList.add(level);
+
+  const usedRounded = Math.round(usedPercent);
+  const leftPercent = Math.max(0, 100 - usedRounded);
+  if (primary) primary.textContent = `${usedRounded}% used (${leftPercent}% left)`;
+
+  const fmt = n => n >= 1_000_000 ? (n / 1_000_000).toFixed(1) + "M" : n >= 1000 ? (n / 1000).toFixed(0) + "k" : String(n);
+  if (secondary) secondary.textContent = `${fmt(usage.estimated_tokens || 0)} / ${fmt(usage.context_window || 0)} tokens`;
+}
+
 function renderMessages() {
   _cleanupFloatingDiagrams();
   messagesEl.innerHTML = "";
@@ -1787,6 +2282,13 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
   let lastPayload = null;
   let isAgentMode = false;
   let agentTaskCount = 0;
+  // Accumulators for "What I used" trace section
+  assistantNode.__toolTrace = [];
+  assistantNode.__usedClauses = [];
+  assistantNode.__calcResults = [];
+  assistantNode.__refClauses = []; // full clause objects for expandable references
+  assistantNode.__pendingCalcArgs = null; // stash tool_start args for calc tools
+  assistantNode.__selectedRefKeys = new Set(); // only green (selected) clauses become references
 
   while (true) {
     const { done, value } = await reader.read();
@@ -1808,6 +2310,14 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         appendThinkingCard(assistantNode, event.content);
         agentTaskCount = (agentTaskCount || 0);
         isAgentMode = true;
+        // Keep orchestrator active while thinking
+        if (assistantNode.__flow) {
+          const f = assistantNode.__flow;
+          if (f.ns["orchestrator"] !== "active") {
+            setNS(f, "orchestrator", "active");
+            applyFlow(assistantNode);
+          }
+        }
       }
       if (event.type === "plan") {
         renderPlanCard(assistantNode, event.steps);
@@ -1818,17 +2328,126 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         updatePlanStep(assistantNode, event.step_id, event.status);
       }
       if (event.type === "tool_start") {
-        appendToolCard(assistantNode, event.tool, event.args, "running");
-        appendLog(assistantNode, `Running ${event.tool}...`);
+        // Skip activity card for planning tool — the plan card handles it
+        if (event.tool !== "todo_write") {
+          appendToolCard(assistantNode, event.tool, event.args, "running");
+          appendLog(assistantNode, `Running ${event.tool}...`);
+        }
+        assistantNode.__toolTrace.push({ tool_name: event.tool, status: "running" });
+        // ── Agent→Flow bridge: highlight the right node ──
+        if (assistantNode.__flow) {
+          const f = assistantNode.__flow;
+          if (event.tool === "todo_write") {
+            // Planning tool — keep orchestrator active, don't highlight any external node
+          } else if (_DB_TOOLS.has(event.tool)) {
+            // Database tool → highlight database
+            clearPopupLane(f, "docs");
+            setNS(f, "orchestrator", "done");
+            setNS(f, "database", "active");
+            setES(f, "o_d", "active");
+            setES(f, "d_o", "idle");
+            applyFlow(assistantNode);
+            // Search matrix column
+            onSearchToolStart(assistantNode, event.tool, event.args);
+          } else if (_CALC_TOOLS.has(event.tool)) {
+            // Calc/engineering tool → highlight tools
+            setNS(f, "orchestrator", "done");
+            setNS(f, "tools", "active");
+            setES(f, "o_t", "active");
+            setES(f, "t_o", "idle");
+            applyFlow(assistantNode);
+            pushToolBadge(f, event.tool);
+            // Stash args so tool_result can use them
+            assistantNode.__pendingCalcArgs = event.args || {};
+          } else {
+            // Other tool → also highlight tools node
+            setNS(f, "orchestrator", "done");
+            setNS(f, "tools", "active");
+            setES(f, "o_t", "active");
+            applyFlow(assistantNode);
+            pushToolBadge(f, event.tool);
+          }
+        }
       }
       if (event.type === "tool_result") {
-        updateToolCard(assistantNode, event.tool, event.result, event.status, event.summary);
-        appendLog(assistantNode, `${event.tool}: ${event.status}${event.summary ? " — " + event.summary : ""}`);
+        if (event.tool !== "todo_write") {
+          updateToolCard(assistantNode, event.tool, event.result, event.status, event.summary);
+          appendLog(assistantNode, `${event.tool}: ${event.status}${event.summary ? " — " + event.summary : ""}`);
+        }
+        // Update tool trace status
+        const traceEntry = assistantNode.__toolTrace.findLast(t => t.tool_name === event.tool && t.status === "running");
+        if (traceEntry) traceEntry.status = event.status === "error" ? "error" : "ok";
+        // ── Agent→Flow bridge: mark node done, return to orchestrator ──
+        if (assistantNode.__flow && event.tool !== "todo_write") {
+          const f = assistantNode.__flow;
+          const isDone = event.status !== "error";
+          const st = isDone ? "done" : "error";
+          if (_DB_TOOLS.has(event.tool)) {
+            setNS(f, "database", st);
+            setES(f, "o_d", st);
+            setES(f, "d_o", st);
+            // Push doc badges from search results
+            const parsed = typeof event.result === "object" ? event.result : {};
+            const clauses = parsed.clauses || [];
+            const topDocs = clauses.slice(0, 5).map(c => ({
+              doc_id: c.standard || "", clause_id: c.clause_id || "",
+            }));
+            if (topDocs.length) pushDocBadges(f, topDocs);
+            // Collect clauses for "What I used" trace + expandable references
+            for (const c of clauses) {
+              assistantNode.__usedClauses.push(`${c.standard || "EC3"} — ${c.clause_id || "?"}: ${c.title || ""}`);
+              // Store full clause for expandable references (deduplicate by clause_id)
+              const refKey = `${c.standard || ""}:${c.clause_id || ""}`;
+              if (!assistantNode.__refClauses.find(r => `${r.standard}:${r.clause_id}` === refKey)) {
+                assistantNode.__refClauses.push({
+                  standard: c.standard || "EC3",
+                  clause_id: c.clause_id || "",
+                  title: c.title || "",
+                  text: c.text || "",
+                  pointer: c.pointer || "",
+                });
+              }
+            }
+            // Search matrix population
+            onSearchToolResult(assistantNode, event.tool, parsed);
+          } else if (_CALC_TOOLS.has(event.tool)) {
+            setNS(f, "tools", st);
+            setES(f, "o_t", st);
+            setES(f, "t_o", st);
+            // Collect calc results for tabs below response
+            if (isDone) {
+              const calcParsed = typeof event.result === "object" ? event.result : {};
+              assistantNode.__calcResults.push({
+                tool: event.tool,
+                args: assistantNode.__pendingCalcArgs || {},
+                result: calcParsed,
+                summary: event.summary || "",
+              });
+              assistantNode.__pendingCalcArgs = null;
+            }
+          } else {
+            setNS(f, "tools", st);
+            setES(f, "o_t", st);
+            setES(f, "t_o", st);
+          }
+          // Re-activate orchestrator for next step
+          setNS(f, "orchestrator", "active");
+          applyFlow(assistantNode);
+        }
       }
 
       if (event.type === "delta") {
         accumulated += event.delta || event.content || "";
         scheduleRender();
+        // ── Agent→Flow bridge: first delta → light up response path ──
+        if (assistantNode.__flow && !assistantNode.__deltaStarted) {
+          assistantNode.__deltaStarted = true;
+          const f = assistantNode.__flow;
+          setNS(f, "orchestrator", "done");
+          setNS(f, "response", "active");
+          setES(f, "o_r", "active");
+          applyFlow(assistantNode);
+        }
       }
 
       // ── FEA events ──────────────────────────────────
@@ -1935,7 +2554,26 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         const payload = event.response;
         lastPayload = payload;
         contentEl.innerHTML = renderMd(payload.answer);
-        setTrace(assistantNode, payload);
+        buildCalcTabs(assistantNode);
+        buildReferences(assistantNode);
+        // Build trace from accumulated tool data
+        const tracePayload = {
+          ...payload,
+          what_i_used: assistantNode.__usedClauses || [],
+          tool_trace: assistantNode.__toolTrace || [],
+        };
+        setTrace(assistantNode, tracePayload);
+        // ── Agent→Flow bridge: finalize response ──
+        if (assistantNode.__flow) {
+          const f = assistantNode.__flow;
+          const ok = payload.supported !== false;
+          setNS(f, "orchestrator", "done");
+          setNS(f, "response", ok ? "done" : "error");
+          setES(f, "u_o", "done");
+          setES(f, "o_r", ok ? "done" : "error");
+          setNS(f, "user", "done");
+          applyFlow(assistantNode);
+        }
         if (isAgentMode) {
           finalizeAgentThinking(assistantNode, agentTaskCount || 1);
         } else {
@@ -1962,6 +2600,14 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         if (renderTimer) { clearTimeout(renderTimer); renderTimer = null; }
         contentEl.classList.remove("streaming");
         const errMsg = `Error: ${event.detail || "Unknown error"}`;
+        // ── Agent→Flow bridge: error state ──
+        if (assistantNode.__flow) {
+          const f = assistantNode.__flow;
+          f.ns["orchestrator"] = "error";
+          f.ns["response"] = "error";
+          f.es["o_r"] = "error";
+          applyFlow(assistantNode);
+        }
         setThinkingState(assistantNode, false);
         updateThinkingLabel(assistantNode, "Reasoning failed.");
         contentEl.innerHTML = `<div class="error-msg">${escHtml(errMsg)}</div>`;
@@ -1979,6 +2625,11 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
           renderThreadList();
           finalized = true;
         }
+      }
+
+      // Context usage update (circle indicator)
+      if (event.type === "context_usage") {
+        renderContextUsage(event);
       }
     }
   }

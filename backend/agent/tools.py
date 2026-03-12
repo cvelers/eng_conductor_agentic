@@ -68,10 +68,15 @@ TOOLS: list[dict[str, Any]] = [
                     },
                     "standard": {
                         "type": "string",
-                        "description": "Optional standard filter, e.g. 'EN 1993-1-1'.",
+                        "description": (
+                            "The Eurocode standard this clause belongs to, e.g. 'EN 1993-1-1', "
+                            "'EN 1993-1-8'. ALWAYS specify this — the same clause ID (e.g. "
+                            "'Table 3.1') exists in multiple standards and you must name the "
+                            "correct one."
+                        ),
                     },
                 },
-                "required": ["clause_id"],
+                "required": ["clause_id", "standard"],
             },
         },
     },
@@ -183,6 +188,47 @@ TOOLS: list[dict[str, Any]] = [
                     },
                 },
                 "required": ["tool_name", "params"],
+            },
+        },
+    },
+    # ── Planning ──────────────────────────────────────────────────────
+    {
+        "type": "function",
+        "function": {
+            "name": "todo_write",
+            "description": (
+                "Create or update your task plan. Call this FIRST before using any other tool. "
+                "List the steps you intend to follow to answer the user's question. "
+                "You can update the plan later to mark steps as completed or add new ones."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "todos": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "id": {
+                                    "type": "string",
+                                    "description": "Short unique step ID (e.g. 'search', 'calc', 'fetch_table').",
+                                },
+                                "text": {
+                                    "type": "string",
+                                    "description": "Brief description of this step.",
+                                },
+                                "status": {
+                                    "type": "string",
+                                    "enum": ["pending", "in_progress", "done"],
+                                    "description": "Step status. Use 'pending' for initial plan, update later.",
+                                },
+                            },
+                            "required": ["id", "text", "status"],
+                        },
+                        "description": "Ordered list of plan steps.",
+                    },
+                },
+                "required": ["todos"],
             },
         },
     },
@@ -322,6 +368,7 @@ def _handle_eurocode_search(args: dict, retriever: Any) -> str:
 def _handle_read_clause(args: dict, clause_index: dict) -> str:
     clause_id = args.get("clause_id", "").strip()
     standard = args.get("standard", "").strip().lower()
+    logger.info("read_clause called: clause_id=%r, standard=%r", clause_id, standard)
 
     # Normalize: "Table 6.2" → try both "table 6.2" and "6.2"
     lookup_keys = [clause_id.lower()]
@@ -335,14 +382,14 @@ def _handle_read_clause(args: dict, clause_index: dict) -> str:
         candidates.extend(clause_index.get(key, []))
 
     if standard:
-        candidates = [c for c in candidates if standard in c.standard.lower()]
+        candidates = [c for c in candidates if c.standard.lower() == standard]
     if not candidates:
         # Try partial match
         for key, vals in clause_index.items():
             if clause_id.lower() in key or key in clause_id.lower():
                 candidates.extend(vals)
         if standard:
-            candidates = [c for c in candidates if standard in c.standard.lower()]
+            candidates = [c for c in candidates if c.standard.lower() == standard]
     if not candidates:
         # Provide a helpful error with suggestions
         similar = []
@@ -359,6 +406,22 @@ def _handle_read_clause(args: dict, clause_index: dict) -> str:
             error_data["similar_ids"] = sorted(set(similar))[:5]
             error_data["_hint"] = "Try one of the similar IDs, or use eurocode_search to find it."
         return json.dumps(error_data)
+
+    # If no standard was specified and multiple standards matched, REJECT — force retry
+    matched_stds = sorted({c.standard for c in candidates})
+    logger.info("read_clause: standard=%r, matched_standards=%r, count=%d", standard, matched_stds, len(candidates))
+    if not standard:
+        matched_standards = sorted({c.standard for c in candidates})
+        if len(matched_standards) > 1:
+            return json.dumps({
+                "error": (
+                    f"AMBIGUOUS: Clause '{clause_id}' exists in {len(matched_standards)} "
+                    f"different standards: {matched_standards}. "
+                    f"You MUST call read_clause again with the 'standard' parameter set "
+                    f"to the correct standard (e.g. standard='EN 1993-1-1')."
+                ),
+                "matching_standards": matched_standards,
+            })
 
     # Deduplicate
     seen: set[str] = set()
@@ -497,6 +560,50 @@ def _handle_search_files(args: dict) -> str:
         return json.dumps({"files": results})
 
 
+def _handle_todo_write(args: dict) -> str:
+    """No-op planning tool (Claude Code TodoWrite pattern).
+
+    The tool simply echoes the plan back. Its value is forcing the LLM to
+    articulate its approach before acting. The agent loop intercepts the call
+    to emit plan/plan_update events for the frontend.
+    """
+    todos = args.get("todos", [])
+    summary_lines = []
+    for step in todos:
+        icon = {"pending": "○", "in_progress": "▶", "done": "✓"}.get(step.get("status", "pending"), "○")
+        summary_lines.append(f"  {icon} {step.get('id', '?')}: {step.get('text', '')}")
+    return json.dumps({
+        "status": "ok",
+        "plan": todos,
+        "summary": "\n".join(summary_lines),
+    })
+
+
+def _handle_run_command(args: dict) -> str:
+    import subprocess, os
+    command = args.get("command", "")
+    timeout = min(args.get("timeout", 30), 60)
+    # Basic safety
+    dangerous = ["rm -rf /", "mkfs", "dd if=", ":(){", "fork bomb"]
+    for d in dangerous:
+        if d in command.lower():
+            return json.dumps({"error": f"Blocked dangerous command pattern: {d}"})
+    try:
+        result = subprocess.run(
+            command, shell=True, capture_output=True, text=True,
+            timeout=timeout, cwd=os.getcwd(),
+        )
+        return json.dumps({
+            "stdout": result.stdout[:5000],
+            "stderr": result.stderr[:2000],
+            "returncode": result.returncode,
+        })
+    except subprocess.TimeoutExpired:
+        return json.dumps({"error": f"Command timed out after {timeout}s"})
+    except Exception as e:
+        return json.dumps({"error": f"Command failed: {e}"})
+
+
 def _handle_search_engineering_tools(args: dict, llm_provider: Any = None) -> str:
     from backend.eurocodepy.search import search_engineering_tools, list_categories
     query = args.get("query", "")
@@ -561,6 +668,7 @@ def build_tool_dispatcher(
         "eurocode_search": lambda args: _handle_eurocode_search(args, retriever),
         "read_clause": lambda args: _handle_read_clause(args, clause_index),
         "math_calculator": _handle_math_calculator,
+        "todo_write": _handle_todo_write,
         "web_search": _handle_web_search,
         "fetch_url": _handle_fetch_url,
         "read_file": _handle_read_file,
