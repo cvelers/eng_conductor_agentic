@@ -81,7 +81,7 @@ const state = {
   thinkingMode: "thinking",
   attachments: [],
   abortController: null,
-  webSearchEnabled: true,
+  webSearchEnabled: false,
 };
 
 function uid() {
