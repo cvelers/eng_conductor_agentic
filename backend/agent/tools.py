@@ -361,7 +361,7 @@ def _handle_eurocode_search(args: dict, retriever: Any) -> str:
         table_refs = _TABLE_REF_RE.findall(r.clause.text)
         if refs or table_refs:
             all_refs = set(refs) | {f"Table {t}" for t in table_refs}
-            clause_data["cross_references"] = sorted(all_refs)[:8]
+            clause_data["cross_references"] = sorted(all_refs)
             all_referenced_ids.update(r.lower() for r in refs)
             all_referenced_ids.update(f"table {t}".lower() for t in table_refs)
         clauses_out.append(clause_data)
@@ -529,7 +529,7 @@ def _handle_fetch_url(args: dict) -> str:
             text = re.sub(r"<style[^>]*>.*?</style>", "", text, flags=re.DOTALL)
             text = re.sub(r"<[^>]+>", " ", text)
             text = re.sub(r"\s+", " ", text).strip()
-            return text[:8000]
+            return text
     except Exception as e:
         return json.dumps({"error": f"Fetch failed: {e}"})
 
