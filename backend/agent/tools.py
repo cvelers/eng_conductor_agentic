@@ -351,7 +351,7 @@ def _handle_eurocode_search(args: dict, retriever: Any) -> str:
             "clause_id": r.clause.clause_id,
             "title": r.clause.clause_title,
             "standard": r.clause.standard,
-            "text": r.clause.text[:3000],
+            "text": r.clause.text,
             "score": round(r.score, 2),
             "pointer": r.clause.pointer,
             "selected": r.selected,
