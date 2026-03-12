@@ -685,36 +685,53 @@ def _handle_validate_response(args: dict, session_ledger: list[dict]) -> str:
                 f"Clause '{cid}' ({std}) was NOT retrieved by any tool in this session."
             )
 
+    # Fuzzy value lookup: handles agent adding unit suffixes like Wpl_y_cm3 vs Wpl_y
+    _UNIT_SUFFIXES = re.compile(r"[_]?(mm2?|cm[234]?|mpa|kn|knm|m[234]?|mm4?)$")
+
+    def _find_value(name: str, pool: dict[str, float]) -> float | None:
+        """Look up a value by exact key, stripped key, or substring match."""
+        if name in pool:
+            return pool[name]
+        # Strip unit suffix and retry
+        stripped = _UNIT_SUFFIXES.sub("", name)
+        if stripped and stripped in pool:
+            return pool[stripped]
+        # Substring: if any pool key is contained in the cited name (or vice versa)
+        for key, val in pool.items():
+            if key in name or name in key:
+                return val
+        return None
+
     # Check cited values
     for cv in args.get("cited_values", []):
         name = cv.get("name", "").lower()
         value = cv.get("value")
-        if name not in retrieved_values and name not in calculated_results:
+        actual = _find_value(name, retrieved_values)
+        if actual is None:
+            actual = _find_value(name, calculated_results)
+        if actual is None:
             issues.append(
                 f"Value '{cv.get('name')}' = {value} has no source in tool results."
             )
-        elif name in retrieved_values and value is not None:
-            actual = retrieved_values[name]
-            if abs(actual - value) > 0.01:
-                issues.append(
-                    f"Value '{cv.get('name')}': you cited {value} but tool returned {actual}."
-                )
+        elif value is not None and abs(actual - value) > 0.01:
+            issues.append(
+                f"Value '{cv.get('name')}': you cited {value} but tool returned {actual}."
+            )
 
     # Check cited calculation results
     for cr in args.get("cited_results", []):
         name = cr.get("name", "").lower()
         value = cr.get("value")
-        if name not in calculated_results:
+        actual = _find_value(name, calculated_results)
+        if actual is None:
             issues.append(
                 f"Result '{cr.get('name')}' = {value} was NOT produced by "
                 f"math_calculator or engineering_calculator."
             )
-        elif value is not None:
-            actual = calculated_results[name]
-            if abs(actual - value) > 0.5:
-                issues.append(
-                    f"Result '{cr.get('name')}': you cited {value} but calculator returned {actual}."
-                )
+        elif value is not None and abs(actual - value) > 0.5:
+            issues.append(
+                f"Result '{cr.get('name')}': you cited {value} but calculator returned {actual}."
+            )
 
     if issues:
         return json.dumps({
