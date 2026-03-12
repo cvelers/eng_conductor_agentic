@@ -2281,7 +2281,7 @@ body.chat-started .attach-menu {
   stroke: rgba(139, 145, 155, 0.2);
 }
 .context-ring-progress {
-  stroke: var(--success);
+  stroke: var(--accent);
   transform: rotate(-90deg);
   transform-origin: 12px 12px;
   transition: stroke 0.2s ease, stroke-dashoffset 0.3s ease;
