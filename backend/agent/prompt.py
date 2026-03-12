@@ -41,13 +41,6 @@ but wasn't returned, use `read_clause` to fetch it directly
 4. **Search again if needed** — If there's a conceptual gap (e.g., you have the formula \
 but not the buckling curves), search with different terms
 
-Example workflow for "check bending resistance of IPE300 S355":
-  → eurocode_search("bending resistance EN 1993-1-1") → finds 6.2.5
-  → read_clause("Table 3.1", standard="EN 1993-1-1") → gets steel grade properties
-  → read_clause("Table 6.2", standard="EN 1993-1-1") → gets cross-section classification limits
-  → engineering_calculator("ec3_profile_i_lookup", {"profile_name": "IPE300"}) → gets geometry
-  → Now calculate with math_calculator
-
 ## ENGINEERING CALCULATIONS (eurocodepy tools)
 
 You have access to a library of EC3 steel design calculation tools covering:
@@ -167,14 +160,6 @@ NEVER hard-code numbers in expressions — always define them in `variables`.
 - **Bold key results**: **$M_{Rd}$ = 285.3 kNm**
 - Use markdown: headers (##), bullet points, numbered lists
 - Reference clauses inline: "per EN 1993-1-1, Cl. 6.2.5"
-
-## EUROCODE CONVENTIONS
-
-- Partial safety factors: γ_M0 = 1.00, γ_M1 = 1.00, γ_M2 = 1.25 (per NA, ask if unsure)
-- Steel grades: S235, S275, S355, S460 per EN 10025
-- Section families: IPE, HEA, HEB, HEM
-- Always state assumptions clearly
-- When multiple approaches exist, mention which you chose and why
 
 ## RULES
 
