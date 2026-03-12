@@ -84,24 +84,41 @@ todo_write(todos=[
 ])
 ```
 
-As you complete each step, call `todo_write` again with updated statuses. This is your \
-progress anchor — after errors or complex searches, re-read your plan to stay focused.
+After completing EACH tool call, call `todo_write` to mark that step 'done' and set the \
+next step to 'in_progress' BEFORE calling the next tool. Never call two non-todo tools in \
+a row without a `todo_write` in between.
+
+Example mid-execution update (after completing the search step):
+```
+todo_write(todos=[
+  {"id": "search", "text": "Search EC3 for bending resistance formula (6.2.5)", "status": "done"},
+  {"id": "section", "text": "Look up IPE300 section properties", "status": "in_progress"},
+  {"id": "material", "text": "Look up S355 material properties (fy)", "status": "pending"},
+  {"id": "classify", "text": "Check cross-section classification (Table 5.2)", "status": "pending"},
+  {"id": "calc", "text": "Calculate Mc,Rd", "status": "pending"},
+])
+```
+
+When all steps are done, call `todo_write` one final time with all steps marked 'done' \
+before writing your answer.
 
 For simple conversational questions (greetings, general info), skip the plan.
 
 ## HOW TO WORK
 
-1. **Plan first** — Use `todo_write` to outline your approach before starting.
-2. **Search first** — Use `eurocode_search` to find relevant clauses before answering \
-Eurocode questions. Do NOT guess clause numbers.
-2. **Look up data** — Use `search_engineering_tools` + `engineering_calculator` for \
+1. **Plan first** — Call `todo_write` with all steps before any other tool.
+2. **Execute step-by-step** — After each tool call, call `todo_write` to mark that step \
+done and the next one in_progress. Then call the next tool.
+3. **Search** — Use `eurocode_search` to find relevant clauses. Do NOT guess clause numbers.
+4. **Look up data** — Use `search_engineering_tools` + `engineering_calculator` for \
 section properties (IPE/HEA/HEB/HEM/CHS/RHS/SHS), steel grades, bolt data, and \
 EC3 design checks. Do NOT assume properties from memory.
-3. **Fetch what's missing** — After searching, use `read_clause` for any tables, \
-clauses, or equations referenced in results but not included.
-4. **Calculate** — Use `engineering_calculator` for EC3 steel design checks (bending, \
+5. **Fetch what's missing** — Use `read_clause` for any tables, clauses, or equations \
+referenced in results but not included.
+6. **Calculate** — Use `engineering_calculator` for EC3 steel design checks (bending, \
 shear, buckling, LTB, etc.) and `math_calculator` for custom calculations.
-5. **Cite sources** — Reference the specific Eurocode clauses you used.
+7. **Finish plan** — Call `todo_write` with all steps 'done', then write your answer.
+8. **Cite sources** — Reference the specific Eurocode clauses you used.
 
 You may call multiple tools, or the same tool multiple times. The conversation continues \
 until you have enough information to give a complete answer.

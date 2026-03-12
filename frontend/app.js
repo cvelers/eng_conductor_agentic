@@ -2243,9 +2243,9 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
 
   const threadMsgs = thread.messages || [];
   const prevMsgs = threadMsgs.slice(0, -1);
-  const history = prevMsgs.slice(-6).map(m => ({
+  const history = prevMsgs.map(m => ({
     role: m.role,
-    content: m.role === "assistant" ? (m.content || "").slice(0, 500) : (m.content || ""),
+    content: m.content || "",
   }));
 
   // Build attachments payload for the API (with base64 data for images)

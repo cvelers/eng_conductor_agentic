@@ -30,7 +30,7 @@ from backend.agent.loop import run_agent_loop
 from backend.agent.tools import TOOLS, build_tool_dispatcher
 from backend.agent.prompt import SYSTEM_PROMPT
 from backend.agent.stream_adapter import adapt_event
-from backend.agent.context import convert_frontend_history, compact_if_needed, context_usage_snapshot
+from backend.agent.context import convert_frontend_history, compact_if_needed, context_usage_snapshot, estimate_messages_tokens
 
 # FEA (kept as separate mode)
 from backend.orchestrator.fea_analyst import FEAAnalystLoop
@@ -233,6 +233,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     t for t in TOOLS if t["function"]["name"] not in _WEB_TOOLS
                 ]
 
+                loop_tokens = 0
                 async for event in run_agent_loop(
                     client=client,
                     model=active_settings.orchestrator_model,
@@ -245,6 +246,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     max_tokens=active_settings.agent_max_tokens,
                     reasoning_effort=active_settings.orchestrator_reasoning_effort or None,
                 ):
+                    if event.get("type") == "_loop_tokens":
+                        loop_tokens = event.get("tokens", 0)
+                        continue  # internal event, don't forward to frontend
                     adapted = adapt_event(event)
                     all_events.append(adapted)
                     if event.get("type") == "done":
@@ -252,12 +256,23 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     yield json.dumps(adapted, default=str) + "\n"
                     await asyncio.sleep(0.005)
 
-                # After agent loop completes, emit context usage snapshot
-                # so the frontend can update the context indicator circle
-                usage = context_usage_snapshot(
-                    messages, SYSTEM_PROMPT,
-                    context_window=active_settings.agent_context_window,
-                )
+                # After agent loop completes, emit context usage snapshot.
+                # Use loop_tokens (full agent conversation including tool calls)
+                # for accurate reporting, falling back to input-only estimate.
+                input_tokens = estimate_messages_tokens(messages, SYSTEM_PROMPT)
+                effective_tokens = max(loop_tokens, input_tokens)
+                cw = active_settings.agent_context_window
+                tokens_left = max(0, cw - effective_tokens)
+                used_pct = round(effective_tokens / cw * 100, 1) if cw else 0
+                level = "low" if used_pct < 50 else "medium" if used_pct < 75 else "high" if used_pct < 90 else "critical"
+                usage = {
+                    "estimated_tokens": effective_tokens,
+                    "context_window": cw,
+                    "tokens_left": tokens_left,
+                    "used_percent": used_pct,
+                    "level": level,
+                    "needs_compaction": used_pct >= 85,
+                }
                 yield json.dumps({"type": "context_usage", **usage}) + "\n"
 
             except Exception as exc:

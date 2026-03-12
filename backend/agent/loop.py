@@ -46,6 +46,11 @@ TOOL_BUDGET_WARN_THRESHOLD = 10
 # agent is deciding what to do next — the "high attention zone" at
 # the end of the context window.
 
+_TODO_NUDGE = (
+    " Before your next tool call, call `todo_write` to mark this step "
+    "'done' and set the next step to 'in_progress'."
+)
+
 _SYSTEM_REMINDERS: dict[str, str] = {
     "eurocode_search": (
         "\n\n<system-reminder>"
@@ -53,18 +58,21 @@ _SYSTEM_REMINDERS: dict[str, str] = {
         "equations that are NOT in the results but you need, use `read_clause` "
         "to fetch them directly (e.g., read_clause with clause_id='Table 6.2'). "
         "If results don't cover what you need, search again with different terms."
+        + _TODO_NUDGE +
         "</system-reminder>"
     ),
     "read_clause": (
         "\n\n<system-reminder>"
         "You have the full clause text. Check if it cross-references other "
         "clauses, tables, or formulas you still need. Fetch them if so."
+        + _TODO_NUDGE +
         "</system-reminder>"
     ),
     "math_calculator": (
         "\n\n<system-reminder>"
         "Verify calculation inputs match the Eurocode requirements. "
         "If any input was assumed rather than looked up, state this clearly."
+        + _TODO_NUDGE +
         "</system-reminder>"
     ),
     "search_engineering_tools": (
@@ -83,8 +91,8 @@ _SYSTEM_REMINDERS: dict[str, str] = {
     ),
     "todo_write": (
         "\n\n<system-reminder>"
-        "Good — your plan is recorded. Now execute the steps in order. "
-        "Call todo_write again to update step statuses as you complete them."
+        "Plan updated. Now call the next tool for the step marked 'in_progress'. "
+        "After it completes, call todo_write again to mark it done."
         "</system-reminder>"
     ),
 }
@@ -94,6 +102,7 @@ _DEFAULT_REMINDER = (
     "\n\n<system-reminder>"
     "Continue working toward answering the user's question. "
     "If you have enough information, provide your answer now."
+    + _TODO_NUDGE +
     "</system-reminder>"
 )
 
@@ -543,6 +552,11 @@ async def run_agent_loop(
 
         tool_round += 1
 
+    # Emit final token count from the full agent conversation (including
+    # all tool calls + results) so the context circle reports accurately.
+    from backend.agent.context import estimate_messages_tokens
+    loop_tokens = estimate_messages_tokens(all_messages, system_prompt)
+    yield {"type": "_loop_tokens", "tokens": loop_tokens}
     yield {"type": "done", "content": full_response}
 
 
