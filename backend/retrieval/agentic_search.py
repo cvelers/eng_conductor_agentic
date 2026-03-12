@@ -595,6 +595,7 @@ class AgenticRetriever:
                     clause=clause,
                     score=9.0,
                     matched_terms=[f"targeted:{target_id}"],
+                    selected=True,
                 ))
 
         return results
