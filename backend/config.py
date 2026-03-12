@@ -93,6 +93,16 @@ class Settings:
     fea_analyst_max_tokens: int = 16000
     fea_analyst_reasoning_effort: str = ""
 
+    # ── Grounding validator ───────────────────────────────────────────
+    validator_enabled: bool = True
+    validator_provider: str = "gemini"
+    validator_model: str = "gemini-3.1-flash-lite-preview"
+    validator_api_key: str = ""
+    validator_base_url: str = "https://generativelanguage.googleapis.com/v1beta/openai"
+    validator_temperature: float = 0.0
+    validator_max_tokens: int = 2000
+    validator_reasoning_effort: str = ""
+
     # ── Paths ────────────────────────────────────────────────────────
     document_registry_path: Path | None = None
     orchestrator_thread_log_path: Path | None = None
@@ -131,6 +141,7 @@ class Settings:
         rerank = search.get("rerank", {})
         gap = search.get("gap_analysis", {})
         fea = cc.get("fea_analyst", {})
+        validator = cc.get("validator", {})
 
         return cls(
             project_root=project_root,
@@ -180,6 +191,19 @@ class Settings:
             fea_analyst_temperature=float(fea.get("temperature", 0.0)),
             fea_analyst_max_tokens=int(fea.get("max_tokens", 16000)),
             fea_analyst_reasoning_effort=fea.get("reasoning_effort", ""),
+
+            # ── Grounding validator (from cognitive_config.json) ──
+            validator_enabled=bool(validator.get("enabled", True)),
+            validator_provider=validator.get("provider", "gemini"),
+            validator_model=validator.get("model", "gemini-3.1-flash-lite-preview"),
+            validator_api_key=os.getenv("VALIDATOR_API_KEY", ""),
+            validator_base_url=validator.get(
+                "base_url",
+                "https://generativelanguage.googleapis.com/v1beta/openai",
+            ),
+            validator_temperature=float(validator.get("temperature", 0.0)),
+            validator_max_tokens=int(validator.get("max_tokens", 2000)),
+            validator_reasoning_effort=validator.get("reasoning_effort", ""),
 
             # ── Paths (from env) ──
             document_registry_path=(

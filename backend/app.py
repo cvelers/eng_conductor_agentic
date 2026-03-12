@@ -125,6 +125,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     # ── Tool dispatcher ──────────────────────────────────────────────
     tool_dispatcher = build_tool_dispatcher(retriever, clauses)
 
+    # ── Validator client (independent LLM for grounding checks) ──────
+    validator_client: OpenAI | None = None
+    if active_settings.validator_enabled:
+        validator_api_key = active_settings.validator_api_key or active_settings.orchestrator_api_key
+        validator_client = OpenAI(
+            api_key=validator_api_key,
+            base_url=active_settings.validator_base_url,
+        )
+
     # ── FEA (separate mode, unchanged) ───────────────────────────────
     fea_sessions: dict[str, FEAAnalystLoop] = {}
 
@@ -182,6 +191,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             temperature=active_settings.agent_temperature,
             max_tokens=active_settings.agent_max_tokens,
             reasoning_effort=active_settings.orchestrator_reasoning_effort or None,
+            grounding_validation=active_settings.validator_enabled,
+            validator_client=validator_client,
+            validator_model=active_settings.validator_model,
+            validator_temperature=active_settings.validator_temperature,
+            validator_max_tokens=active_settings.validator_max_tokens,
+            validator_reasoning_effort=active_settings.validator_reasoning_effort or None,
         ):
             if event.get("type") == "delta":
                 full_response += event.get("content", "")
@@ -248,6 +263,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     temperature=active_settings.agent_temperature,
                     max_tokens=active_settings.agent_max_tokens,
                     reasoning_effort=active_settings.orchestrator_reasoning_effort or None,
+                    grounding_validation=active_settings.validator_enabled,
+                    validator_client=validator_client,
+                    validator_model=active_settings.validator_model,
+                    validator_temperature=active_settings.validator_temperature,
+                    validator_max_tokens=active_settings.validator_max_tokens,
+                    validator_reasoning_effort=active_settings.validator_reasoning_effort or None,
                 ):
                     if event.get("type") == "_session_tokens":
                         session_tokens = event.get("tokens", 0)
