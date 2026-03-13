@@ -230,7 +230,21 @@ class TestLLMSearch:
         assert "system_prompt" in call_kwargs
         assert "user_prompt" in call_kwargs
         assert call_kwargs["temperature"] == 0.0
+        assert call_kwargs["max_tokens"] >= 1200
         assert "ec3_combined_section_check" in call_kwargs["user_prompt"]
+
+    def test_llm_retries_with_larger_budget_after_truncated_json(self):
+        provider = MagicMock()
+        provider.generate.side_effect = [
+            '{"ec3_combined_section_check": 8',
+            json.dumps({"ec3_combined_section_check": 8}),
+        ]
+        results = search_engineering_tools("steel buckling", llm_provider=provider)
+        assert len(results) > 0
+        assert provider.generate.call_count == 2
+        first_call = provider.generate.call_args_list[0].kwargs
+        second_call = provider.generate.call_args_list[1].kwargs
+        assert second_call["max_tokens"] > first_call["max_tokens"]
 
     def test_llm_fallback_on_failure(self):
         """If LLM fails, keyword search should kick in."""

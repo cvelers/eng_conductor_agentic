@@ -545,12 +545,11 @@ async def run_agent_loop(
         stream_tool_calls: dict[int, dict] = {}
         got_response = False
 
-        # Buffer text events — only flushed after we know the round's
-        # outcome (tool calls → flush immediately; final answer → hold
-        # for grounding validation, flush only if validation passes).
+        # Buffer text events until the round is complete.
+        # If the model emits tool calls, discard the text for that round:
+        # tool-call rounds are internal working state, not user-facing output.
+        # Only a no-tool final round is allowed to become visible answer text.
         pending_events: list[dict] = []
-
-        # Should we buffer deltas? Yes when validation could run.
         may_validate = (
             grounding_validation
             and validator_client is not None
@@ -570,10 +569,7 @@ async def run_agent_loop(
                             yield {"type": "thinking", "content": reasoning}
                         if visible:
                             assistant_content = visible
-                            if may_validate:
-                                pending_events.append({"type": "delta", "content": visible})
-                            else:
-                                yield {"type": "delta", "content": visible}
+                            pending_events.append({"type": "delta", "content": visible})
                     for idx, tc in enumerate(getattr(msg, "tool_calls", None) or []):
                         got_response = True
                         tc_entry: dict[str, Any] = {
@@ -608,10 +604,7 @@ async def run_agent_loop(
                         yield {"type": "thinking", "content": reasoning}
                     if visible:
                         assistant_content += visible
-                        if may_validate:
-                            pending_events.append({"type": "delta", "content": visible})
-                        else:
-                            yield {"type": "delta", "content": visible}
+                        pending_events.append({"type": "delta", "content": visible})
 
                 # Tool call deltas
                 delta_tc = getattr(delta, "tool_calls", None)
@@ -653,11 +646,9 @@ async def run_agent_loop(
             assistant_msg["tool_calls"] = tc_list
         all_messages.append(assistant_msg)
 
-        # Accumulate visible text across all rounds (matches what the
-        # frontend displays from delta events).
-        full_response += assistant_content
-
         if not tool_calls:
+            # Only a no-tool round is a candidate final answer.
+            full_response += assistant_content
             # ── Grounding validation (independent LLM) ───────────────
             # Always validate the final response if there was tool usage.
             has_tool_results = any(m.get("role") == "tool" for m in all_messages)
@@ -716,6 +707,9 @@ async def run_agent_loop(
             pending_events.clear()
             break
 
+        # Tool-call rounds are internal. Never surface their prose to the user.
+        pending_events.clear()
+
         # ── Loop detection ───────────────────────────────────────────
         # Don't count meta-tools toward tool budget
         _META_TOOLS = {"todo_write", "ask_user"}
@@ -751,16 +745,6 @@ async def run_agent_loop(
                 })
                 tool_round += 1
                 continue
-
-        # ── Flush buffered events for intermediate rounds ─────────
-        # When validation is enabled, hold ALL text until the final
-        # validation passes — the user must not see any response text
-        # before it is validated. When validation is off, flush
-        # immediately so the user sees intermediate reasoning.
-        if not may_validate:
-            for evt in pending_events:
-                yield evt
-            pending_events.clear()
 
         # ── Execute tool calls ───────────────────────────────────────
         asked_user = False
@@ -872,9 +856,6 @@ async def run_agent_loop(
 
         # If ask_user was called, stop the loop — wait for user input
         if asked_user:
-            # Flush any buffered text (the question preamble)
-            for evt in pending_events:
-                yield evt
             pending_events.clear()
             break
 

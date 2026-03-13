@@ -392,3 +392,139 @@ def test_run_agent_loop_stops_after_ask_user_even_if_more_tools_were_emitted() -
 
     assert dispatched == ["ask_user"]
     assert any(event.get("type") == "ask_user" for event in events)
+
+
+def test_run_agent_loop_discards_assistant_text_from_ask_user_round() -> None:
+    class FakeCompletions:
+        def __init__(self, response: object) -> None:
+            self._response = response
+
+        def create(self, **_: object) -> object:
+            return self._response
+
+    class FakeClient:
+        def __init__(self, response: object) -> None:
+            self.chat = SimpleNamespace(completions=FakeCompletions(response))
+
+    def tool_call(name: str, args: dict[str, object], call_id: str) -> object:
+        return SimpleNamespace(
+            id=call_id,
+            function=SimpleNamespace(name=name, arguments=json.dumps(args)),
+        )
+
+    response = SimpleNamespace(
+        choices=[
+            SimpleNamespace(
+                message=SimpleNamespace(
+                    content="I will assume a 5 m length and continue with LTB.",
+                    tool_calls=[
+                        tool_call(
+                            "ask_user",
+                            {"question": "What is the unbraced length?"},
+                            "tc_ask",
+                        ),
+                    ],
+                )
+            )
+        ]
+    )
+
+    def dispatcher(tool_name: str, args: dict[str, object]) -> str:
+        if tool_name == "ask_user":
+            return json.dumps({"question": args["question"], "status": "waiting_for_user"})
+        raise AssertionError(f"Unexpected tool call: {tool_name}")
+
+    async def collect() -> list[dict]:
+        events: list[dict] = []
+        async for event in run_agent_loop(
+            client=FakeClient(response),
+            model="fake",
+            system_prompt="system",
+            messages=[{"role": "user", "content": "what about ltb"}],
+            tools=[],
+            tool_dispatcher=dispatcher,
+            max_rounds=1,
+            grounding_validation=False,
+        ):
+            events.append(event)
+        return events
+
+    events = asyncio.run(collect())
+
+    assert not any(event.get("type") == "delta" for event in events)
+    assert any(event.get("type") == "ask_user" for event in events)
+    assert events[-1] == {"type": "done", "content": ""}
+
+
+def test_run_agent_loop_final_answer_excludes_intermediate_tool_round_text() -> None:
+    class FakeCompletions:
+        def __init__(self, responses: list[object]) -> None:
+            self._responses = list(responses)
+
+        def create(self, **_: object) -> object:
+            if not self._responses:
+                raise AssertionError("No more fake responses configured")
+            return self._responses.pop(0)
+
+    class FakeClient:
+        def __init__(self, responses: list[object]) -> None:
+            self.chat = SimpleNamespace(completions=FakeCompletions(responses))
+
+    def tool_call(name: str, args: dict[str, object], call_id: str) -> object:
+        return SimpleNamespace(
+            id=call_id,
+            function=SimpleNamespace(name=name, arguments=json.dumps(args)),
+        )
+
+    first_response = SimpleNamespace(
+        choices=[
+            SimpleNamespace(
+                message=SimpleNamespace(
+                    content="I am checking the section properties now.",
+                    tool_calls=[
+                        tool_call(
+                            "engineering_calculator",
+                            {"tool_name": "ec3_profile_i_lookup", "params": {"section": "IPE300"}},
+                            "tc_calc",
+                        ),
+                    ],
+                )
+            )
+        ]
+    )
+    second_response = SimpleNamespace(
+        choices=[
+            SimpleNamespace(
+                message=SimpleNamespace(
+                    content="Final grounded answer.",
+                    tool_calls=[],
+                )
+            )
+        ]
+    )
+
+    def dispatcher(tool_name: str, _: dict[str, object]) -> str:
+        if tool_name == "engineering_calculator":
+            return json.dumps({"outputs": {"h_mm": 300}})
+        raise AssertionError(f"Unexpected tool call: {tool_name}")
+
+    async def collect() -> list[dict]:
+        events: list[dict] = []
+        async for event in run_agent_loop(
+            client=FakeClient([first_response, second_response]),
+            model="fake",
+            system_prompt="system",
+            messages=[{"role": "user", "content": "check bending"}],
+            tools=[],
+            tool_dispatcher=dispatcher,
+            max_rounds=2,
+            grounding_validation=False,
+        ):
+            events.append(event)
+        return events
+
+    events = asyncio.run(collect())
+
+    deltas = [event["content"] for event in events if event.get("type") == "delta"]
+    assert deltas == ["Final grounded answer."]
+    assert events[-1] == {"type": "done", "content": "Final grounded answer."}
