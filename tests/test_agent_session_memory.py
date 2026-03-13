@@ -19,7 +19,10 @@ from backend.agent.context import (
     convert_frontend_history,
     last_assistant_message_waiting_for_user,
 )
+from backend.agent.prompt import SYSTEM_PROMPT
 from backend.agent.loop import (
+    _GROUNDING_VALIDATOR_PROMPT,
+    _build_tool_results_for_validator,
     _build_tool_context,
     run_agent_loop,
 )
@@ -154,6 +157,172 @@ def test_build_tool_context_keeps_only_selected_search_clauses() -> None:
     assert "clause_references" not in tool_context
     assert "[tool_call] ask_user(" in tool_context
     assert "[tool_result] ask_user" in tool_context
+
+
+def test_build_tool_context_includes_last_todo_write() -> None:
+    """todo_write should appear in tool_context (only the last call)."""
+    all_messages = [
+        {
+            "role": "assistant",
+            "tool_calls": [
+                {
+                    "id": "tc_todo1",
+                    "function": {
+                        "name": "todo_write",
+                        "arguments": json.dumps({"todos": [
+                            {"id": "search", "text": "Search clauses", "status": "in_progress"},
+                            {"id": "calc", "text": "Calculate Mb,Rd", "status": "pending"},
+                        ]}),
+                    },
+                },
+            ],
+        },
+        {
+            "role": "tool",
+            "tool_call_id": "tc_todo1",
+            "content": json.dumps({"status": "ok", "plan": []}),
+        },
+        {
+            "role": "assistant",
+            "tool_calls": [
+                {
+                    "id": "tc_search",
+                    "function": {
+                        "name": "eurocode_search",
+                        "arguments": json.dumps({"query": "bending"}),
+                    },
+                },
+            ],
+        },
+        {
+            "role": "tool",
+            "tool_call_id": "tc_search",
+            "content": json.dumps({"clauses": [], "total_found": 0}),
+        },
+        {
+            "role": "assistant",
+            "tool_calls": [
+                {
+                    "id": "tc_todo2",
+                    "function": {
+                        "name": "todo_write",
+                        "arguments": json.dumps({"todos": [
+                            {"id": "search", "text": "Search clauses", "status": "done"},
+                            {"id": "calc", "text": "Calculate Mb,Rd", "status": "in_progress"},
+                        ]}),
+                    },
+                },
+            ],
+        },
+        {
+            "role": "tool",
+            "tool_call_id": "tc_todo2",
+            "content": json.dumps({"status": "ok", "plan": []}),
+        },
+    ]
+
+    tool_context = _build_tool_context(all_messages)
+
+    # Only the LAST todo_write should appear (with "done" + "in_progress")
+    assert "[tool_call] todo_write(" in tool_context
+    assert "[tool_result] todo_write:" in tool_context
+    # The last plan has "done" for search and "in_progress" for calc
+    assert '"status": "done"' in tool_context or '"status":"done"' in tool_context
+    # Should NOT have two separate todo_write call blocks
+    assert tool_context.count("[tool_call] todo_write(") == 1
+
+
+def test_build_tool_context_strips_clause_references_from_search_tools() -> None:
+    """search_engineering_tools clause_references should be stripped too."""
+    all_messages = [
+        {
+            "role": "assistant",
+            "tool_calls": [
+                {
+                    "id": "tc_st",
+                    "function": {
+                        "name": "search_engineering_tools",
+                        "arguments": json.dumps({"query": "ltb"}),
+                    },
+                },
+            ],
+        },
+        {
+            "role": "tool",
+            "tool_call_id": "tc_st",
+            "content": json.dumps({
+                "results": [
+                    {
+                        "name": "ec3_ltb_check",
+                        "description": "LTB check",
+                        "clause_references": ["EN 1993-1-1 §6.3.2"],
+                    },
+                ],
+                "total_found": 1,
+            }),
+        },
+    ]
+
+    tool_context = _build_tool_context(all_messages)
+
+    assert "clause_references" not in tool_context
+    assert "ec3_ltb_check" in tool_context
+
+
+def test_validator_view_strips_clause_references_from_engineering_tools() -> None:
+    all_messages = [
+        {
+            "role": "assistant",
+            "tool_calls": [
+                {
+                    "id": "tc_calc",
+                    "function": {
+                        "name": "engineering_calculator",
+                        "arguments": json.dumps({"tool_name": "ec3_ltb_check"}),
+                    },
+                },
+                {
+                    "id": "tc_search_tools",
+                    "function": {
+                        "name": "search_engineering_tools",
+                        "arguments": json.dumps({"query": "ltb"}),
+                    },
+                },
+            ],
+        },
+        {
+            "role": "tool",
+            "tool_call_id": "tc_calc",
+            "content": json.dumps({
+                "outputs": {"M_b,Rd [kNm]": 94.1},
+                "clause_references": ["EN 1993-1-1 §6.3.2"],
+            }),
+        },
+        {
+            "role": "tool",
+            "tool_call_id": "tc_search_tools",
+            "content": json.dumps({
+                "results": [
+                    {
+                        "name": "ec3_ltb_check",
+                        "clause_references": ["EN 1993-1-1 §6.3.2"],
+                    },
+                ],
+            }),
+        },
+    ]
+
+    validator_view = _build_tool_results_for_validator(all_messages)
+
+    assert "clause_references" not in validator_view
+    assert "ec3_ltb_check" in validator_view
+
+
+def test_prompts_require_preserving_demand_vs_resistance_semantics() -> None:
+    assert "Never reuse a previously computed resistance or capacity value" in SYSTEM_PROMPT
+    assert "M_c,Rd = 223.08 kNm" in SYSTEM_PROMPT
+    assert "Flag demand/resistance swaps" in _GROUNDING_VALIDATOR_PROMPT
+    assert "Do NOT treat a previously validated resistance as evidence for a demand value" in _GROUNDING_VALIDATOR_PROMPT
 
 
 def test_run_agent_loop_stops_after_ask_user_even_if_more_tools_were_emitted() -> None:

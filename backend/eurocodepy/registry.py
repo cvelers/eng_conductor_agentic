@@ -70,7 +70,9 @@ ENGINEERING_TOOL_REGISTRY: list[EngToolEntry] = [
         subcategory="ULS_LTB",
         description=(
             "Lateral-torsional buckling resistance check (EN 1993-1-1 §6.3.2). "
-            "Computes Mcr, chi_LT, Mb,Rd and utilization ratio."
+            "Computes Mcr, chi_LT, Mb,Rd and utilization ratio. "
+            "Requires the design bending moment M_Ed from loading/actions; do not "
+            "substitute a resistance or capacity value such as M_Rd or Mb,Rd."
         ),
         parameters={
             "type": "object",
@@ -85,7 +87,13 @@ ENGINEERING_TOOL_REGISTRY: list[EngToolEntry] = [
                 "I_w": {"type": "number", "description": "Warping constant (mm⁶)"},
                 "I_t": {"type": "number", "description": "Torsion constant (mm⁴)"},
                 "L": {"type": "number", "description": "Unbraced length (mm)"},
-                "M_Ed": {"type": "number", "description": "Design bending moment (kNm)"},
+                "M_Ed": {
+                    "type": "number",
+                    "description": (
+                        "Design bending moment from loading/actions (kNm). "
+                        "This is a demand effect, not a resistance/capacity."
+                    ),
+                },
                 "C1": {"type": "number", "description": "Moment distribution factor (default 1.0)"},
                 "alpha_LT": {"type": "number", "description": "Imperfection factor (default 0.34)"},
             },

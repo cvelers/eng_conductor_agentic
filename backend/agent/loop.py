@@ -80,14 +80,24 @@ _SYSTEM_REMINDERS: dict[str, str] = {
         "\n\n<system-reminder>"
         "Review the engineering tools found. To use one, call `engineering_calculator` "
         "with the exact tool_name and the required parameters from the schema. "
-        "If no suitable tool was found, try different search terms or a different category."
+        "If no suitable tool was found, try different search terms or a different category. "
+        "Remember: engineering calculators compute numeric results but do NOT retrieve "
+        "Eurocode clause text. If your answer will cite specific clauses, also search "
+        "for them with `eurocode_search` or `read_clause`."
         "</system-reminder>"
     ),
     "engineering_calculator": (
         "\n\n<system-reminder>"
         "Check the calculation result. Verify inputs match the design requirements. "
         "If additional calculations are needed (e.g., you computed capacity but still "
-        "need to check utilization), search for more tools or use math_calculator."
+        "need to check utilization), search for more tools or use math_calculator. "
+        "IMPORTANT: This calculator only provides numeric results — if you plan to "
+        "cite Eurocode clauses in your answer (e.g. 'per Cl. 6.3.2'), you MUST "
+        "fetch the actual clause text with `eurocode_search` or `read_clause` first. "
+        "Calculator output alone does NOT ground a clause citation. Also preserve "
+        "symbol meaning: never feed a resistance/capacity result such as M_Rd, "
+        "Mc,Rd, Mb,Rd, N_Rd, or V_Rd back into a demand input such as M_Ed, N_Ed, "
+        "or V_Ed."
         "</system-reminder>"
     ),
     "todo_write": (
@@ -295,9 +305,18 @@ or recited from memory?
 5. If a calculator used assumed inputs, make sure those assumptions came from \
 the user, previous validated context, or were explicitly stated as assumptions \
 in the response. Do NOT accept silent assumptions just because the tool ran.
+6. Preserve engineering semantics of symbols and variable roles. A prior value \
+is only grounded for the SAME physical quantity. Flag demand/resistance swaps \
+such as using `M_Rd`, `M_c,Rd`, or `M_b,Rd` as `M_Ed`, or reusing any resistance \
+value as a load effect just because the number matches.
+7. Inspect calculator CALL arguments as well as final prose. A calculator run does \
+NOT make its inputs valid. If a tool input lacks evidence, contradicts prior context, \
+or changes the meaning of an established symbol, flag it.
 
 Values and clauses that appear in previously validated responses are considered \
-grounded — they were already verified in an earlier turn. Do NOT flag them.
+grounded — they were already verified in an earlier turn. However, grounding does \
+NOT transfer across different symbol meanings or variable roles. Do NOT treat a \
+previously validated resistance as evidence for a demand value, or vice versa.
 
 Respond with ONLY a JSON object (no markdown, no explanation):
 - If fully grounded: {{"valid": true}}
@@ -332,6 +351,25 @@ def _build_tool_results_for_validator(all_messages: list[dict]) -> str:
                 continue
             content = msg.get("content", "")
             raw = content.split("<system-reminder>")[0].strip()
+
+            # Strip clause_references from engineering tool results.
+            # These are static registry metadata (e.g. "EN 1993-1-1 §6.3.2")
+            # about which clauses the tool *implements*, NOT evidence that the
+            # clause was actually retrieved.  Leaving them in causes the
+            # validator to wrongly treat cited clauses as grounded.
+            if tool_name in ("engineering_calculator", "search_engineering_tools"):
+                try:
+                    data = json.loads(raw)
+                    if isinstance(data, dict):
+                        data.pop("clause_references", None)
+                        # Also strip from nested results array
+                        for r in data.get("results", []):
+                            if isinstance(r, dict):
+                                r.pop("clause_references", None)
+                        raw = json.dumps(data, ensure_ascii=False, default=str)
+                except (json.JSONDecodeError, TypeError):
+                    pass
+
             if len(raw) > 6000:
                 raw = raw[:6000] + "\n... (truncated)"
             blocks.append(f"[RESULT] {tool_name}:\n{raw}")
@@ -951,13 +989,16 @@ def _build_tool_context(all_messages: list[dict]) -> str:
                         and c.get("score", 10) >= 5.0
                     ]
 
-            # ── Engineering calculator: strip clause_references ───────
+            # ── Engineering tools: strip clause_references ────────────
             # These are static registry metadata about which clauses the
             # tool *implements*, NOT evidence that a clause was actually
             # retrieved.  Keeping them causes the grounding validator to
             # treat them as retrieved evidence, masking missing lookups.
-            if tool_name == "engineering_calculator":
+            if tool_name in ("engineering_calculator", "search_engineering_tools"):
                 data.pop("clause_references", None)
+                for r in data.get("results", []):
+                    if isinstance(r, dict):
+                        r.pop("clause_references", None)
 
             # Remove noise fields
             for drop_key in ("_referenced_but_not_retrieved",):

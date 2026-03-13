@@ -264,8 +264,12 @@ function formatValue(key, val) {
 function buildCalcTabs(msgNode) {
   const calcContainer = msgNode.querySelector(".calc-tabs");
   if (!calcContainer) return;
+  calcContainer.innerHTML = "";
   const results = msgNode.__calcResults || [];
-  if (!results.length) return;
+  if (!results.length) {
+    calcContainer.classList.add("hidden");
+    return;
+  }
 
   calcContainer.classList.remove("hidden");
 
@@ -373,26 +377,41 @@ function buildCalcTabs(msgNode) {
 function buildReferences(msgNode) {
   const refSection = msgNode.querySelector(".ref-section");
   if (!refSection) return;
+  refSection.innerHTML = "";
   const allClauses = msgNode.__refClauses || [];
-  if (!allClauses.length) return;
+  if (!allClauses.length) {
+    refSection.classList.add("hidden");
+    return;
+  }
 
   // Only show clauses that were selected (green) in the search matrix
   const selectedKeys = msgNode.__selectedRefKeys;
   const clauses = selectedKeys && selectedKeys.size > 0
     ? allClauses.filter(c => selectedKeys.has(`${c.standard}:${c.clause_id}`))
     : allClauses; // fallback: show all if no matrix exists
-  if (!clauses.length) return;
+  const dedupedClauses = [];
+  const seenClauseKeys = new Set();
+  for (const clause of clauses) {
+    const clauseKey = `${clause.standard || ""}:${clause.clause_id || ""}`;
+    if (!clauseKey || seenClauseKeys.has(clauseKey)) continue;
+    seenClauseKeys.add(clauseKey);
+    dedupedClauses.push(clause);
+  }
+  if (!dedupedClauses.length) {
+    refSection.classList.add("hidden");
+    return;
+  }
 
   refSection.classList.remove("hidden");
 
   // Header
   const header = document.createElement("div");
   header.className = "ref-header";
-  header.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span>References</span><span class="ref-count">${clauses.length}</span>`;
+  header.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span>References</span><span class="ref-count">${dedupedClauses.length}</span>`;
   refSection.appendChild(header);
 
   // Each clause as an expandable card
-  for (const c of clauses) {
+  for (const c of dedupedClauses) {
     const details = document.createElement("details");
     details.className = "ref-clause";
 
@@ -1580,6 +1599,23 @@ function setThinkingState(msgNode, active) {
   }
 }
 
+function setComposerStreaming(active) {
+  if (!sendBtn) return;
+  if (active) {
+    sendBtn.disabled = false;
+    sendBtn.innerHTML = STOP_ICON;
+    sendBtn.setAttribute("aria-label", "Stop");
+    sendBtn.classList.add("stop-mode");
+    setThinkingModeDisabled(true);
+    return;
+  }
+  sendBtn.innerHTML = SEND_ICON;
+  sendBtn.setAttribute("aria-label", "Send");
+  sendBtn.classList.remove("stop-mode");
+  sendBtn.disabled = false;
+  setThinkingModeDisabled(false);
+}
+
 function previewPairs(obj, max = 3) {
   if (!obj || typeof obj !== "object") return "";
   const pairs = Object.entries(obj)
@@ -1931,6 +1967,41 @@ function finalizeAgentThinking(msgNode, taskCount) {
   const meta = msgNode.querySelector(".thinking-meta");
   if (meta) meta.textContent = `${taskCount} task${taskCount !== 1 ? "s" : ""} \u00B7 ${elapsed}s`;
   updateThinkingLabel(msgNode, "Completed. Expand to review steps.");
+}
+
+function pauseAgentThinking(msgNode, taskCount) {
+  const f = msgNode.__flow;
+  if (f) {
+    setNS(f, "orchestrator", "done");
+    setNS(f, "response", "done");
+    setNS(f, "user", "active");
+    setES(f, "u_o", "done");
+    setES(f, "o_r", "done");
+    applyFlow(msgNode);
+  }
+  setThinkingState(msgNode, false);
+  const elapsed = ((Date.now() - (msgNode.__thinkStart || Date.now())) / 1000).toFixed(1);
+  const meta = msgNode.querySelector(".thinking-meta");
+  if (meta) meta.textContent = `${taskCount} task${taskCount !== 1 ? "s" : ""} \u00B7 ${elapsed}s`;
+  updateThinkingLabel(msgNode, "Waiting for your answer.");
+}
+
+function pauseThinking(msgNode) {
+  const f = msgNode.__flow;
+  if (f) {
+    setNS(f, "orchestrator", "done");
+    setNS(f, "response", "done");
+    setNS(f, "user", "active");
+    setES(f, "u_o", "done");
+    setES(f, "o_r", "done");
+    applyFlow(msgNode);
+  }
+  setThinkingState(msgNode, false);
+  const elapsed = ((Date.now() - (msgNode.__thinkStart || Date.now())) / 1000).toFixed(1);
+  const steps = msgNode.__stepCount || 0;
+  const meta = msgNode.querySelector(".thinking-meta");
+  if (meta) meta.textContent = `${steps} steps \u00B7 ${elapsed}s`;
+  updateThinkingLabel(msgNode, "Waiting for your answer.");
 }
 
 // ---- FEA Panel Integration ----
@@ -2463,12 +2534,27 @@ async function streamChat(
           }
           // Continue streaming into the SAME assistant bubble
           try {
+            setComposerStreaming(true);
+            if (assistantNode.__flow) {
+              const f = assistantNode.__flow;
+              setNS(f, "user", "done");
+              setNS(f, "orchestrator", "active");
+              setNS(f, "response", "active");
+              setES(f, "u_o", "active");
+              setES(f, "o_r", "active");
+              applyFlow(assistantNode);
+            }
+            setThinkingState(assistantNode, true);
+            appendLog(assistantNode, "Received your answer. Continuing the same run.");
             await streamChat(answer, assistantNode, thread, thinkingMode, [], { isContinuation: true });
           } catch (err) {
             if (err.name !== "AbortError") {
               const errContentEl = assistantNode.querySelector(".content");
               errContentEl.innerHTML += `<div class="error-msg">${escHtml(err.message)}</div>`;
             }
+          } finally {
+            state.abortController = null;
+            setComposerStreaming(false);
           }
         });
       }
@@ -2714,7 +2800,7 @@ async function streamChat(
         };
         setTrace(assistantNode, tracePayload);
         // ── Agent→Flow bridge: finalize response ──
-        if (assistantNode.__flow) {
+        if (assistantNode.__flow && !waitingForUser) {
           const f = assistantNode.__flow;
           const ok = payload.supported !== false;
           setNS(f, "orchestrator", "done");
@@ -2724,7 +2810,13 @@ async function streamChat(
           setNS(f, "user", "done");
           applyFlow(assistantNode);
         }
-        if (isAgentMode) {
+        if (waitingForUser) {
+          if (isAgentMode) {
+            pauseAgentThinking(assistantNode, agentTaskCount || 1);
+          } else {
+            pauseThinking(assistantNode);
+          }
+        } else if (isAgentMode) {
           finalizeAgentThinking(assistantNode, agentTaskCount || 1);
         } else {
           finalizeThinking(assistantNode, payload);
@@ -3406,11 +3498,7 @@ async function initialize() {
     input.value = "";
     clearAttachments();
     closeAttachMenu();
-    sendBtn.disabled = false;
-    sendBtn.innerHTML = STOP_ICON;
-    sendBtn.setAttribute("aria-label", "Stop");
-    sendBtn.classList.add("stop-mode");
-    setThinkingModeDisabled(true);
+    setComposerStreaming(true);
     createMsg("user", prompt, { attachments: currentAttachments });
     _cleanupFloatingDiagrams();
     const assistantNode = createMsg("assistant", "", { showThinking: true, prompt: fullPrompt });
@@ -3456,11 +3544,7 @@ async function initialize() {
       renderThreadList();
     } finally {
       state.abortController = null;
-      sendBtn.innerHTML = SEND_ICON;
-      sendBtn.setAttribute("aria-label", "Send");
-      sendBtn.classList.remove("stop-mode");
-      sendBtn.disabled = false;
-      setThinkingModeDisabled(false);
+      setComposerStreaming(false);
       input.focus();
     }
   });
