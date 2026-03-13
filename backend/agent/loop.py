@@ -96,6 +96,12 @@ _SYSTEM_REMINDERS: dict[str, str] = {
         "After it completes, call todo_write again to mark it done."
         "</system-reminder>"
     ),
+    "ask_user": (
+        "\n\n<system-reminder>"
+        "The question has been shown to the user. STOP immediately — "
+        "do NOT call any more tools or write an answer. Wait for the user's response."
+        "</system-reminder>"
+    ),
 }
 
 # Default reminder for tools without a specific one
@@ -297,7 +303,7 @@ Respond with ONLY a JSON object (no markdown, no explanation):
 def _build_tool_results_for_validator(all_messages: list[dict]) -> str:
     """Extract tool call/result pairs from message history for the validator."""
     blocks: list[str] = []
-    skip = {"todo_write"}
+    skip = {"todo_write", "ask_user"}
     tc_id_to_name: dict[str, str] = {}
 
     for msg in all_messages:
@@ -670,7 +676,8 @@ async def run_agent_loop(
 
         # ── Loop detection ───────────────────────────────────────────
         # Don't count meta-tools toward tool budget
-        real_calls = [tc for tc in tool_calls if tc["name"] != "todo_write"]
+        _META_TOOLS = {"todo_write", "ask_user"}
+        real_calls = [tc for tc in tool_calls if tc["name"] not in _META_TOOLS]
         for tc in real_calls:
             consecutive_names.append(tc["name"])
         total_tool_calls += len(real_calls)
@@ -714,6 +721,7 @@ async def run_agent_loop(
             pending_events.clear()
 
         # ── Execute tool calls ───────────────────────────────────────
+        asked_user = False
         for tc in tool_calls:
             yield {"type": "tool_start", "tool": tc["name"], "args": tc["args"]}
             t0 = time.time()
@@ -725,6 +733,20 @@ async def run_agent_loop(
                 status = "error"
             elapsed_ms = int((time.time() - t0) * 1000)
 
+
+            # ── AskUser → structured question event ──────────────
+            if tc["name"] == "ask_user" and status == "ok":
+                asked_user = True
+                try:
+                    ask_data = json.loads(result_str)
+                except (json.JSONDecodeError, TypeError):
+                    ask_data = {}
+                yield {
+                    "type": "ask_user",
+                    "question": ask_data.get("question", ""),
+                    "options": ask_data.get("options", []),
+                    "context": ask_data.get("context", ""),
+                }
 
             # ── TodoWrite → plan events (Claude Code pattern) ─────
             if tc["name"] == "todo_write" and status == "ok":
@@ -799,6 +821,14 @@ async def run_agent_loop(
                 "content": tool_content,
             })
 
+        # If ask_user was called, stop the loop — wait for user input
+        if asked_user:
+            # Flush any buffered text (the question preamble)
+            for evt in pending_events:
+                yield evt
+            pending_events.clear()
+            break
+
         tool_round += 1
 
     # Build a condensed tool context summary so future turns remember
@@ -827,7 +857,7 @@ def _build_tool_context(all_messages: list[dict]) -> str:
     relevance scores (< 5.0) from search results.
     """
     blocks: list[str] = []
-    skip_tools = {"todo_write"}
+    skip_tools = {"todo_write", "ask_user"}
     _MIN_CLAUSE_SCORE = 5.0
 
     # Map tool_call_id → tool name so we can label tool results

@@ -1553,6 +1553,49 @@ body.chat-started .attach-menu {
   line-height: 1.5;
 }
 
+/* Ask-user cards */
+.ask-user-question {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.ask-user-context {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+.ask-user-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ask-option-btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-family: var(--font-sans);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.ask-option-btn:hover {
+  background: var(--accent-bg);
+  border-color: var(--accent);
+}
+.ask-option-desc {
+  display: block;
+  font-size: 11px;
+  color: var(--text-2);
+  margin-top: 2px;
+}
+
 /* Tool cards */
 .tool-card .card-icon { color: var(--warning); }
 .tool-card.search-tool .card-icon,

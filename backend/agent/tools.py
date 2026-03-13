@@ -232,6 +232,62 @@ TOOLS: list[dict[str, Any]] = [
             },
         },
     },
+    # ── Clarification ────────────────────────────────────────────────
+    {
+        "type": "function",
+        "function": {
+            "name": "ask_user",
+            "description": (
+                "Ask the user a clarifying question when you need additional information "
+                "to proceed. Use this when critical parameters are missing (e.g., beam length, "
+                "support conditions, load type). The question is displayed as a structured "
+                "prompt with optional choices. After calling this tool, STOP and wait for "
+                "the user's response — do NOT continue with assumptions."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "question": {
+                        "type": "string",
+                        "description": "The question to ask the user. Be specific about what you need and why.",
+                    },
+                    "options": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "label": {
+                                    "type": "string",
+                                    "description": "Short display text for this option.",
+                                },
+                                "value": {
+                                    "type": "string",
+                                    "description": "Value to use if this option is selected.",
+                                },
+                                "description": {
+                                    "type": "string",
+                                    "description": "Optional explanation of what this option means.",
+                                },
+                            },
+                            "required": ["label", "value"],
+                        },
+                        "description": (
+                            "Optional list of predefined choices. If provided, the user can "
+                            "pick one or type a custom answer. Omit for free-text input."
+                        ),
+                    },
+                    "context": {
+                        "type": "string",
+                        "description": (
+                            "Brief explanation of why this information is needed and how it "
+                            "affects the calculation."
+                        ),
+                    },
+                },
+                "required": ["question"],
+            },
+        },
+    },
     # ── General ───────────────────────────────────────────────────────
     {
         "type": "function",
@@ -580,6 +636,28 @@ def _handle_todo_write(args: dict) -> str:
     })
 
 
+def _handle_ask_user(args: dict) -> str:
+    """Return the question as a structured result.
+
+    The agent loop detects this tool and emits a special ``ask_user`` event
+    for the frontend.  The tool result tells the LLM to stop and wait.
+    """
+    question = args.get("question", "")
+    options = args.get("options", [])
+    context = args.get("context", "")
+
+    return json.dumps({
+        "status": "waiting_for_user",
+        "question": question,
+        "options": options,
+        "context": context,
+        "instruction": (
+            "The question has been shown to the user. STOP here and wait for "
+            "their response. Do NOT make assumptions or continue without their answer."
+        ),
+    })
+
+
 def _handle_run_command(args: dict) -> str:
     import subprocess, os
     command = args.get("command", "")
@@ -670,6 +748,7 @@ def build_tool_dispatcher(
         "read_clause": lambda args: _handle_read_clause(args, clause_index),
         "math_calculator": _handle_math_calculator,
         "todo_write": _handle_todo_write,
+        "ask_user": _handle_ask_user,
         "web_search": _handle_web_search,
         "fetch_url": _handle_fetch_url,
         "read_file": _handle_read_file,

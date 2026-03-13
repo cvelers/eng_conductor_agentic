@@ -1776,6 +1776,37 @@ function updatePlanStep(msgNode, stepId, status) {
   }
 }
 
+function renderAskUserCard(msgNode, question, options, context) {
+  const feed = _getActivityFeed(msgNode);
+  if (!feed) return;
+  let body = `<div class="ask-user-question">${escHtml(question)}</div>`;
+  if (context) {
+    body += `<div class="ask-user-context">${escHtml(context)}</div>`;
+  }
+  if (options && options.length) {
+    const optionsHtml = options.map(o => {
+      const desc = o.description ? `<span class="ask-option-desc">${escHtml(o.description)}</span>` : "";
+      return `<button class="ask-option-btn" data-value="${escHtml(o.value)}">${escHtml(o.label)}${desc}</button>`;
+    }).join("");
+    body += `<div class="ask-user-options">${optionsHtml}</div>`;
+  }
+  const card = _makeCard("ask-user", "Question", body);
+  feed.appendChild(card);
+  _autoScrollThinkingPanel(msgNode);
+
+  // Wire up option buttons to fill the input box
+  card.querySelectorAll(".ask-option-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const input = document.getElementById("messageInput");
+      if (input) {
+        input.value = btn.dataset.value;
+        input.focus();
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      }
+    });
+  });
+}
+
 function appendToolCard(msgNode, toolName, args, status) {
   const feed = _getActivityFeed(msgNode);
   if (!feed) return;
@@ -2326,6 +2357,9 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
       }
       if (event.type === "plan_update") {
         updatePlanStep(assistantNode, event.step_id, event.status);
+      }
+      if (event.type === "ask_user") {
+        renderAskUserCard(assistantNode, event.question, event.options || [], event.context || "");
       }
       if (event.type === "tool_start") {
         // Skip activity card for planning tool — the plan card handles it

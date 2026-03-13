@@ -286,10 +286,21 @@ def compact_if_needed(
 
 
 def convert_frontend_history(history: list) -> list[dict[str, Any]]:
-    """Convert ChatMessage objects from frontend to OpenAI message format."""
+    """Convert ChatMessage objects from frontend to OpenAI message format.
+
+    Strips ``<tool-context>`` blocks that the frontend appends to assistant
+    messages for session memory — the LLM should not see (or reproduce) those.
+    """
     messages: list[dict[str, Any]] = []
     for msg in history or []:
         role = msg.role if hasattr(msg, "role") else msg.get("role", "user")
         content = msg.content if hasattr(msg, "content") else msg.get("content", "")
+        # Strip tool-context blocks appended by the frontend
+        if role == "assistant" and "<tool-context>" in content:
+            content = re.sub(
+                r"\s*<tool-context>[\s\S]*?</tool-context>\s*$",
+                "",
+                content,
+            ).rstrip()
         messages.append({"role": role, "content": content})
     return messages

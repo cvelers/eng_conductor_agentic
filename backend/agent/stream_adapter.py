@@ -55,6 +55,14 @@ def adapt_event(event: dict[str, Any]) -> dict[str, Any]:
             "status": event.get("status", "pending"),
         }
 
+    if t == "ask_user":
+        return {
+            "type": "ask_user",
+            "question": event.get("question", ""),
+            "options": event.get("options", []),
+            "context": event.get("context", ""),
+        }
+
     if t == "done":
         return {
             "type": "final",
