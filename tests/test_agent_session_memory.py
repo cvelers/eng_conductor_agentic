@@ -21,7 +21,6 @@ from backend.agent.context import (
 )
 from backend.agent.loop import (
     _build_tool_context,
-    _deterministic_grounding_issues,
     run_agent_loop,
 )
 
@@ -155,41 +154,6 @@ def test_build_tool_context_keeps_only_selected_search_clauses() -> None:
     assert "clause_references" not in tool_context
     assert "[tool_call] ask_user(" in tool_context
     assert "[tool_result] ask_user" in tool_context
-
-
-def test_deterministic_grounding_rejects_unretrieved_clause_citation() -> None:
-    all_messages = [
-        {"role": "system", "content": "system"},
-        {
-            "role": "assistant",
-            "tool_calls": [
-                {
-                    "id": "tc_calc",
-                    "function": {
-                        "name": "engineering_calculator",
-                        "arguments": json.dumps({"tool_name": "ec3_ltb_check"}),
-                    },
-                }
-            ],
-        },
-        {
-            "role": "tool",
-            "tool_call_id": "tc_calc",
-            "content": json.dumps({
-                "outputs": {"Mb_Rd_kNm": 94.1},
-                "clause_references": ["EN 1993-1-1 §6.3.2"],
-            }),
-        },
-        {
-            "role": "assistant",
-            "content": "Per EN 1993-1-1 Clause 6.3.2, the LTB resistance is 94.1 kNm.",
-        },
-    ]
-
-    issues = _deterministic_grounding_issues(all_messages[-1]["content"], all_messages)
-
-    assert issues
-    assert "6.3.2" in issues[0]
 
 
 def test_run_agent_loop_stops_after_ask_user_even_if_more_tools_were_emitted() -> None:

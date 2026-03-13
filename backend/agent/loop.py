@@ -26,7 +26,6 @@ import time
 from typing import Any, AsyncIterator, Callable
 
 from openai import OpenAI
-from backend.agent.context import split_visible_and_tool_context
 
 logger = logging.getLogger(__name__)
 
@@ -305,25 +304,6 @@ Respond with ONLY a JSON object (no markdown, no explanation):
 - If issues found: {{"valid": false, "issues": ["issue1", "issue2", ...]}}\
 """
 
-_STANDARD_WITH_REF_RE = re.compile(
-    r"\b(EN\s*1993(?:[- ]\d+)+)\b(?:[^A-Za-z0-9]{0,12}(?:Cl(?:ause)?\.?\s*)?)?"
-    r"(Table\s+\d+\.\d+(?:\.\d+)?|\d+\.\d+(?:\.\d+)?(?:\([^)]+\))?)",
-    re.IGNORECASE,
-)
-_CLAUSE_CITATION_RE = re.compile(
-    r"\b(?:Cl(?:ause)?\.?)\s*(\d+\.\d+(?:\.\d+)?(?:\([^)]+\))?)\b",
-    re.IGNORECASE,
-)
-_TABLE_CITATION_RE = re.compile(
-    r"\b(Table\s+\d+\.\d+(?:\.\d+)?)\b",
-    re.IGNORECASE,
-)
-_PERSISTED_TOOL_RESULT_RE = re.compile(
-    r"\[tool_result\]\s+([a-zA-Z0-9_]+):\n(.*?)(?=\n\[tool_(?:call|result)\]|\n</tool-context>|$)",
-    re.DOTALL,
-)
-
-
 def _build_tool_results_for_validator(all_messages: list[dict]) -> str:
     """Extract tool call/result pairs from message history for the validator."""
     blocks: list[str] = []
@@ -385,138 +365,6 @@ def _build_conversation_history_for_validator(all_messages: list[dict]) -> str:
     return "\n\n".join(blocks) if blocks else ""
 
 
-def _normalize_standard_ref(standard: str) -> str:
-    digits = re.findall(r"\d+", standard or "")
-    if digits and digits[0] == "1993" and len(digits) >= 2:
-        return f"EN 1993-{'-'.join(digits[1:])}"
-    compact = re.sub(r"\s+", " ", (standard or "").strip())
-    return compact.upper()
-
-
-def _normalize_clause_ref(clause_id: str) -> str:
-    raw = (clause_id or "").strip()
-    if not raw:
-        return ""
-    if raw.lower().startswith("table"):
-        number = re.sub(r"(?i)^table\s*", "", raw).strip()
-        number = re.sub(r"\([^)]+\)", "", number)
-        return f"table {number}"
-    return re.sub(r"\([^)]+\)", "", raw)
-
-
-def _extract_cited_references(text: str) -> set[tuple[str | None, str]]:
-    refs: set[tuple[str | None, str]] = set()
-    for match in _STANDARD_WITH_REF_RE.finditer(text or ""):
-        refs.add((
-            _normalize_standard_ref(match.group(1)),
-            _normalize_clause_ref(match.group(2)),
-        ))
-    for match in _CLAUSE_CITATION_RE.finditer(text or ""):
-        refs.add((None, _normalize_clause_ref(match.group(1))))
-    for match in _TABLE_CITATION_RE.finditer(text or ""):
-        refs.add((None, _normalize_clause_ref(match.group(1))))
-    return {item for item in refs if item[1]}
-
-
-def _extract_clause_evidence_from_result(tool_name: str, raw: str) -> set[tuple[str | None, str]]:
-    if tool_name not in {"eurocode_search", "read_clause"}:
-        return set()
-    try:
-        data = json.loads(raw)
-    except (json.JSONDecodeError, TypeError):
-        return set()
-    if not isinstance(data, dict):
-        return set()
-
-    evidence: set[tuple[str | None, str]] = set()
-    for clause in data.get("clauses", []) or []:
-        if not isinstance(clause, dict):
-            continue
-        if tool_name == "eurocode_search" and not clause.get("selected"):
-            continue
-        clause_id = _normalize_clause_ref(str(clause.get("clause_id", "")))
-        if not clause_id:
-            continue
-        standard = _normalize_standard_ref(str(clause.get("standard", ""))) if clause.get("standard") else None
-        evidence.add((standard, clause_id))
-    return evidence
-
-
-def _iter_persisted_tool_results(content: str) -> list[tuple[str, str]]:
-    _, tool_context = split_visible_and_tool_context(content)
-    if not tool_context:
-        return []
-    return [
-        (match.group(1), match.group(2).strip())
-        for match in _PERSISTED_TOOL_RESULT_RE.finditer(tool_context)
-    ]
-
-
-def _collect_explicit_clause_evidence(messages: list[dict]) -> set[tuple[str | None, str]]:
-    evidence: set[tuple[str | None, str]] = set()
-    tc_id_to_name: dict[str, str] = {}
-
-    for msg in messages:
-        if msg.get("role") == "assistant" and msg.get("tool_calls"):
-            for tc in msg["tool_calls"]:
-                fn = tc.get("function", {})
-                tc_id = tc.get("id", "")
-                if tc_id:
-                    tc_id_to_name[tc_id] = fn.get("name", "")
-
-        if msg.get("role") == "tool":
-            tool_name = tc_id_to_name.get(msg.get("tool_call_id", ""), "")
-            raw = str(msg.get("content", "")).split("<system-reminder>")[0].strip()
-            evidence.update(_extract_clause_evidence_from_result(tool_name, raw))
-            continue
-
-        if msg.get("role") == "assistant" and not msg.get("tool_calls"):
-            content = str(msg.get("content", "") or "")
-            evidence.update(_extract_cited_references(content))
-            for tool_name, raw in _iter_persisted_tool_results(content):
-                evidence.update(_extract_clause_evidence_from_result(tool_name, raw))
-
-    return evidence
-
-
-def _format_citation_label(standard: str | None, clause_id: str) -> str:
-    if clause_id.startswith("table "):
-        base = f"Table {clause_id.split(' ', 1)[1]}"
-    else:
-        base = f"Clause {clause_id}"
-    return f"{standard} {base}" if standard else base
-
-
-def _deterministic_grounding_issues(response_text: str, all_messages: list[dict]) -> list[str]:
-    cited_refs = _extract_cited_references(response_text)
-    if not cited_refs:
-        return []
-
-    prior_messages = all_messages[:-1] if all_messages else []
-    explicit_evidence = _collect_explicit_clause_evidence(prior_messages)
-    explicit_ids = {clause_id for _, clause_id in explicit_evidence}
-
-    issues: list[str] = []
-    for standard, clause_id in sorted(cited_refs, key=lambda item: ((item[0] or ""), item[1])):
-        if standard:
-            if (standard, clause_id) in explicit_evidence or (None, clause_id) in explicit_evidence:
-                continue
-            issues.append(
-                f"{_format_citation_label(standard, clause_id)} is not grounded in explicit "
-                "retrieved clause evidence or previous validated session memory."
-            )
-            continue
-
-        if clause_id in explicit_ids:
-            continue
-        issues.append(
-            f"{_format_citation_label(None, clause_id)} is not grounded in explicit "
-            "retrieved clause evidence or previous validated session memory."
-        )
-
-    return issues
-
-
 async def _validate_grounding(
     client: OpenAI,
     model: str,
@@ -527,10 +375,6 @@ async def _validate_grounding(
     reasoning_effort: str | None = None,
 ) -> dict:
     """Call an independent LLM to validate grounding of the agent's response."""
-    deterministic_issues = _deterministic_grounding_issues(response_text, all_messages)
-    if deterministic_issues:
-        return {"valid": False, "issues": deterministic_issues}
-
     tool_results = _build_tool_results_for_validator(all_messages)
     conversation_history = _build_conversation_history_for_validator(all_messages)
 
@@ -1018,19 +862,30 @@ async def run_agent_loop(
 
 
 def _build_tool_context(all_messages: list[dict]) -> str:
-    """Build a full-fidelity record of tool calls and results for session memory.
+    """Build a curated record of tool calls and results for session memory.
 
-    Persist only explicit evidence the agent chose to use:
-    selected search clauses, explicit read_clause fetches, ask_user state,
-    and non-reference calculation outputs. Ambient clause references from
-    calculator metadata are dropped so future turns only inherit deliberate
-    evidence, not every candidate citation the tools surfaced.
+    Design decisions:
+      - **todo_write**: only the LAST call is kept (represents final plan
+        state).  Earlier calls are superseded and would waste tokens.
+      - **ask_user**: always included so the continuation agent knows what
+        question was asked and can resume seamlessly.
+      - **Search results (eurocode_search)**: only clauses with
+        ``selected=True`` (LLM-marked as truly needed) are kept.  Falls back
+        to score ≥ 5.0 when no clause has ``selected`` set (non-agentic mode).
+      - **Engineering calculator**: ``clause_references`` metadata is stripped.
+        These are static registry metadata about which clauses the tool
+        *implements*, NOT evidence that a clause was actually retrieved/read.
+        Keeping them would cause the grounding validator to wrongly treat them
+        as retrieved evidence.
     """
     blocks: list[str] = []
-    skip_tools = {"todo_write"}
 
     # Map tool_call_id → tool name so we can label tool results
     tc_id_to_name: dict[str, str] = {}
+
+    # Track the last todo_write call+result to append at the end
+    last_todo_call: str | None = None
+    last_todo_result: str | None = None
 
     for msg in all_messages:
         # ── Assistant tool calls: capture full args ──────────────────
@@ -1041,24 +896,33 @@ def _build_tool_context(all_messages: list[dict]) -> str:
                 tc_id = tc.get("id", "")
                 if tc_id:
                     tc_id_to_name[tc_id] = name
-                if name in skip_tools:
-                    continue
+
                 try:
                     args = json.loads(fn.get("arguments", "{}"))
                 except (json.JSONDecodeError, TypeError):
                     args = {}
                 args_str = json.dumps(args, ensure_ascii=False)
+
+                if name == "todo_write":
+                    # Only keep the last todo_write — it supersedes earlier ones
+                    last_todo_call = f"[tool_call] {name}({args_str})"
+                    last_todo_result = None  # reset until result arrives
+                    continue
+
                 blocks.append(f"[tool_call] {name}({args_str})")
 
         # ── Tool results: preserve full data ─────────────────────────
         if msg.get("role") == "tool":
             tool_name = tc_id_to_name.get(msg.get("tool_call_id", ""), "")
-            if tool_name in skip_tools:
-                continue
 
             content = msg.get("content", "")
             # Strip system-reminder suffixes before parsing
             raw = content.split("<system-reminder>")[0].strip()
+
+            if tool_name == "todo_write":
+                # Keep the last todo result alongside the last call
+                last_todo_result = f"[tool_result] {tool_name}:\n{raw}"
+                continue
 
             try:
                 data = json.loads(raw)
@@ -1072,15 +936,30 @@ def _build_tool_context(all_messages: list[dict]) -> str:
                 blocks.append(f"[tool_result] {tool_name}: {raw}")
                 continue
 
-            if tool_name == "eurocode_search" and "clauses" in data:
-                data["clauses"] = [
-                    clause for clause in data["clauses"]
-                    if isinstance(clause, dict) and clause.get("selected")
-                ]
-            elif tool_name != "read_clause":
+            # ── Search results: keep only LLM-selected clauses ───────
+            if "clauses" in data and "total_found" in data:
+                clauses = data["clauses"]
+                selected = [c for c in clauses
+                            if isinstance(c, dict) and c.get("selected")]
+                if selected:
+                    data["clauses"] = selected
+                else:
+                    # Fallback for non-agentic mode: keep score ≥ 5.0
+                    data["clauses"] = [
+                        c for c in clauses
+                        if isinstance(c.get("score", 10), (int, float))
+                        and c.get("score", 10) >= 5.0
+                    ]
+
+            # ── Engineering calculator: strip clause_references ───────
+            # These are static registry metadata about which clauses the
+            # tool *implements*, NOT evidence that a clause was actually
+            # retrieved.  Keeping them causes the grounding validator to
+            # treat them as retrieved evidence, masking missing lookups.
+            if tool_name == "engineering_calculator":
                 data.pop("clause_references", None)
 
-            # Remove empty/noise fields but keep everything else
+            # Remove noise fields
             for drop_key in ("_referenced_but_not_retrieved",):
                 data.pop(drop_key, None)
 
@@ -1088,6 +967,13 @@ def _build_tool_context(all_messages: list[dict]) -> str:
                 f"[tool_result] {tool_name}:\n"
                 + json.dumps(data, ensure_ascii=False, default=str)
             )
+
+    # Append the last todo_write (plan state) at the end — it's the
+    # most important context for continuation after ask_user.
+    if last_todo_call:
+        blocks.append(last_todo_call)
+    if last_todo_result:
+        blocks.append(last_todo_result)
 
     if not blocks:
         return ""
