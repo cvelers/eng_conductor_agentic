@@ -245,9 +245,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 for prev in reversed(request.history or []):
                     role = prev.role if hasattr(prev, "role") else prev.get("role", "")
                     content = prev.content if hasattr(prev, "content") else prev.get("content", "")
-                    if role == "assistant" and "[tool_call] ask_user(" in (content or ""):
-                        _is_ask_reply = True
-                    break  # only check the last message
+                    if role == "assistant":
+                        if "[tool_call] ask_user(" in (content or ""):
+                            _is_ask_reply = True
+                        break  # only check the last assistant message
 
                 user_content = request.message
                 if _is_ask_reply:

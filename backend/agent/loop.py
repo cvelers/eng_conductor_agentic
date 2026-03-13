@@ -721,6 +721,11 @@ async def run_agent_loop(
             pending_events.clear()
 
         # ── Execute tool calls ───────────────────────────────────────
+        # If ask_user is in the batch, execute it FIRST and skip the rest.
+        # The agent shouldn't be calling other tools alongside ask_user.
+        has_ask_user = any(tc["name"] == "ask_user" for tc in tool_calls)
+        if has_ask_user:
+            tool_calls = [tc for tc in tool_calls if tc["name"] == "ask_user"][:1]
         asked_user = False
         for tc in tool_calls:
             yield {"type": "tool_start", "tool": tc["name"], "args": tc["args"]}

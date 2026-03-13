@@ -2282,11 +2282,15 @@ function renderMessages() {
 }
 
 // ---- Streaming ----
-async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinking", attachments = [], { isEdit = false } = {}) {
+async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinking", attachments = [], { isEdit = false, isContinuation = false } = {}) {
   const contentEl = assistantNode.querySelector(".content");
-  contentEl.innerHTML = "";
+  // In continuation mode (ask_user follow-up), keep existing content
+  if (!isContinuation) {
+    contentEl.innerHTML = "";
+  }
   contentEl.classList.add("streaming");
-  let accumulated = "";
+  // Seed accumulated with existing markdown so continuation appends
+  let accumulated = isContinuation ? (assistantNode.__accumulatedMd || "") : "";
   let renderTimer = null;
   let lastRenderLen = 0;
 
@@ -2406,7 +2410,7 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
           updateThinkingLabel(assistantNode, "Continuing with your answer...");
           // Continue streaming into the SAME assistant bubble
           try {
-            await streamChat(answer, assistantNode, thread, thinkingMode);
+            await streamChat(answer, assistantNode, thread, thinkingMode, [], { isContinuation: true });
           } catch (err) {
             if (err.name !== "AbortError") {
               const errContentEl = assistantNode.querySelector(".content");
@@ -2528,6 +2532,7 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
 
       if (event.type === "delta") {
         accumulated += event.delta || event.content || "";
+        assistantNode.__accumulatedMd = accumulated;
         scheduleRender();
         // ── Agent→Flow bridge: first delta → light up response path ──
         if (assistantNode.__flow && !assistantNode.__deltaStarted) {
@@ -2643,7 +2648,9 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         contentEl.classList.remove("streaming");
         const payload = event.response;
         lastPayload = payload;
-        contentEl.innerHTML = renderMd(payload.answer);
+        // Use full accumulated text (includes prior run in continuation mode)
+        const displayText = accumulated || payload.answer;
+        contentEl.innerHTML = renderMd(displayText);
         buildCalcTabs(assistantNode);
         buildReferences(assistantNode);
         // Build trace from accumulated tool data
@@ -2676,13 +2683,29 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
           // remember what tools were used and key data retrieved.
           const toolCtx = event.tool_context || "";
           const storedContent = toolCtx
-            ? payload.answer + "\n\n" + toolCtx
-            : payload.answer;
-          thread.messages.push({ id: uid(), role: "assistant", content: storedContent, responsePayload: payload, createdAt: now() });
+            ? displayText + "\n\n" + toolCtx
+            : displayText;
+          if (isContinuation) {
+            // Update the existing assistant message instead of adding a new one
+            const lastAst = [...thread.messages].reverse().find(m => m.role === "assistant");
+            if (lastAst) {
+              lastAst.content = storedContent;
+              lastAst.responsePayload = payload;
+              lastAst.updatedAt = now();
+            }
+          } else {
+            thread.messages.push({ id: uid(), role: "assistant", content: storedContent, responsePayload: payload, createdAt: now() });
+          }
           thread.updatedAt = now();
           if (canUseStoredThreads()) {
             if (auth.threadsSync) {
-              await addMessageToApi(thread.id, "assistant", storedContent, payload);
+              if (isContinuation) {
+                // For sync, update the last assistant message
+                // (addMessageToApi appends; for now just save locally)
+                save();
+              } else {
+                await addMessageToApi(thread.id, "assistant", storedContent, payload);
+              }
             } else {
               save();
             }
