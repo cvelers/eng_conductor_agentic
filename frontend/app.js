@@ -1776,6 +1776,73 @@ function updatePlanStep(msgNode, stepId, status) {
   }
 }
 
+/* ── Ask-user popup ─────────────────────────────────────────────── */
+
+function showAskUserPopup(question, options, context) {
+  const popup = document.getElementById("ask-user-popup");
+  const qEl = document.getElementById("ask-user-popup-question");
+  const ctxEl = document.getElementById("ask-user-popup-context");
+  const optsEl = document.getElementById("ask-user-popup-options");
+  const inputEl = document.getElementById("ask-user-popup-input");
+  const sendEl = document.getElementById("ask-user-popup-send");
+  if (!popup) return;
+
+  qEl.textContent = question;
+  ctxEl.textContent = context || "";
+  optsEl.innerHTML = "";
+
+  if (options && options.length) {
+    options.forEach(o => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.dataset.value = o.value || o.label;
+      btn.innerHTML = escHtml(o.label) +
+        (o.description ? `<span class="ask-option-desc">${escHtml(o.description)}</span>` : "");
+      btn.addEventListener("click", () => {
+        inputEl.value = btn.dataset.value;
+        inputEl.focus();
+        // highlight selected
+        optsEl.querySelectorAll("button").forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+      });
+      optsEl.appendChild(btn);
+    });
+  }
+
+  inputEl.value = "";
+  popup.classList.remove("hidden");
+  inputEl.focus();
+
+  // Submit handler
+  function submit() {
+    const val = inputEl.value.trim();
+    if (!val) return;
+    popup.classList.add("hidden");
+    // Fill the main chat input and submit
+    const mainInput = document.getElementById("prompt-input");
+    if (mainInput) {
+      mainInput.value = val;
+      mainInput.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+    const form = document.getElementById("chat-form");
+    if (form) form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+    cleanup();
+  }
+
+  function cleanup() {
+    sendEl.removeEventListener("click", submit);
+    inputEl.removeEventListener("keydown", onKey);
+  }
+
+  function onKey(e) {
+    if (e.key === "Enter") { e.preventDefault(); submit(); }
+    if (e.key === "Escape") { popup.classList.add("hidden"); cleanup(); }
+  }
+
+  sendEl.addEventListener("click", submit);
+  inputEl.addEventListener("keydown", onKey);
+}
+
 function appendToolCard(msgNode, toolName, args, status) {
   const feed = _getActivityFeed(msgNode);
   if (!feed) return;
@@ -2326,6 +2393,9 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
       }
       if (event.type === "plan_update") {
         updatePlanStep(assistantNode, event.step_id, event.status);
+      }
+      if (event.type === "ask_user") {
+        showAskUserPopup(event.question, event.options || [], event.context || "");
       }
       if (event.type === "tool_start") {
         // Skip activity card for planning tool — the plan card handles it

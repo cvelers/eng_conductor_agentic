@@ -104,6 +104,24 @@
           </div>
         </div>
 
+        <!-- Ask-user popup: shown above the input when the agent needs clarification -->
+        <div id="ask-user-popup" class="ask-user-popup hidden">
+          <div class="ask-user-popup-inner">
+            <div class="ask-user-popup-question" id="ask-user-popup-question"></div>
+            <div class="ask-user-popup-context" id="ask-user-popup-context"></div>
+            <div class="ask-user-popup-options" id="ask-user-popup-options"></div>
+            <div class="ask-user-popup-input-row">
+              <input id="ask-user-popup-input" type="text" placeholder="Type your answer..." autocomplete="off" />
+              <button id="ask-user-popup-send" type="button" aria-label="Send answer">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="19" x2="12" y2="5"></line>
+                  <polyline points="6 11 12 5 18 11"></polyline>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
         <footer class="composer-shell">
           <form id="chat-form" class="composer">
             <div id="attachments-preview" class="attachments-preview hidden"></div>
