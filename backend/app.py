@@ -236,7 +236,30 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
                 # ── Agent loop (main path) ───────────────────────────
                 messages = convert_frontend_history(request.history)
-                messages.append({"role": "user", "content": request.message})
+
+                # Detect ask_user continuation: if the last assistant
+                # message's tool_context ends with an ask_user call,
+                # the user's message is a reply — tell the agent to
+                # continue from where it left off, not replan.
+                _is_ask_reply = False
+                for prev in reversed(request.history or []):
+                    role = prev.role if hasattr(prev, "role") else prev.get("role", "")
+                    content = prev.content if hasattr(prev, "content") else prev.get("content", "")
+                    if role == "assistant" and "[tool_call] ask_user(" in (content or ""):
+                        _is_ask_reply = True
+                    break  # only check the last message
+
+                user_content = request.message
+                if _is_ask_reply:
+                    user_content = (
+                        "[User's answer to your ask_user question]\n"
+                        f"{request.message}\n\n"
+                        "Continue from where you left off. Do NOT replan or redo previous "
+                        "tool calls — pick up your existing plan and proceed with the "
+                        "remaining steps using this answer."
+                    )
+
+                messages.append({"role": "user", "content": user_content})
 
                 # Auto-compact if conversation is long
                 messages = compact_if_needed(
