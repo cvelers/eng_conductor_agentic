@@ -846,6 +846,7 @@ async def run_agent_loop(
     ]
     session_tokens = estimate_messages_tokens(next_turn_msgs, system_prompt)
     yield {"type": "_session_tokens", "tokens": session_tokens}
+
     yield {"type": "done", "content": full_response}
 
 
