@@ -254,9 +254,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     user_content = (
                         "[User's answer to your ask_user question]\n"
                         f"{request.message}\n\n"
-                        "Continue from where you left off. Do NOT replan or redo previous "
-                        "tool calls — pick up your existing plan and proceed with the "
-                        "remaining steps using this answer."
+                        "CRITICAL: You are CONTINUING a previous calculation. "
+                        "All section properties, material data, clauses, and calculations "
+                        "from earlier tool calls are still in the conversation history — "
+                        "reuse them. Do NOT call todo_write with a new plan. Do NOT "
+                        "re-fetch section properties, material data, or clauses you "
+                        "already have. Simply use the user's answer together with your "
+                        "existing data to complete the remaining calculation steps."
                     )
 
                 messages.append({"role": "user", "content": user_content})

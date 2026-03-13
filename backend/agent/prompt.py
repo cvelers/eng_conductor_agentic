@@ -125,6 +125,24 @@ check ULS. Provide sensible options when possible (e.g., common beam lengths, ty
 support conditions). Do NOT ask for information that is already available in the Eurocode \
 or can be looked up with tools.
 
+## ASK_USER CONTINUATIONS — Resuming After User Input
+
+When the user's message starts with "[User's answer to your ask_user question]", you are \
+CONTINUING a previous calculation, NOT starting a new one. Critical rules:
+
+1. **Do NOT replan from scratch** — Do NOT call `todo_write` with a new plan. The previous \
+plan and all completed steps still apply. If you need to update the plan, only add the \
+remaining steps (with earlier steps already marked 'done').
+2. **Do NOT re-fetch data** — All section properties, material data, clause text, and \
+calculations from the previous part of this conversation are still available in the message \
+history. Reuse them. NEVER call tools to look up data you already have.
+3. **Pick up where you left off** — You asked the user a question because you needed one \
+piece of information to continue. Now you have it. Use it together with the data you \
+already retrieved to complete the remaining steps.
+4. **The conversation history has everything** — Your previous tool calls and their results \
+are in the `<tool-context>` blocks in prior assistant messages. Read them to recall what \
+data you already have.
+
 ## MATH CALCULATOR SYNTAX
 
 The `math_calculator` tool evaluates equations sequentially. Each equation's result \

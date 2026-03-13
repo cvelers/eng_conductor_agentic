@@ -2401,6 +2401,9 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
               save();
             }
           }
+          // Re-activate thinking panel for the continuation
+          setThinkingState(assistantNode, true);
+          updateThinkingLabel(assistantNode, "Continuing with your answer...");
           // Continue streaming into the SAME assistant bubble
           try {
             await streamChat(answer, assistantNode, thread, thinkingMode);

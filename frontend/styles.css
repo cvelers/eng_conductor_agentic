@@ -1154,6 +1154,7 @@ body.chat-started .attach-menu {
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  padding-left: 280px;                 /* center popup over chat area, not full viewport */
   padding-bottom: 130px;               /* clear the composer footer */
   animation: ask-overlay-in 180ms ease-out;
 }
@@ -1429,6 +1430,7 @@ body.chat-started .attach-menu {
   }
   .welcome { width: 92%; }
   .top-auth-btn { padding: 5px 10px; font-size: 0.74rem; }
+  .ask-user-overlay { padding-left: 0; }
 }
 
 /* ── Message Panels ─────────────────────────────────────────────── */
