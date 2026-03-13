@@ -349,8 +349,12 @@ def _build_tool_results_for_validator(all_messages: list[dict]) -> str:
             tool_name = tc_id_to_name.get(msg.get("tool_call_id", ""), "")
             if tool_name in skip:
                 continue
-            content = msg.get("content", "")
-            raw = content.split("<system-reminder>")[0].strip()
+            validator_content = msg.get("validator_content")
+            if isinstance(validator_content, str):
+                raw = validator_content.strip()
+            else:
+                content = msg.get("content", "")
+                raw = content.split("<system-reminder>")[0].strip()
 
             # Strip clause_references from engineering tool results.
             # These are static registry metadata (e.g. "EN 1993-1-1 §6.3.2")
@@ -370,8 +374,6 @@ def _build_tool_results_for_validator(all_messages: list[dict]) -> str:
                 except (json.JSONDecodeError, TypeError):
                     pass
 
-            if len(raw) > 6000:
-                raw = raw[:6000] + "\n... (truncated)"
             blocks.append(f"[RESULT] {tool_name}:\n{raw}")
 
     return "\n\n".join(blocks) if blocks else "(no tool calls in this session)"
@@ -396,10 +398,10 @@ def _build_conversation_history_for_validator(all_messages: list[dict]) -> str:
             continue
         # Previous user questions
         if role == "user":
-            blocks.append(f"[USER] {content[:500]}")
+            blocks.append(f"[USER] {content}")
         # Previous assistant text responses (no tool_calls = final answer)
         elif role == "assistant" and not msg.get("tool_calls"):
-            blocks.append(f"[ASSISTANT — previously validated] {content[:3000]}")
+            blocks.append(f"[ASSISTANT — previously validated] {content}")
     return "\n\n".join(blocks) if blocks else ""
 
 
@@ -845,6 +847,9 @@ async def run_agent_loop(
                 "role": "tool",
                 "tool_call_id": tc["id"],
                 "content": tool_content,
+                # Preserve full raw tool output for the grounding validator.
+                # The orchestrator still receives the budgeted `content` form.
+                "validator_content": result_str,
             })
 
             if asked_user:

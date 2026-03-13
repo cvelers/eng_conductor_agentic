@@ -22,6 +22,7 @@ from backend.agent.context import (
 from backend.agent.prompt import SYSTEM_PROMPT
 from backend.agent.loop import (
     _GROUNDING_VALIDATOR_PROMPT,
+    _build_conversation_history_for_validator,
     _build_tool_results_for_validator,
     _build_tool_context,
     run_agent_loop,
@@ -323,6 +324,47 @@ def test_prompts_require_preserving_demand_vs_resistance_semantics() -> None:
     assert "M_c,Rd = 223.08 kNm" in SYSTEM_PROMPT
     assert "Flag demand/resistance swaps" in _GROUNDING_VALIDATOR_PROMPT
     assert "Do NOT treat a previously validated resistance as evidence for a demand value" in _GROUNDING_VALIDATOR_PROMPT
+
+
+def test_validator_view_preserves_full_tool_output_when_validator_content_exists() -> None:
+    long_value = "X" * 7000
+    all_messages = [
+        {
+            "role": "assistant",
+            "tool_calls": [
+                {
+                    "id": "tc_calc",
+                    "function": {
+                        "name": "engineering_calculator",
+                        "arguments": json.dumps({"tool_name": "ec3_ltb_check"}),
+                    },
+                },
+            ],
+        },
+        {
+            "role": "tool",
+            "tool_call_id": "tc_calc",
+            "content": '{"outputs":{"preview":"short"}}<system-reminder>ignored</system-reminder>',
+            "validator_content": json.dumps({"outputs": {"full": long_value}}),
+        },
+    ]
+
+    validator_view = _build_tool_results_for_validator(all_messages)
+
+    assert long_value in validator_view
+    assert "... (truncated)" not in validator_view
+
+
+def test_validator_conversation_history_preserves_full_prior_messages() -> None:
+    user_text = "U" * 900
+    assistant_text = "A" * 3500
+    history = _build_conversation_history_for_validator([
+        {"role": "user", "content": user_text},
+        {"role": "assistant", "content": assistant_text},
+    ])
+
+    assert user_text in history
+    assert assistant_text in history
 
 
 def test_run_agent_loop_stops_after_ask_user_even_if_more_tools_were_emitted() -> None:
