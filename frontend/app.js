@@ -1779,13 +1779,13 @@ function updatePlanStep(msgNode, stepId, status) {
 /* ── Ask-user popup ─────────────────────────────────────────────── */
 
 function showAskUserPopup(question, options, context) {
-  const popup = document.getElementById("ask-user-popup");
+  const overlay = document.getElementById("ask-user-overlay");
   const qEl = document.getElementById("ask-user-popup-question");
   const ctxEl = document.getElementById("ask-user-popup-context");
   const optsEl = document.getElementById("ask-user-popup-options");
   const inputEl = document.getElementById("ask-user-popup-input");
   const sendEl = document.getElementById("ask-user-popup-send");
-  if (!popup) return;
+  if (!overlay) return;
 
   qEl.textContent = question;
   ctxEl.textContent = context || "";
@@ -1801,7 +1801,6 @@ function showAskUserPopup(question, options, context) {
       btn.addEventListener("click", () => {
         inputEl.value = btn.dataset.value;
         inputEl.focus();
-        // highlight selected
         optsEl.querySelectorAll("button").forEach(b => b.classList.remove("selected"));
         btn.classList.add("selected");
       });
@@ -1810,15 +1809,13 @@ function showAskUserPopup(question, options, context) {
   }
 
   inputEl.value = "";
-  popup.classList.remove("hidden");
+  overlay.classList.remove("hidden");
   inputEl.focus();
 
-  // Submit handler
   function submit() {
     const val = inputEl.value.trim();
     if (!val) return;
-    popup.classList.add("hidden");
-    // Fill the main chat input and submit
+    overlay.classList.add("hidden");
     const mainInput = document.getElementById("prompt-input");
     if (mainInput) {
       mainInput.value = val;
@@ -1836,7 +1833,7 @@ function showAskUserPopup(question, options, context) {
 
   function onKey(e) {
     if (e.key === "Enter") { e.preventDefault(); submit(); }
-    if (e.key === "Escape") { popup.classList.add("hidden"); cleanup(); }
+    if (e.key === "Escape") { overlay.classList.add("hidden"); cleanup(); }
   }
 
   sendEl.addEventListener("click", submit);

@@ -1144,28 +1144,36 @@ body.chat-started .attach-menu {
 .composer button[type="submit"].stop-mode { background: #e53e3e; opacity: 1; cursor: pointer; }
 .composer button[type="submit"].stop-mode:hover { background: #c53030; }
 
-/* Ask-user popup — appears above the composer */
-.ask-user-popup {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 50;
+/* Ask-user overlay — dims everything, card sits above composer */
+.ask-user-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
   display: flex;
+  align-items: flex-end;
   justify-content: center;
-  padding: 0 18px 96px;
-  pointer-events: none;
-  animation: ask-popup-in 200ms ease-out;
+  padding-bottom: 130px;               /* clear the composer footer */
+  animation: ask-overlay-in 180ms ease-out;
 }
-.ask-user-popup.hidden { display: none; }
-.ask-user-popup-inner {
-  pointer-events: auto;
-  width: min(820px, calc(100% - 20px));
+.ask-user-overlay.hidden { display: none; }
+@keyframes ask-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.ask-user-popup {
+  width: min(820px, calc(100% - 40px));
   background: var(--bg-2);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 16px 20px;
-  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.3);
+  padding: 18px 22px;
+  box-shadow: 0 -6px 32px rgba(0, 0, 0, 0.45);
+  animation: ask-popup-in 200ms ease-out;
+}
+@keyframes ask-popup-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 .ask-user-popup-question {
   font-size: 0.95rem;
@@ -1185,7 +1193,7 @@ body.chat-started .attach-menu {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 .ask-user-popup-options:empty { display: none; margin-bottom: 0; }
 .ask-user-popup-options button {
@@ -1228,7 +1236,7 @@ body.chat-started .attach-menu {
   background: var(--bg);
   color: var(--text);
   font-size: 0.88rem;
-  padding: 8px 12px;
+  padding: 10px 14px;
   outline: none;
   font-family: var(--font-sans);
 }
@@ -1237,8 +1245,8 @@ body.chat-started .attach-menu {
   box-shadow: 0 0 0 2px var(--accent-glow);
 }
 .ask-user-popup-input-row button {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 10px;
   border: none;
   background: var(--accent);
@@ -1250,10 +1258,6 @@ body.chat-started .attach-menu {
   transition: background 120ms;
 }
 .ask-user-popup-input-row button:hover { background: var(--accent-2); }
-@keyframes ask-popup-in {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
 
 /* Auth overlay (production-ready) */
 .auth-overlay {
