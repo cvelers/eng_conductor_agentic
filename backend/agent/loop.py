@@ -263,10 +263,10 @@ def _extract_clause_ids_from_result(result_str: str) -> set[str]:
 
 _GROUNDING_VALIDATOR_PROMPT = """\
 You are a grounding validator for an engineering assistant. Your ONLY job is to \
-check whether the response below is fully supported by the tool results from \
-this session. You are an independent auditor — the response author has no \
-control over your verdict.
+check whether the response below is fully supported by the available evidence. \
+You are an independent auditor — the response author has no control over your verdict.
 
+{conversation_history_section}\
 ## Tool Results From This Session
 {tool_results}
 
@@ -274,13 +274,19 @@ control over your verdict.
 {response}
 
 ## Instructions
-Check EVERY factual claim in the response against the tool results above:
-1. Every Eurocode clause cited (e.g. "Cl. 6.2.5") — is it in the tool results?
+Check EVERY factual claim in the response against the evidence above:
+1. Every Eurocode clause cited (e.g. "Cl. 6.2.5") — is it in the tool results \
+or in a previous validated response?
 2. Every numeric value stated (fy, Wpl, dimensions, safety factors) — does it \
-match a tool output? Check the actual numbers.
-3. Every calculation result — was it produced by math_calculator or \
-engineering_calculator?
-4. Any formula or rule — is it from a retrieved clause, or recited from memory?
+match a tool output or a value from a previous validated response? Check the \
+actual numbers.
+3. Every calculation result — was it produced by a calculator tool or stated in \
+a previous validated response?
+4. Any formula or rule — is it from a retrieved clause or previous response, \
+or recited from memory?
+
+Values and clauses that appear in previously validated responses are considered \
+grounded — they were already verified in an earlier turn. Do NOT flag them.
 
 Respond with ONLY a JSON object (no markdown, no explanation):
 - If fully grounded: {{"valid": true}}
@@ -323,6 +329,32 @@ def _build_tool_results_for_validator(all_messages: list[dict]) -> str:
     return "\n\n".join(blocks) if blocks else "(no tool calls in this session)"
 
 
+def _build_conversation_history_for_validator(all_messages: list[dict]) -> str:
+    """Extract previous validated responses from conversation history.
+
+    Returns user questions and assistant answers from prior turns so the
+    validator knows which values were already established and validated.
+    """
+    blocks: list[str] = []
+    for msg in all_messages:
+        role = msg.get("role", "")
+        content = msg.get("content", "")
+        if not content:
+            continue
+        # Skip system messages and injected validation-failure messages
+        if role == "system":
+            continue
+        if role == "user" and content.startswith("GROUNDING VALIDATION FAILED"):
+            continue
+        # Previous user questions
+        if role == "user":
+            blocks.append(f"[USER] {content[:500]}")
+        # Previous assistant text responses (no tool_calls = final answer)
+        elif role == "assistant" and not msg.get("tool_calls"):
+            blocks.append(f"[ASSISTANT — previously validated] {content[:3000]}")
+    return "\n\n".join(blocks) if blocks else ""
+
+
 async def _validate_grounding(
     client: OpenAI,
     model: str,
@@ -334,7 +366,19 @@ async def _validate_grounding(
 ) -> dict:
     """Call an independent LLM to validate grounding of the agent's response."""
     tool_results = _build_tool_results_for_validator(all_messages)
+    conversation_history = _build_conversation_history_for_validator(all_messages)
+
+    # Only include conversation history section if there are previous turns
+    if conversation_history:
+        history_section = (
+            "## Conversation History (previously validated)\n"
+            f"{conversation_history}\n\n"
+        )
+    else:
+        history_section = ""
+
     prompt = _GROUNDING_VALIDATOR_PROMPT.format(
+        conversation_history_section=history_section,
         tool_results=tool_results,
         response=response_text,
     )
@@ -660,11 +704,14 @@ async def run_agent_loop(
                 continue
 
         # ── Flush buffered events for intermediate rounds ─────────
-        # When the agent is calling tools, we flush any buffered text
-        # so the user sees intermediate reasoning before tool execution.
-        for evt in pending_events:
-            yield evt
-        pending_events.clear()
+        # When validation is enabled, hold ALL text until the final
+        # validation passes — the user must not see any response text
+        # before it is validated. When validation is off, flush
+        # immediately so the user sees intermediate reasoning.
+        if not may_validate:
+            for evt in pending_events:
+                yield evt
+            pending_events.clear()
 
         # ── Execute tool calls ───────────────────────────────────────
         for tc in tool_calls:
