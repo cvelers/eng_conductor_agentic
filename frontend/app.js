@@ -1878,6 +1878,7 @@ function showAskUserPopup(question, options, context, onAnswer) {
   const optsEl = document.getElementById("ask-user-popup-options");
   const inputEl = document.getElementById("ask-user-popup-input");
   const sendEl = document.getElementById("ask-user-popup-send");
+  const popupEl = overlay?.querySelector(".ask-user-popup");
   if (!overlay) return;
 
   qEl.textContent = question;
@@ -1903,6 +1904,7 @@ function showAskUserPopup(question, options, context, onAnswer) {
 
   inputEl.value = "";
   overlay.classList.remove("hidden");
+  positionPopup();
   inputEl.focus();
 
   function submit() {
@@ -1916,6 +1918,10 @@ function showAskUserPopup(question, options, context, onAnswer) {
   function cleanup() {
     sendEl.removeEventListener("click", submit);
     inputEl.removeEventListener("keydown", onKey);
+    window.removeEventListener("resize", positionPopup);
+    overlay.style.removeProperty("--ask-user-left");
+    overlay.style.removeProperty("--ask-user-width");
+    overlay.style.removeProperty("--ask-user-bottom");
   }
 
   function onKey(e) {
@@ -1923,8 +1929,26 @@ function showAskUserPopup(question, options, context, onAnswer) {
     if (e.key === "Escape") { overlay.classList.add("hidden"); cleanup(); }
   }
 
+  function positionPopup() {
+    if (!popupEl) return;
+    const composerEl = document.getElementById("chat-form");
+    if (!composerEl) return;
+    const rect = composerEl.getBoundingClientRect();
+    const gap = 12;
+    const maxWidth = Math.min(rect.width, window.innerWidth - 24);
+    const left = Math.min(
+      Math.max(12, rect.left),
+      Math.max(12, window.innerWidth - maxWidth - 12),
+    );
+    const bottom = Math.max(18, window.innerHeight - rect.top + gap);
+    overlay.style.setProperty("--ask-user-left", `${Math.round(left)}px`);
+    overlay.style.setProperty("--ask-user-width", `${Math.round(maxWidth)}px`);
+    overlay.style.setProperty("--ask-user-bottom", `${Math.round(bottom)}px`);
+  }
+
   sendEl.addEventListener("click", submit);
   inputEl.addEventListener("keydown", onKey);
+  window.addEventListener("resize", positionPopup);
 }
 
 function appendToolCard(msgNode, toolName, args, status) {
@@ -2408,13 +2432,10 @@ function renderMessages() {
 // ---- Streaming ----
 async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinking", attachments = [], { isEdit = false, isContinuation = false } = {}) {
   const contentEl = assistantNode.querySelector(".content");
-  // In continuation mode (ask_user follow-up), keep existing content
-  if (!isContinuation) {
-    contentEl.innerHTML = "";
-  }
+  contentEl.innerHTML = "";
   contentEl.classList.add("streaming");
-  // Seed accumulated with existing markdown so continuation appends
-  let accumulated = isContinuation ? (assistantNode.__accumulatedMd || "") : "";
+  let accumulated = "";
+  assistantNode.__accumulatedMd = "";
   let renderTimer = null;
   let lastRenderLen = 0;
 
@@ -2839,13 +2860,17 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
 
         if (!finalized) {
           const toolCtx = event.tool_context || "";
+          const eventSessionMemory = event.session_memory && typeof event.session_memory === "object"
+            ? event.session_memory
+            : {};
           const storedPayload = {
             ...payload,
             answer: displayText,
             session_memory: {
-              tool_context: toolCtx,
-              state: waitingForUser ? "waiting_for_user" : "final",
-              ask_user: pendingAskUser,
+              ...eventSessionMemory,
+              tool_context: toolCtx || eventSessionMemory.tool_context || "",
+              state: waitingForUser ? "waiting_for_user" : (eventSessionMemory.state || "final"),
+              ask_user: pendingAskUser || eventSessionMemory.ask_user || null,
             },
           };
           if (isContinuation) {

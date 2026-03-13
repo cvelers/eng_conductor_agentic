@@ -282,6 +282,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
                 session_tokens = 0
                 tool_context = ""
+                session_memory: dict[str, object] = {}
                 async for event in run_agent_loop(
                     client=client,
                     model=active_settings.orchestrator_model,
@@ -306,6 +307,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     if event.get("type") == "_tool_context":
                         tool_context = event.get("summary", "")
                         continue
+                    if event.get("type") == "_session_memory":
+                        memory = event.get("memory", {})
+                        session_memory = memory if isinstance(memory, dict) else {}
+                        continue
                     adapted = adapt_event(event)
                     all_events.append(adapted)
                     if event.get("type") == "done":
@@ -314,6 +319,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                         # frontend can store it with the assistant message
                         if tool_context:
                             adapted["tool_context"] = tool_context
+                        if session_memory:
+                            adapted["session_memory"] = session_memory
                     yield json.dumps(adapted, default=str) + "\n"
                     await asyncio.sleep(0.005)
 

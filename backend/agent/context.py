@@ -36,6 +36,7 @@ COMPACTION_TRIGGER_RATIO = 0.85  # trigger at 85% of context window
 COMPACTION_TARGET_RATIO = 0.55   # compact down to ~55%
 MIN_KEEP_MESSAGES = 6            # always keep last N messages at full fidelity
 MAX_SUMMARY_CHARS = 6500         # max length of compaction summary
+MAX_STRUCTURED_MEMORY_CHARS = 2500
 SUMMARY_PREFIX = "Conversation memory (auto-compacted):"
 _TOOL_CONTEXT_BLOCK_RE = re.compile(
     r"\s*(<tool-context>[\s\S]*?</tool-context>)\s*$",
@@ -287,7 +288,7 @@ def compact_if_needed(
     if len(summary) > MAX_SUMMARY_CHARS:
         summary = summary[:MAX_SUMMARY_CHARS - 1].rstrip() + "…"
 
-    return [{"role": "user", "content": summary}] + recent
+    return [{"role": "system", "content": summary}] + recent
 
 
 # ── Frontend history conversion ───────────────────────────────────────
@@ -381,6 +382,103 @@ def should_continue_from_ask_user(history: list[Any], is_ask_user_reply: bool) -
     return bool(is_ask_user_reply and last_assistant_message_waiting_for_user(history))
 
 
+def build_session_memory_context(
+    session_memory: dict[str, Any],
+    fallback_tool_context: str = "",
+) -> str:
+    """Render structured continuation memory into a compact system note."""
+    if not isinstance(session_memory, dict):
+        session_memory = {}
+
+    has_structured_fields = any(
+        session_memory.get(key)
+        for key in (
+            "task_anchor",
+            "preferred_standard",
+            "selected_clauses",
+            "recent_tool_results",
+            "plan",
+            "answer_summary",
+            "ask_user",
+        )
+    )
+    if not has_structured_fields:
+        return fallback_tool_context
+
+    lines = [
+        "<session-memory>",
+        "Continuation memory from the latest assistant turn. Stay on the same task unless the user explicitly changes direction.",
+    ]
+
+    task_anchor = str(session_memory.get("task_anchor", "") or "").strip()
+    if task_anchor:
+        lines.append(f"Task anchor: {task_anchor}")
+
+    preferred_standard = str(session_memory.get("preferred_standard", "") or "").strip()
+    if preferred_standard:
+        lines.append(
+            f"Preferred standard: {preferred_standard}. Keep using it unless the user explicitly switches standards."
+        )
+
+    answer_summary = str(session_memory.get("answer_summary", "") or "").strip()
+    if answer_summary:
+        lines.append(f"Latest answer summary: {answer_summary}")
+
+    clauses = session_memory.get("selected_clauses")
+    if isinstance(clauses, list) and clauses:
+        lines.append("Established references:")
+        for clause in clauses[:6]:
+            if not isinstance(clause, dict):
+                continue
+            standard = str(clause.get("standard", "") or "").strip()
+            clause_id = str(clause.get("clause_id", "") or "").strip()
+            title = str(clause.get("title", "") or "").strip()
+            if standard and clause_id:
+                suffix = f" — {title}" if title else ""
+                lines.append(f"- {standard} {clause_id}{suffix}")
+
+    recent_results = session_memory.get("recent_tool_results")
+    if isinstance(recent_results, list) and recent_results:
+        lines.append("Recent verified tool facts:")
+        for item in recent_results[:4]:
+            if not isinstance(item, dict):
+                continue
+            tool = str(item.get("tool", "") or "").strip()
+            summary = str(item.get("summary", "") or "").strip()
+            if tool and summary:
+                lines.append(f"- {tool}: {summary}")
+
+    plan = session_memory.get("plan")
+    if isinstance(plan, list) and plan:
+        lines.append("Latest plan state:")
+        for step in plan[:8]:
+            if not isinstance(step, dict):
+                continue
+            step_id = str(step.get("id", "") or "").strip()
+            text = str(step.get("text", "") or "").strip()
+            status = str(step.get("status", "pending") or "pending").strip()
+            if step_id or text:
+                label = step_id or "step"
+                suffix = f" — {text}" if text else ""
+                lines.append(f"- {label}: {status}{suffix}")
+
+    ask_user = session_memory.get("ask_user")
+    if isinstance(ask_user, dict):
+        question = str(ask_user.get("question", "") or "").strip()
+        context = str(ask_user.get("context", "") or "").strip()
+        if question:
+            lines.append(f"Open question for the user: {question}")
+        if context:
+            lines.append(f"Why it matters: {context}")
+
+    lines.append("</session-memory>")
+
+    text = "\n".join(lines)
+    if len(text) > MAX_STRUCTURED_MEMORY_CHARS:
+        text = text[: MAX_STRUCTURED_MEMORY_CHARS - 1].rstrip() + "…"
+    return text
+
+
 def convert_frontend_history(history: list) -> list[dict[str, Any]]:
     """Convert ChatMessage objects from frontend to OpenAI message format.
 
@@ -389,17 +487,33 @@ def convert_frontend_history(history: list) -> list[dict[str, Any]]:
     the model receives the full pre-compaction session state.
     """
     messages: list[dict[str, Any]] = []
-    for msg in history or []:
+    last_assistant_idx = -1
+    for idx, msg in enumerate(history or []):
+        role = msg.role if hasattr(msg, "role") else msg.get("role", "user")
+        if role == "assistant":
+            last_assistant_idx = idx
+
+    for idx, msg in enumerate(history or []):
         role = msg.role if hasattr(msg, "role") else msg.get("role", "user")
         content = msg.content if hasattr(msg, "content") else msg.get("content", "")
         if role == "assistant":
             memory = extract_assistant_session_memory(msg)
             content = memory["visible_content"]
-            if memory["tool_context"]:
-                content = (
-                    f"{content}\n\n{memory['tool_context']}"
-                    if content
-                    else memory["tool_context"]
+            messages.append({"role": role, "content": content})
+
+            # Only the latest assistant turn should inject continuation memory.
+            # Replaying raw tool context from every prior assistant message
+            # quickly drowns the model in low-value transcript data.
+            if idx == last_assistant_idx:
+                payload = memory["response_payload"]
+                session_memory = payload.get("session_memory", {}) if isinstance(payload, dict) else {}
+                context_note = build_session_memory_context(
+                    session_memory if isinstance(session_memory, dict) else {},
+                    fallback_tool_context=memory["tool_context"],
                 )
+                if context_note:
+                    messages.append({"role": "system", "content": context_note})
+            continue
+
         messages.append({"role": role, "content": content})
     return messages

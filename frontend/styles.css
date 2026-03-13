@@ -1149,13 +1149,9 @@ body.chat-started .attach-menu {
   position: fixed;
   inset: 0;
   z-index: 90;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(2px);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding-left: 280px;                 /* center popup over chat area, not full viewport */
-  padding-bottom: 130px;               /* clear the composer footer */
+  background: rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(1px);
+  display: block;
   animation: ask-overlay-in 180ms ease-out;
 }
 .ask-user-overlay.hidden { display: none; }
@@ -1164,12 +1160,16 @@ body.chat-started .attach-menu {
   to   { opacity: 1; }
 }
 .ask-user-popup {
-  width: min(820px, calc(100% - 40px));
+  position: absolute;
+  left: var(--ask-user-left, 12px);
+  bottom: var(--ask-user-bottom, 140px);
+  width: min(var(--ask-user-width, 820px), calc(100% - 24px));
+  max-width: calc(100% - 24px);
   background: var(--bg-2);
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 18px 22px;
-  box-shadow: 0 -6px 32px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
   animation: ask-popup-in 200ms ease-out;
 }
 @keyframes ask-popup-in {
@@ -2491,4 +2491,3 @@ body.chat-started .attach-menu {
   font-size: 0.72rem;
   color: var(--muted);
 }
-

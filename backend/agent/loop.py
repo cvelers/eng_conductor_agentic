@@ -41,6 +41,16 @@ FULL_FIDELITY_TOOL_RESULTS = 4
 # After this many total tool calls, inject budget guidance.
 TOOL_BUDGET_WARN_THRESHOLD = 10
 
+_META_TOOLS = {"todo_write", "ask_user"}
+_GROUNDING_EVIDENCE_TOOLS = {
+    "eurocode_search",
+    "read_clause",
+    "engineering_calculator",
+    "math_calculator",
+    "web_search",
+    "fetch_url",
+}
+
 # ── System Reminders (Claude Code pattern) ─────────────────────────
 # Injected after every tool result to keep the agent on track.
 # These repeat key behavioral instructions at the exact moment the
@@ -48,8 +58,8 @@ TOOL_BUDGET_WARN_THRESHOLD = 10
 # the end of the context window.
 
 _TODO_NUDGE = (
-    " Before your next tool call, call `todo_write` to mark this step "
-    "'done' and set the next step to 'in_progress'."
+    " If the task is multi-step, the plan changed, or you are about to ask "
+    "the user or finish, consider updating `todo_write` so the plan stays aligned."
 )
 
 _SYSTEM_REMINDERS: dict[str, str] = {
@@ -102,8 +112,9 @@ _SYSTEM_REMINDERS: dict[str, str] = {
     ),
     "todo_write": (
         "\n\n<system-reminder>"
-        "Plan updated. Now call the next tool for the step marked 'in_progress'. "
-        "After it completes, call todo_write again to mark it done."
+        "Plan updated. Proceed with the next step. "
+        "Update todo_write again when you complete a milestone, change approach, "
+        "or are about to finish."
         "</system-reminder>"
     ),
     "ask_user": (
@@ -202,6 +213,15 @@ def _consume_think_tags(text: str) -> tuple[str, str]:
     return "".join(visible_parts), "".join(reasoning_parts)
 
 
+def _is_internal_harness_user_message(content: str) -> bool:
+    text = str(content or "").strip()
+    return (
+        text.startswith("GROUNDING VALIDATION FAILED")
+        or text.startswith("SELF-REVIEW FAILED")
+        or text.startswith("STOP CALLING TOOLS.")
+    )
+
+
 # ── Tool call accumulation ───────────────────────────────────────────
 
 
@@ -282,6 +302,9 @@ You are a grounding validator for an engineering assistant. Your ONLY job is to 
 check whether the response below is fully supported by the available evidence. \
 You are an independent auditor — the response author has no control over your verdict.
 
+## Latest User Question
+{latest_user_message}
+
 {conversation_history_section}\
 ## Tool Results From This Session
 {tool_results}
@@ -312,6 +335,16 @@ value as a load effect just because the number matches.
 7. Inspect calculator CALL arguments as well as final prose. A calculator run does \
 NOT make its inputs valid. If a tool input lacks evidence, contradicts prior context, \
 or changes the meaning of an established symbol, flag it.
+8. Prior validated conversation/session memory only grounds facts that are EXPLICITLY \
+present there. It does NOT license new technical explanations, new formulas, new clauses, \
+new checks, or a new topic just because the same member, standard, or design context was \
+discussed earlier.
+9. Topic continuity is not evidence. If the response introduces a new subject (for example, \
+shear after earlier turns only discussed bending/classification/LTB), that new subject must \
+be explicitly supported by current tool results or explicit prior validated text about that \
+same subject.
+10. If current-turn tool results are empty or irrelevant to the response topic, and prior \
+validated context does not explicitly contain the needed claim, the response is ungrounded.
 
 Values and clauses that appear in previously validated responses are considered \
 grounded — they were already verified in an earlier turn. However, grounding does \
@@ -391,10 +424,17 @@ def _build_conversation_history_for_validator(all_messages: list[dict]) -> str:
         content = msg.get("content", "")
         if not content:
             continue
-        # Skip system messages and injected validation-failure messages
+        # Keep structured continuation memory / compaction summaries as validator evidence.
         if role == "system":
+            text = str(content).strip()
+            if (
+                text.startswith("Continuation memory:")
+                or "Conversation memory (auto-compacted):" in text
+                or text.startswith("<tool-context>")
+            ):
+                blocks.append(f"[SESSION MEMORY]\n{text}")
             continue
-        if role == "user" and content.startswith("GROUNDING VALIDATION FAILED"):
+        if role == "user" and _is_internal_harness_user_message(str(content)):
             continue
         # Previous user questions
         if role == "user":
@@ -403,6 +443,120 @@ def _build_conversation_history_for_validator(all_messages: list[dict]) -> str:
         elif role == "assistant" and not msg.get("tool_calls"):
             blocks.append(f"[ASSISTANT — previously validated] {content}")
     return "\n\n".join(blocks) if blocks else ""
+
+
+_FINAL_ANSWER_REVIEW_PROMPT = """\
+You are the SAME engineering agent performing a hidden end-of-turn self-review \
+before a draft answer is shown to the user.
+
+Your task is to decide:
+1. What kind of answer this is.
+2. Whether this draft answer needs grounding validation.
+3. Whether it already has enough support from prior validated conversation/session \
+memory and current tool results, or whether you should gather more evidence with tools \
+before answering.
+
+## Latest User Question
+{latest_user_message}
+
+## Conversation History / Session Memory
+{conversation_history}
+
+## Tool Results Available In This Turn
+{tool_results}
+
+## Draft Answer
+{response}
+
+## Decision rules
+- Choose exactly one `answer_type`:
+  - `conversation_meta`: questions about what was said earlier in the chat, what the user \
+first asked, what you answered previously, or other conversation-management/meta content.
+  - `nontechnical_chat`: greetings, acknowledgements, UI/help, or other clearly non-technical \
+chat.
+  - `technical_or_factual`: engineering, Eurocode, calculations, formulas, clauses, rules, \
+properties, design checks, or any factual/numeric explanation.
+- Set `requires_validation=true` for `technical_or_factual`.
+- Set `requires_validation=false` for `conversation_meta` and `nontechnical_chat`.
+- Set `requires_tools_before_answering=true` if the draft answer makes claims that are not \
+adequately supported by the evidence above.
+- Set `requires_tools_before_answering=false` if the draft answer is already supported by \
+prior validated context and/or current tool results.
+- For `conversation_meta`, never require tools just to restate chat history.
+- Prior validated context can support the answer only when it explicitly contains the same \
+fact being restated. Do not treat "same standard", "same member", or "same topic area" as \
+enough evidence for new technical claims.
+
+Respond with ONLY JSON:
+{{"answer_type": "technical_or_factual", "requires_validation": true, "requires_tools_before_answering": false, "reason": "short reason"}}\
+"""
+
+
+async def _self_review_final_answer(
+    client: OpenAI,
+    model: str,
+    response_text: str,
+    all_messages: list[dict],
+    *,
+    max_tokens: int = 300,
+    reasoning_effort: str | None = None,
+) -> dict[str, Any]:
+    """Ask the same model whether the draft answer is technical and/or unsupported."""
+    tool_results = _build_tool_results_for_validator(all_messages)
+    conversation_history = _build_conversation_history_for_validator(all_messages) or "(none)"
+    latest_user_message = ""
+    for msg in reversed(all_messages):
+        if msg.get("role") == "user":
+            latest_user_message = str(msg.get("content", "") or "").strip()
+            if latest_user_message and not _is_internal_harness_user_message(latest_user_message):
+                break
+    prompt = _FINAL_ANSWER_REVIEW_PROMPT.format(
+        latest_user_message=latest_user_message or "(none)",
+        conversation_history=conversation_history,
+        tool_results=tool_results,
+        response=response_text,
+    )
+
+    request_kwargs: dict[str, Any] = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.0,
+        "max_tokens": max_tokens,
+        "stream": False,
+    }
+    if reasoning_effort:
+        request_kwargs["reasoning_effort"] = reasoning_effort
+
+    loop = asyncio.get_running_loop()
+    try:
+        completion = await loop.run_in_executor(
+            None,
+            lambda: client.chat.completions.create(**request_kwargs),
+        )
+        raw = (completion.choices[0].message.content or "").strip()
+        if raw.startswith("```"):
+            raw = re.sub(r"^```\w*\n?", "", raw)
+            raw = re.sub(r"\n?```$", "", raw)
+        data = json.loads(raw)
+        if not isinstance(data, dict):
+            raise ValueError("self-review did not return a JSON object")
+        answer_type = str(data.get("answer_type", "") or "").strip() or "technical_or_factual"
+        return {
+            "answer_type": answer_type,
+            "requires_validation": bool(data.get("requires_validation")),
+            "requires_tools_before_answering": bool(data.get("requires_tools_before_answering")),
+            "reason": str(data.get("reason", "") or ""),
+        }
+    except Exception:
+        logger.exception("final_answer_self_review_failed")
+        # Conservative fallback: validate the answer, but don't force tools solely
+        # because the self-review channel failed.
+        return {
+            "answer_type": "technical_or_factual",
+            "requires_validation": True,
+            "requires_tools_before_answering": False,
+            "reason": "self-review failed",
+        }
 
 
 async def _validate_grounding(
@@ -417,6 +571,15 @@ async def _validate_grounding(
     """Call an independent LLM to validate grounding of the agent's response."""
     tool_results = _build_tool_results_for_validator(all_messages)
     conversation_history = _build_conversation_history_for_validator(all_messages)
+    latest_user_message = ""
+    for msg in reversed(all_messages):
+        if msg.get("role") != "user":
+            continue
+        content = str(msg.get("content", "") or "").strip()
+        if not content or _is_internal_harness_user_message(content):
+            continue
+        latest_user_message = content
+        break
 
     # Only include conversation history section if there are previous turns
     if conversation_history:
@@ -428,6 +591,7 @@ async def _validate_grounding(
         history_section = ""
 
     prompt = _GROUNDING_VALIDATOR_PROMPT.format(
+        latest_user_message=latest_user_message or "(none)",
         conversation_history_section=history_section,
         tool_results=tool_results,
         response=response_text,
@@ -457,10 +621,16 @@ async def _validate_grounding(
         return json.loads(raw)
     except (json.JSONDecodeError, TypeError):
         logger.warning("Grounding validator returned non-JSON: %s", raw[:200] if raw else "")
-        return {"valid": True}
+        return {
+            "valid": False,
+            "issues": ["Grounding validator returned malformed output; technical answer cannot be released unvalidated."],
+        }
     except Exception:
         logger.exception("Grounding validation LLM call failed")
-        return {"valid": True}
+        return {
+            "valid": False,
+            "issues": ["Grounding validator failed; technical answer cannot be released without validation."],
+        }
 
 
 # ── Main agent loop ──────────────────────────────────────────────────
@@ -512,9 +682,12 @@ async def run_agent_loop(
     # Stores the latest plan steps so we can emit plan_update events
     plan_steps: list[dict[str, str]] = []
     plan_emitted = False
+    last_ask_user_payload: dict[str, Any] | None = None
 
     # Grounding validation retry tracking
     validation_retries = 0
+    force_tool_use = False
+    used_grounding_tools_this_turn = False
 
     all_messages = [{"role": "system", "content": system_prompt}] + messages
 
@@ -537,7 +710,7 @@ async def run_agent_loop(
             request_kwargs["tool_choice"] = "none"
         else:
             request_kwargs["tools"] = tools
-            request_kwargs["tool_choice"] = "auto"
+            request_kwargs["tool_choice"] = "required" if force_tool_use and tools else "auto"
 
         if reasoning_effort:
             request_kwargs["reasoning_effort"] = reasoning_effort
@@ -552,12 +725,6 @@ async def run_agent_loop(
         # tool-call rounds are internal working state, not user-facing output.
         # Only a no-tool final round is allowed to become visible answer text.
         pending_events: list[dict] = []
-        may_validate = (
-            grounding_validation
-            and validator_client is not None
-            and validator_model
-        )
-
         try:
             async for chunk_type, payload in _iter_stream_chunks(client, request_kwargs):
                 if chunk_type == "completion":
@@ -628,7 +795,10 @@ async def run_agent_loop(
 
         # Build assistant message for history
         assistant_msg: dict[str, Any] = {"role": "assistant"}
-        if assistant_content:
+        # Never preserve hidden scratch prose from tool-call rounds.
+        # The user never saw that text, and replaying it across turns causes
+        # stale assumptions and half-formed reasoning to leak forward.
+        if assistant_content and not tool_calls:
             assistant_msg["content"] = assistant_content
         if tool_calls:
             tc_list = []
@@ -651,16 +821,46 @@ async def run_agent_loop(
         if not tool_calls:
             # Only a no-tool round is a candidate final answer.
             full_response += assistant_content
+            review = {
+                "requires_validation": False,
+                "requires_tools_before_answering": False,
+                "reason": "",
+            }
+            if grounding_validation and full_response.strip():
+                review = await _self_review_final_answer(
+                    client=client,
+                    model=model,
+                    response_text=full_response,
+                    all_messages=all_messages,
+                    max_tokens=300,
+                    reasoning_effort=reasoning_effort or None,
+                )
+
+            if review.get("requires_tools_before_answering") and tools:
+                pending_events.clear()
+                full_response = ""
+                force_tool_use = True
+                all_messages.pop()
+                reason = str(review.get("reason", "") or "").strip()
+                all_messages.append({
+                    "role": "user",
+                    "content": (
+                        "SELF-REVIEW FAILED. Your draft answer is not sufficiently supported yet. "
+                        + (f"Reason: {reason}\n\n" if reason else "")
+                        + "Gather the missing evidence with the appropriate tools before answering."
+                    ),
+                })
+                tool_round += 1
+                continue
+
             # ── Grounding validation (independent LLM) ───────────────
-            # Always validate the final response if there was tool usage.
-            has_tool_results = any(m.get("role") == "tool" for m in all_messages)
-            if (
+            should_validate = (
                 grounding_validation
-                and has_tool_results
-                and full_response.strip()
                 and validator_client is not None
                 and validator_model
-            ):
+                and bool(review.get("requires_validation"))
+            )
+            if should_validate:
                 yield {"type": "tool_start", "tool": "grounding_validator", "args": {}}
                 verdict = await _validate_grounding(
                     client=validator_client,
@@ -686,20 +886,35 @@ async def run_agent_loop(
 
                     # Discard buffered events — user never sees the bad response
                     pending_events.clear()
-
-                    # Inject issues as a message and let the agent try again
-                    all_messages.append({
-                        "role": "user",
-                        "content": (
-                            "GROUNDING VALIDATION FAILED. An independent validator found these issues "
-                            "with your response:\n\n"
-                            f"{issues_text}\n\n"
-                            "Fix these issues: either fetch the missing data with the appropriate tool, "
-                            "or remove the ungrounded claims. Then provide a corrected response."
-                        ),
-                    })
-                    # Reset full_response — the agent will produce a new one
                     full_response = ""
+                    had_evidence_this_turn = used_grounding_tools_this_turn
+                    all_messages.pop()
+
+                    if not had_evidence_this_turn and tools:
+                        force_tool_use = True
+                        all_messages.append({
+                            "role": "user",
+                            "content": (
+                                "GROUNDING VALIDATION FAILED. Your draft answer was not supported by "
+                                "retrieved evidence. An independent validator found these issues:\n\n"
+                                f"{issues_text}\n\n"
+                                "Do NOT answer from memory. First gather the missing evidence with the "
+                                "appropriate search, clause, or calculation tools. Only then answer."
+                            ),
+                        })
+                    else:
+                        # Inject issues as a message and let the agent try again
+                        all_messages.append({
+                            "role": "user",
+                            "content": (
+                                "GROUNDING VALIDATION FAILED. An independent validator found these issues "
+                                "with your response:\n\n"
+                                f"{issues_text}\n\n"
+                                "Fix these issues: either fetch the missing data with the appropriate tool, "
+                                "or remove the ungrounded claims. Then provide a corrected response."
+                            ),
+                        })
+                    # Reset full_response — the agent will produce a new one
                     tool_round += 1
                     continue
 
@@ -711,10 +926,11 @@ async def run_agent_loop(
 
         # Tool-call rounds are internal. Never surface their prose to the user.
         pending_events.clear()
+        if any(tc["name"] not in _META_TOOLS for tc in tool_calls):
+            force_tool_use = False
 
         # ── Loop detection ───────────────────────────────────────────
         # Don't count meta-tools toward tool budget
-        _META_TOOLS = {"todo_write", "ask_user"}
         real_calls = [tc for tc in tool_calls if tc["name"] not in _META_TOOLS]
         for tc in real_calls:
             consecutive_names.append(tc["name"])
@@ -774,6 +990,11 @@ async def run_agent_loop(
                     ask_data = json.loads(result_str)
                 except (json.JSONDecodeError, TypeError):
                     ask_data = {}
+                last_ask_user_payload = {
+                    "question": ask_data.get("question", ""),
+                    "options": ask_data.get("options", []),
+                    "context": ask_data.get("context", ""),
+                }
                 yield {
                     "type": "ask_user",
                     "question": ask_data.get("question", ""),
@@ -808,6 +1029,9 @@ async def run_agent_loop(
                 "status": status,
                 "summary": summary,
             }
+
+            if tc["name"] in _GROUNDING_EVIDENCE_TOOLS and status == "ok":
+                used_grounding_tools_this_turn = True
 
             # ── Novelty tracking for search results ──────────────────
             if tc["name"] == "eurocode_search":
@@ -876,6 +1100,15 @@ async def run_agent_loop(
     tool_summary = _build_tool_context(all_messages)
     if tool_summary:
         yield {"type": "_tool_context", "summary": tool_summary}
+
+    session_memory = _build_session_memory(
+        all_messages,
+        plan_steps=plan_steps,
+        full_response=full_response,
+        ask_user_payload=last_ask_user_payload,
+    )
+    if session_memory:
+        yield {"type": "_session_memory", "memory": session_memory}
 
     # Emit token count of what the NEXT request's input will look like:
     # prior history + this turn's text + tool context summary.
@@ -1010,6 +1243,213 @@ def _build_tool_context(all_messages: list[dict]) -> str:
     if not blocks:
         return ""
     return "<tool-context>\n" + "\n".join(blocks) + "\n</tool-context>"
+
+
+def _extract_task_anchor(all_messages: list[dict]) -> str:
+    """Return the latest user task, skipping validator and ask_user wrapper text."""
+    for msg in reversed(all_messages):
+        if msg.get("role") != "user":
+            continue
+        content = str(msg.get("content", "") or "").strip()
+        if not content or _is_internal_harness_user_message(content):
+            continue
+        if content.startswith("[User's answer to your ask_user question]"):
+            continue
+        return re.sub(r"\s+", " ", content)[:280]
+    return ""
+
+
+def _extract_selected_clauses_for_memory(all_messages: list[dict]) -> list[dict[str, str]]:
+    """Collect the clauses that should anchor future turns."""
+    clauses: list[dict[str, str]] = []
+    seen: set[tuple[str, str]] = set()
+    tc_id_to_name: dict[str, str] = {}
+
+    for msg in all_messages:
+        if msg.get("role") == "assistant" and msg.get("tool_calls"):
+            for tc in msg["tool_calls"]:
+                tc_id = tc.get("id", "")
+                name = tc.get("function", {}).get("name", "")
+                if tc_id:
+                    tc_id_to_name[tc_id] = name
+
+        if msg.get("role") != "tool":
+            continue
+
+        tool_name = tc_id_to_name.get(msg.get("tool_call_id", ""), "")
+        if tool_name not in {"eurocode_search", "read_clause"}:
+            continue
+
+        raw = str(msg.get("validator_content") or msg.get("content") or "")
+        raw = raw.split("<system-reminder>")[0].strip()
+        try:
+            data = json.loads(raw)
+        except (json.JSONDecodeError, TypeError):
+            continue
+        if not isinstance(data, dict) or "clauses" not in data:
+            continue
+
+        clause_rows = data.get("clauses", [])
+        if not isinstance(clause_rows, list):
+            continue
+
+        if tool_name == "eurocode_search":
+            selected = [
+                c for c in clause_rows
+                if isinstance(c, dict) and c.get("selected")
+            ]
+            if selected:
+                clause_rows = selected
+            else:
+                clause_rows = [
+                    c for c in clause_rows
+                    if isinstance(c, dict)
+                    and isinstance(c.get("score", 10), (int, float))
+                    and c.get("score", 10) >= 5.0
+                ]
+
+        for clause in clause_rows:
+            if not isinstance(clause, dict):
+                continue
+            standard = str(clause.get("standard", "") or "")
+            clause_id = str(clause.get("clause_id", "") or "")
+            title = str(clause.get("title") or clause.get("clause_title") or "")
+            if not standard or not clause_id:
+                continue
+            key = (standard, clause_id)
+            if key in seen:
+                continue
+            seen.add(key)
+            clauses.append({
+                "standard": standard,
+                "clause_id": clause_id,
+                "title": title,
+            })
+    return clauses[:6]
+
+
+def _summarize_for_session_memory(tool_name: str, raw: str) -> str:
+    """Build a compact continuation summary from a tool result."""
+    try:
+        data = json.loads(raw)
+    except (json.JSONDecodeError, TypeError):
+        text = re.sub(r"\s+", " ", raw).strip()
+        return text[:220]
+
+    if not isinstance(data, dict):
+        return str(data)[:220]
+
+    if tool_name == "ask_user":
+        question = str(data.get("question", "") or "").strip()
+        return question[:220]
+
+    outputs = data.get("outputs")
+    if isinstance(outputs, dict) and outputs:
+        items = [f"{k}={v}" for k, v in list(outputs.items())[:4]]
+        return ", ".join(items)[:220]
+
+    clauses = data.get("clauses")
+    if isinstance(clauses, list) and clauses:
+        refs: list[str] = []
+        for clause in clauses[:3]:
+            if not isinstance(clause, dict):
+                continue
+            standard = str(clause.get("standard", "") or "").strip()
+            clause_id = str(clause.get("clause_id", "") or "").strip()
+            if standard and clause_id:
+                refs.append(f"{standard} {clause_id}")
+        if refs:
+            return "; ".join(refs)[:220]
+
+    results = data.get("results")
+    if isinstance(results, list) and results:
+        names = []
+        for row in results[:3]:
+            if isinstance(row, dict):
+                name = row.get("tool_name") or row.get("name")
+                if isinstance(name, str) and name:
+                    names.append(name)
+        if names:
+            return ", ".join(names)[:220]
+
+    if "error" in data:
+        return f"error: {str(data['error'])[:180]}"
+
+    return _summarize_result(raw, tool_name)[:220]
+
+
+def _extract_recent_tool_results_for_memory(all_messages: list[dict]) -> list[dict[str, str]]:
+    """Collect compact summaries of recent tool outputs for continuation."""
+    tc_id_to_name: dict[str, str] = {}
+    facts: list[dict[str, str]] = []
+    skip = {"todo_write", "grounding_validator"}
+
+    for msg in all_messages:
+        if msg.get("role") == "assistant" and msg.get("tool_calls"):
+            for tc in msg["tool_calls"]:
+                tc_id = tc.get("id", "")
+                name = tc.get("function", {}).get("name", "")
+                if tc_id:
+                    tc_id_to_name[tc_id] = name
+
+        if msg.get("role") != "tool":
+            continue
+
+        tool_name = tc_id_to_name.get(msg.get("tool_call_id", ""), "")
+        if not tool_name or tool_name in skip:
+            continue
+
+        raw = str(msg.get("validator_content") or msg.get("content") or "")
+        raw = raw.split("<system-reminder>")[0].strip()
+        summary = _summarize_for_session_memory(tool_name, raw)
+        if not summary:
+            continue
+        facts.append({"tool": tool_name, "summary": summary})
+
+    return facts[-4:]
+
+
+def _build_session_memory(
+    all_messages: list[dict],
+    *,
+    plan_steps: list[dict[str, str]],
+    full_response: str,
+    ask_user_payload: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Build structured continuation memory for the next turn."""
+    selected_clauses = _extract_selected_clauses_for_memory(all_messages)
+    preferred_standard = ""
+    if selected_clauses:
+        counts: dict[str, int] = {}
+        for clause in selected_clauses:
+            standard = clause.get("standard", "")
+            if standard:
+                counts[standard] = counts.get(standard, 0) + 1
+        preferred_standard = max(counts.items(), key=lambda item: item[1])[0] if counts else ""
+
+    memory: dict[str, Any] = {
+        "state": "waiting_for_user" if ask_user_payload else "final",
+        "task_anchor": _extract_task_anchor(all_messages),
+        "preferred_standard": preferred_standard,
+        "selected_clauses": selected_clauses,
+        "recent_tool_results": _extract_recent_tool_results_for_memory(all_messages),
+    }
+
+    if plan_steps:
+        memory["plan"] = [{
+            "id": step.get("id", ""),
+            "text": step.get("text", ""),
+            "status": step.get("status", "pending"),
+        } for step in plan_steps[:8]]
+
+    if ask_user_payload:
+        memory["ask_user"] = ask_user_payload
+
+    answer_summary = re.sub(r"\s+", " ", full_response or "").strip()
+    if answer_summary:
+        memory["answer_summary"] = answer_summary[:320]
+
+    return memory
 
 
 def _summarize_result(result_str: str, tool_name: str, elapsed_ms: int = 0) -> str:
