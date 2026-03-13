@@ -1778,7 +1778,11 @@ function updatePlanStep(msgNode, stepId, status) {
 
 /* ── Ask-user popup ─────────────────────────────────────────────── */
 
-function showAskUserPopup(question, options, context) {
+/**
+ * Show the ask-user popup. When the user answers, `onAnswer(value)`
+ * is called instead of creating a new chat message.
+ */
+function showAskUserPopup(question, options, context, onAnswer) {
   const overlay = document.getElementById("ask-user-overlay");
   const qEl = document.getElementById("ask-user-popup-question");
   const ctxEl = document.getElementById("ask-user-popup-context");
@@ -1816,14 +1820,8 @@ function showAskUserPopup(question, options, context) {
     const val = inputEl.value.trim();
     if (!val) return;
     overlay.classList.add("hidden");
-    const mainInput = document.getElementById("prompt-input");
-    if (mainInput) {
-      mainInput.value = val;
-      mainInput.dispatchEvent(new Event("input", { bubbles: true }));
-    }
-    const form = document.getElementById("chat-form");
-    if (form) form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
     cleanup();
+    if (onAnswer) onAnswer(val);
   }
 
   function cleanup() {
@@ -2392,7 +2390,27 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         updatePlanStep(assistantNode, event.step_id, event.status);
       }
       if (event.type === "ask_user") {
-        showAskUserPopup(event.question, event.options || [], event.context || "");
+        showAskUserPopup(event.question, event.options || [], event.context || "", async (answer) => {
+          // Add the user's answer to thread history so the agent sees it
+          thread.messages.push({ id: uid(), role: "user", content: answer, createdAt: now() });
+          thread.updatedAt = now();
+          if (canUseStoredThreads()) {
+            if (auth.threadsSync) {
+              await addMessageToApi(thread.id, "user", answer);
+            } else {
+              save();
+            }
+          }
+          // Continue streaming into the SAME assistant bubble
+          try {
+            await streamChat(answer, assistantNode, thread, thinkingMode);
+          } catch (err) {
+            if (err.name !== "AbortError") {
+              const errContentEl = assistantNode.querySelector(".content");
+              errContentEl.innerHTML += `<div class="error-msg">${escHtml(err.message)}</div>`;
+            }
+          }
+        });
       }
       if (event.type === "tool_start") {
         // Skip activity card for planning tool — the plan card handles it
