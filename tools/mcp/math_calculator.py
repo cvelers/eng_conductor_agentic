@@ -183,6 +183,281 @@ def safe_eval(expression: str, namespace: dict[str, Any]) -> Any:
     return evaluator.visit(tree)
 
 
+_LATEX_GREEK = {
+    "alpha": r"\alpha",
+    "beta": r"\beta",
+    "gamma": r"\gamma",
+    "phi": r"\phi",
+    "Phi": r"\Phi",
+    "chi": r"\chi",
+    "lambda": r"\lambda",
+    "psi": r"\psi",
+    "eta": r"\eta",
+    "mu": r"\mu",
+    "rho": r"\rho",
+    "epsilon": r"\epsilon",
+}
+
+_LATEX_IDENT_OVERRIDES = {
+    "Mcr": r"M_{cr}",
+    "Mpl": r"M_{pl}",
+    "Mel": r"M_{el}",
+    "Mb": r"M_b",
+    "Mc": r"M_c",
+    "Ncr": r"N_{cr}",
+    "Npl": r"N_{pl}",
+    "Vpl": r"V_{pl}",
+    "Wpl": r"W_{pl}",
+    "Wel": r"W_{el}",
+    "fy": r"f_y",
+    "fu": r"f_u",
+}
+
+_LATEX_NAME_OVERRIDES = {
+    "M_c_Rd": r"M_{c,Rd}",
+    "Mc_Rd": r"M_{c,Rd}",
+    "M_b_Rd": r"M_{b,Rd}",
+    "Mb_Rd": r"M_{b,Rd}",
+    "M_pl_Rd": r"M_{pl,Rd}",
+    "Mpl_Rd": r"M_{pl,Rd}",
+    "M_el_Rd": r"M_{el,Rd}",
+    "Mel_Rd": r"M_{el,Rd}",
+    "M_Rd": r"M_{Rd}",
+    "M_Ed": r"M_{Ed}",
+    "M_cr": r"M_{cr}",
+    "N_pl_Rd": r"N_{pl,Rd}",
+    "Npl_Rd": r"N_{pl,Rd}",
+    "N_b_Rd": r"N_{b,Rd}",
+    "N_t_Rd": r"N_{t,Rd}",
+    "N_Rd": r"N_{Rd}",
+    "N_Ed": r"N_{Ed}",
+    "N_cr": r"N_{cr}",
+    "V_pl_Rd": r"V_{pl,Rd}",
+    "Vpl_Rd": r"V_{pl,Rd}",
+    "V_Rd": r"V_{Rd}",
+    "V_Ed": r"V_{Ed}",
+    "W_pl_y": r"W_{pl,y}",
+    "Wpl_y": r"W_{pl,y}",
+    "W_el_y": r"W_{el,y}",
+    "Wel_y": r"W_{el,y}",
+    "W_pl_z": r"W_{pl,z}",
+    "Wpl_z": r"W_{pl,z}",
+    "W_el_z": r"W_{el,z}",
+    "Wel_z": r"W_{el,z}",
+    "I_y": r"I_y",
+    "I_z": r"I_z",
+    "I_w": r"I_w",
+    "I_t": r"I_t",
+    "f_y": r"f_y",
+    "f_u": r"f_u",
+    "gamma_M0": r"\gamma_{M0}",
+    "gamma_M1": r"\gamma_{M1}",
+    "gamma_M2": r"\gamma_{M2}",
+    "alpha_LT": r"\alpha_{LT}",
+    "phi_LT": r"\phi_{LT}",
+    "Phi_LT": r"\Phi_{LT}",
+    "chi_LT": r"\chi_{LT}",
+    "lambda_LT": r"\lambda_{LT}",
+    "lambda_LT_bar": r"\bar{\lambda}_{LT}",
+}
+
+_LATEX_UNIT_OVERRIDES = {
+    "nmm": r"\mathrm{Nmm}",
+    "knm": r"\mathrm{kNm}",
+    "kn": r"\mathrm{kN}",
+    "mpa": r"\mathrm{MPa}",
+    "gpa": r"\mathrm{GPa}",
+    "mm": r"\mathrm{mm}",
+    "mm2": r"\mathrm{mm}^{2}",
+    "mm3": r"\mathrm{mm}^{3}",
+    "mm4": r"\mathrm{mm}^{4}",
+    "mm6": r"\mathrm{mm}^{6}",
+    "cm2": r"\mathrm{cm}^{2}",
+    "cm3": r"\mathrm{cm}^{3}",
+    "cm4": r"\mathrm{cm}^{4}",
+    "cm6": r"\mathrm{cm}^{6}",
+    "m": r"\mathrm{m}",
+    "m2": r"\mathrm{m}^{2}",
+    "rad": r"\mathrm{rad}",
+    "deg": r"^\circ",
+}
+
+
+def _normalize_unit_token(token: str) -> str:
+    return (
+        str(token or "")
+        .replace(" ", "")
+        .replace("^", "")
+        .replace("\u00b2", "2")
+        .replace("\u00b3", "3")
+        .replace("\u2074", "4")
+        .replace("\u2076", "6")
+        .lower()
+    )
+
+
+def _unit_to_latex(unit: str) -> str:
+    raw = str(unit or "").strip()
+    if not raw:
+        return ""
+    return _LATEX_UNIT_OVERRIDES.get(_normalize_unit_token(raw), rf"\mathrm{{{raw}}}")
+
+
+def _identifier_token_to_latex(token: str) -> str:
+    if token in _LATEX_IDENT_OVERRIDES:
+        return _LATEX_IDENT_OVERRIDES[token]
+    if token in _LATEX_GREEK:
+        return _LATEX_GREEK[token]
+    if token.isalpha() and len(token) == 1:
+        return token
+    if token.isupper() or token.islower():
+        return rf"\mathrm{{{token}}}"
+    return rf"\mathrm{{{token}}}"
+
+
+def _identifier_to_latex(name: str, unit: str | None = None) -> str:
+    parts = [p for p in str(name or "").split("_") if p]
+    if not parts:
+        return r"\mathrm{?}"
+
+    normalized_unit = _normalize_unit_token(unit or "")
+    trailing_unit = _normalize_unit_token(parts[-1]) if parts else ""
+    if normalized_unit and parts and trailing_unit == normalized_unit:
+        parts = parts[:-1]
+    elif trailing_unit in _LATEX_UNIT_OVERRIDES:
+        parts = parts[:-1]
+    if not parts:
+        return r"\mathrm{?}"
+
+    joined_name = "_".join(parts)
+    if joined_name in _LATEX_NAME_OVERRIDES:
+        return _LATEX_NAME_OVERRIDES[joined_name]
+
+    add_bar = parts[-1].lower() == "bar"
+    if add_bar:
+        parts = parts[:-1]
+    if not parts:
+        return r"\mathrm{?}"
+
+    base = _identifier_token_to_latex(parts[0])
+    if add_bar:
+        base = rf"\bar{{{base}}}"
+
+    if len(parts) == 1:
+        return base
+
+    subs = ",".join(_identifier_token_to_latex(part) for part in parts[1:])
+    return rf"{base}_{{{subs}}}"
+
+
+def _format_scalar_for_latex(value: Any) -> str:
+    if isinstance(value, bool):
+        return r"\mathrm{true}" if value else r"\mathrm{false}"
+    return str(value)
+
+
+def _expr_to_latex(node: ast.AST, parent_prec: int = 0) -> str:
+    if isinstance(node, ast.Expression):
+        return _expr_to_latex(node.body, parent_prec)
+    if isinstance(node, ast.Constant):
+        return _format_scalar_for_latex(node.value)
+    if isinstance(node, ast.Name):
+        name = node.id
+        if name == "pi":
+            return r"\pi"
+        if name == "e":
+            return "e"
+        return _identifier_to_latex(name)
+    if isinstance(node, ast.UnaryOp):
+        operand = _expr_to_latex(node.operand, 4)
+        if isinstance(node.op, ast.USub):
+            text = rf"-{operand}"
+        elif isinstance(node.op, ast.UAdd):
+            text = rf"+{operand}"
+        else:
+            raise ValueError(f"Unsupported unary operator: {type(node.op).__name__}")
+        return rf"\left({text}\right)" if parent_prec > 4 else text
+    if isinstance(node, ast.BinOp):
+        if isinstance(node.op, ast.Add):
+            prec = 1
+            text = rf"{_expr_to_latex(node.left, prec)} + {_expr_to_latex(node.right, prec)}"
+        elif isinstance(node.op, ast.Sub):
+            prec = 1
+            text = rf"{_expr_to_latex(node.left, prec)} - {_expr_to_latex(node.right, prec + 1)}"
+        elif isinstance(node.op, ast.Mult):
+            prec = 2
+            text = rf"{_expr_to_latex(node.left, prec)} \cdot {_expr_to_latex(node.right, prec)}"
+        elif isinstance(node.op, ast.Div):
+            prec = 2
+            text = rf"\frac{{{_expr_to_latex(node.left)}}}{{{_expr_to_latex(node.right)}}}"
+        elif isinstance(node.op, ast.Pow):
+            prec = 3
+            text = rf"{_expr_to_latex(node.left, prec)}^{{{_expr_to_latex(node.right)}}}"
+        elif isinstance(node.op, ast.Mod):
+            prec = 2
+            text = rf"{_expr_to_latex(node.left, prec)} \bmod {_expr_to_latex(node.right, prec)}"
+        elif isinstance(node.op, ast.FloorDiv):
+            prec = 2
+            text = rf"\left\lfloor \frac{{{_expr_to_latex(node.left)}}}{{{_expr_to_latex(node.right)}}} \right\rfloor"
+        else:
+            raise ValueError(f"Unsupported operator: {type(node.op).__name__}")
+        return rf"\left({text}\right)" if parent_prec > prec else text
+    if isinstance(node, ast.Call):
+        if not isinstance(node.func, ast.Name):
+            raise ValueError("Only simple function calls are allowed.")
+        func_name = node.func.id
+        args = [_expr_to_latex(arg) for arg in node.args]
+        if func_name == "sqrt" and len(args) == 1:
+            return rf"\sqrt{{{args[0]}}}"
+        if func_name == "abs" and len(args) == 1:
+            return rf"\left|{args[0]}\right|"
+        if func_name in {"min", "max"} and args:
+            return rf"\{func_name}\left({', '.join(args)}\right)"
+        return rf"\operatorname{{{func_name}}}\left({', '.join(args)}\right)"
+    if isinstance(node, ast.Compare):
+        left = _expr_to_latex(node.left)
+        pieces: list[str] = []
+        current = left
+        for op, comparator in zip(node.ops, node.comparators):
+            right = _expr_to_latex(comparator)
+            op_text = {
+                ast.Lt: "<",
+                ast.LtE: r"\le",
+                ast.Gt: ">",
+                ast.GtE: r"\ge",
+                ast.Eq: "=",
+                ast.NotEq: r"\ne",
+            }.get(type(op))
+            if op_text is None:
+                raise ValueError(f"Unsupported comparison: {type(op).__name__}")
+            pieces.append(rf"{current} {op_text} {right}")
+            current = right
+        return r" \land ".join(pieces)
+    if isinstance(node, ast.BoolOp):
+        op_text = r"\land" if isinstance(node.op, ast.And) else r"\lor"
+        return f" {op_text} ".join(_expr_to_latex(val) for val in node.values)
+    if isinstance(node, ast.IfExp):
+        return rf"\begin{{cases}}{_expr_to_latex(node.body)}, & \text{{if }} {_expr_to_latex(node.test)} \\ {_expr_to_latex(node.orelse)}, & \text{{otherwise}}\end{{cases}}"
+    if isinstance(node, ast.Subscript):
+        return rf"{_expr_to_latex(node.value)}\left[{_expr_to_latex(node.slice)}\right]"
+    raise ValueError(f"Unsupported expression node: {type(node).__name__}")
+
+
+def expression_to_latex(expression: str) -> str:
+    tree = ast.parse(expression, mode="eval")
+    return _expr_to_latex(tree)
+
+
+def step_to_latex(name: str, expression: str, value: Any, unit: str | None = None) -> str:
+    lhs = _identifier_to_latex(name, unit)
+    rhs = expression_to_latex(expression)
+    unit_latex = _unit_to_latex(unit or "")
+    value_latex = _format_scalar_for_latex(value)
+    if unit_latex:
+        return rf"{lhs} = {rhs} = {value_latex}\,{unit_latex}"
+    return rf"{lhs} = {rhs} = {value_latex}"
+
+
 # ── Pydantic models ──────────────────────────────────────────────────
 
 
@@ -256,6 +531,7 @@ def calculate(inp: MathCalculatorInput) -> dict:
             "name": eq.name,
             "expression": eq.expression,
             "value": value,
+            "latex": step_to_latex(eq.name, eq.expression, value, eq.unit),
         }
         if eq.unit:
             step["unit"] = eq.unit

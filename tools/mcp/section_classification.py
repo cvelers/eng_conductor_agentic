@@ -135,8 +135,15 @@ def classify(input_data: SectionClassificationInput) -> dict:
         ],
         "notes": [
             f"Stress type: {input_data.stress_type}",
-            f"Web c/t = {web_ratio:.2f}, Class {web_class} (limit {web_limits[0]:.2f}/{web_limits[1]:.2f}/{web_limits[2]:.2f})",
-            f"Flange c/t = {flange_ratio:.2f}, Class {flange_class}",
+            {
+                "latex": (
+                    rf"\text{{Web }} c/t = {web_ratio:.2f},\ \text{{Class }} {web_class}"
+                    rf"\ \left(\text{{limits }} {web_limits[0]:.2f}/{web_limits[1]:.2f}/{web_limits[2]:.2f}\right)"
+                ),
+            },
+            {
+                "latex": rf"\text{{Flange }} c/t = {flange_ratio:.2f},\ \text{{Class }} {flange_class}",
+            },
         ],
     }
 

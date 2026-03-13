@@ -99,7 +99,12 @@ def calculate(inp: BoltShearInput) -> dict:
             clause_ref("ec3.en1993-1-8.2005", "Table 3.4", "Design resistance for bolts in shear"),
         ],
         "notes": [
-            f"Fv,Rd = αv × fub × A / γM2 = {alpha_v} × {fub} × {A:.1f} / {inp.gamma_M2} = {Fv_Rd_single:.2f} kN per plane",
+            {
+                "latex": (
+                    rf"F_{{v,Rd}} = \alpha_v \cdot f_{{ub}} \cdot A / \gamma_{{M2}}"
+                    rf" = {alpha_v} \cdot {fub} \cdot {A:.1f} / {inp.gamma_M2} = {Fv_Rd_single:.2f}\,\mathrm{{kN}}"
+                ),
+            },
             "Bearing resistance should be checked separately.",
         ],
     }

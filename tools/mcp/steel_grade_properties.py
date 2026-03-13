@@ -71,8 +71,12 @@ def lookup(inp: SteelGradeInput) -> dict:
             clause_ref("ec3.en1993-1-1.2005", "3.2.6", "Design values of material coefficients"),
         ],
         "notes": [
-            f"Yield strength fy = {fy} MPa for {grade}, {thickness_range}.",
-            f"ε = √(235/fy) = {epsilon:.4f}",
+            {
+                "latex": rf"\text{{Yield strength }} f_y = {fy}\,\mathrm{{MPa}} \text{{ for {grade}, {thickness_range}}}",
+            },
+            {
+                "latex": rf"\epsilon = \sqrt{{235/f_y}} = {epsilon:.4f}",
+            },
         ],
     }
 

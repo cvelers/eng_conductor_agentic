@@ -188,9 +188,15 @@ def calculate(inp: ColumnBucklingInput) -> dict:
         ],
         "notes": [
             f"Buckling axis: {inp.buckling_axis}-{inp.buckling_axis} ({curve_source}: curve '{curve}', α = {alpha})",
-            f"Nb,Rd = χ·A·fy/γM1 = {chi:.4f} × {area:.2f} cm² × {fy} MPa / {inp.gamma_M1} = {Nb_Rd:.2f} kN",
-            f"Relative slenderness λ̄ = {lambda_bar:.4f}",
-            f"Reduction factor χ = {chi:.4f}",
+            {
+                "latex": (
+                    rf"N_{{b,Rd}} = \chi \cdot A \cdot f_y / \gamma_{{M1}}"
+                    rf" = {chi:.4f} \cdot {area:.2f}\,\mathrm{{cm}}^2 \cdot {fy}\,\mathrm{{MPa}} / {inp.gamma_M1}"
+                    rf" = {Nb_Rd:.2f}\,\mathrm{{kN}}"
+                ),
+            },
+            {"latex": rf"\bar{{\lambda}} = {lambda_bar:.4f}"},
+            {"latex": rf"\chi = {chi:.4f}"},
         ],
     }
 

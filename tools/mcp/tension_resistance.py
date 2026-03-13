@@ -94,6 +94,11 @@ def calculate(inp: TensionResistanceInput) -> dict:
     results["N_pl_Rd_kN"] = round(N_t_Rd, 2)
     results["N_t_Rd_kN"] = round(N_t_Rd, 2)
     results["governing"] = governing
+    governing_latex = {
+        "N_pl_Rd": r"N_{pl,Rd}",
+        "N_u_Rd": r"N_{u,Rd}",
+        "N_net_Rd": r"N_{net,Rd}",
+    }.get(governing, rf"\mathrm{{{governing}}}")
 
     return {
         "inputs_used": {
@@ -112,8 +117,15 @@ def calculate(inp: TensionResistanceInput) -> dict:
             clause_ref("ec3.en1993-1-1.2005", "6.2.3(2)", "Tension resistance"),
         ],
         "notes": [
-            f"N_pl,Rd = A·fy/γM0 = {A_mm2:.0f}×{fy:.0f}/{gamma_M0} = {N_pl_Rd:.2f} kN",
-            f"Governing resistance: {governing} = {N_t_Rd:.2f} kN",
+            {
+                "latex": (
+                    rf"N_{{pl,Rd}} = A \cdot f_y / \gamma_{{M0}}"
+                    rf" = {A_mm2:.0f} \cdot {fy:.0f} / {gamma_M0} = {N_pl_Rd:.2f}\,\mathrm{{kN}}"
+                ),
+            },
+            {
+                "latex": rf"\text{{Governing resistance: }} {governing_latex} = {N_t_Rd:.2f}\,\mathrm{{kN}}",
+            },
         ],
     }
 

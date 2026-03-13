@@ -115,11 +115,22 @@ def calculate(inp: BendingShearInput) -> dict:
         # §6.2.8(2) – No reduction needed
         M_V_Rd = M_c_Rd
         rho = 0.0
-        notes = ["V_Ed ≤ 0.5·V_pl,Rd → no moment reduction required."]
+        notes = [
+            {
+                "latex": r"V_{Ed} \le 0.5 \cdot V_{pl,Rd} \;\rightarrow\; \text{no moment reduction required}",
+            }
+        ]
     else:
         # §6.2.8(3) – Reduced moment resistance
         rho = (2.0 * V_Ed / V_pl_Rd - 1.0) ** 2
-        notes = [f"V_Ed > 0.5·V_pl,Rd → ρ = (2·V_Ed/V_pl,Rd − 1)² = {rho:.6f}"]
+        notes = [
+            {
+                "latex": (
+                    r"V_{Ed} > 0.5 \cdot V_{pl,Rd} \;\rightarrow\; "
+                    rf"\rho = \left(2 \cdot \frac{{V_{{Ed}}}}{{V_{{pl,Rd}}}} - 1\right)^2 = {rho:.6f}"
+                ),
+            }
+        ]
 
         if inp.wpl_y_cm3 and inp.A_w_cm2 and inp.tw_mm and inp.section_class <= 2:
             # §6.2.8(3) for doubly-symmetric I/H Class 1/2:
@@ -132,15 +143,25 @@ def calculate(inp: BendingShearInput) -> dict:
             M_V_Rd = max(reduced_wpl_mm3 * fy / (gamma_M0 * 1.0e6), 0.0)
             M_V_Rd = min(M_V_Rd, M_c_Rd)
             notes.append(
-                f"I/H Class 1/2: M_V,Rd = (Wpl − ρ·Aw²/(4tw))·fy/γM0"
-                f" = ({Wpl_mm3:.0f} − {rho:.6f}·{Aw_mm2:.1f}²/(4·{tw}))·{fy}/{gamma_M0}/1e6"
-                f" = {M_V_Rd:.2f} kNm"
+                {
+                    "latex": (
+                        r"\text{I/H Class 1/2: } "
+                        r"M_{V,Rd} = \left(W_{pl} - \rho \cdot \frac{A_w^2}{4 t_w}\right) \cdot \frac{f_y}{\gamma_{M0}}"
+                        rf" = \left({Wpl_mm3:.0f} - {rho:.6f} \cdot \frac{{{Aw_mm2:.1f}^2}}{{4 \cdot {tw}}}\right)"
+                        rf" \cdot \frac{{{fy}}}{{{gamma_M0}}} \cdot 10^{{-6}} = {M_V_Rd:.2f}\,\mathrm{{kNm}}"
+                    ),
+                }
             )
         else:
             # General approach: M_V,Rd = M_c,Rd · (1 − ρ)
             M_V_Rd = M_c_Rd * (1.0 - rho)
             notes.append(
-                f"General: M_V,Rd = M_c,Rd·(1−ρ) = {M_c_Rd:.2f}·{1.0 - rho:.4f} = {M_V_Rd:.2f} kNm"
+                {
+                    "latex": (
+                        r"\text{General: } "
+                        rf"M_{{V,Rd}} = M_{{c,Rd}} \cdot (1 - \rho) = {M_c_Rd:.2f} \cdot {1.0 - rho:.4f} = {M_V_Rd:.2f}\,\mathrm{{kNm}}"
+                    ),
+                }
             )
 
     utilization = M_Ed / M_V_Rd if M_V_Rd > 0 else float("inf")

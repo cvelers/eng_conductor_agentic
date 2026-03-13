@@ -135,9 +135,13 @@ def calculate(inp: TorsionalBucklingInput) -> dict:
         ],
         "notes": [
             f"Buckling mode: {mode}",
-            f"N_cr = {N_cr_kN:.2f} kN",
-            f"λ̄_T = {lambda_T:.4f}, χ = {chi:.4f}",
-            f"N_b,Rd = χ·A·fy/γM1 = {Nb_Rd:.2f} kN",
+            {"latex": rf"N_{{cr}} = {N_cr_kN:.2f}\,\mathrm{{kN}}"},
+            {"latex": rf"\bar{{\lambda}}_T = {lambda_T:.4f},\ \chi = {chi:.4f}"},
+            {
+                "latex": (
+                    rf"N_{{b,Rd}} = \chi \cdot A \cdot f_y / \gamma_{{M1}} = {Nb_Rd:.2f}\,\mathrm{{kN}}"
+                ),
+            },
         ],
     }
 

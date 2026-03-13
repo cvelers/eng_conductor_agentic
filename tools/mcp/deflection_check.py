@@ -50,8 +50,18 @@ def check(inp: DeflectionCheckInput) -> dict:
             clause_ref("ec0.en1990.2002", "A1.4.3", "Vertical deflections (Annex A1, Table A1.4)", pointer="en_1990#annex_a1_table_a1.4"),
         ],
         "notes": [
-            f"Allowable = L/{denominator} = {inp.span_m * 1000:.0f}/{denominator} = {allowable_mm:.2f} mm",
-            f"Actual = {inp.actual_deflection_mm} mm → utilization = {utilization:.2%}",
+            {
+                "latex": (
+                    rf"\delta_{{allow}} = L/{denominator} = {inp.span_m * 1000:.0f}/{denominator}"
+                    rf" = {allowable_mm:.2f}\,\mathrm{{mm}}"
+                ),
+            },
+            {
+                "latex": (
+                    rf"\delta_{{actual}} = {inp.actual_deflection_mm}\,\mathrm{{mm}}"
+                    rf"\;\rightarrow\; \text{{utilization}} = {utilization * 100:.2f}\%"
+                ),
+            },
             f"Result: {'PASS ✓' if passes else 'FAIL ✗'}",
         ],
     }

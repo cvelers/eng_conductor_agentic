@@ -316,6 +316,27 @@ body {
   margin: 0.35em 0 0.15em; padding-left: 1em; list-style-position: inside;
 }
 .calc-tabs .tool-result li { margin: 0.22em 0; font-size: 0.82rem; color: var(--text-2); }
+.calc-tabs .tool-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.calc-tabs .tool-note-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.calc-tabs .tool-note-item {
+  margin: 0;
+  color: var(--text-2);
+}
+.calc-tabs .tool-note-equation {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.calc-tabs .tool-note-equation .katex-display {
+  margin: 0;
+}
 
 /* Expandable references (Eurocode clauses) */
 .ref-section { margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 8px; }
@@ -357,6 +378,11 @@ body {
 }
 .clause-text .clause-p { margin: 0 0 0.75em; }
 .clause-text .clause-p:last-child { margin-bottom: 0; }
+.clause-text .katex-display {
+  margin: 0.45em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
 
 /* Content (rendered markdown) */
 .content { color: var(--text); font-size: 0.92rem; line-height: 1.7; }
@@ -1183,6 +1209,26 @@ body.chat-started .attach-menu {
   margin-bottom: 8px;
   line-height: 1.4;
 }
+.ask-user-popup-question p,
+.ask-user-popup-question ul,
+.ask-user-popup-question ol,
+.ask-user-popup-context p,
+.ask-user-popup-context ul,
+.ask-user-popup-context ol {
+  margin: 0;
+}
+.ask-user-popup-question ul,
+.ask-user-popup-question ol,
+.ask-user-popup-context ul,
+.ask-user-popup-context ol {
+  padding-left: 1.2rem;
+}
+.ask-user-popup-question .katex-display,
+.ask-user-popup-context .katex-display {
+  margin: 0.45rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
 .ask-user-popup-context {
   font-size: 0.84rem;
   color: var(--muted);
@@ -1224,6 +1270,18 @@ body.chat-started .attach-menu {
   font-size: 0.78rem;
   font-weight: 400;
   color: var(--muted);
+}
+.ask-user-popup-options button .ask-option-label,
+.ask-user-popup-options button .ask-option-desc {
+  display: block;
+}
+.ask-user-popup-options button .ask-option-label p,
+.ask-user-popup-options button .ask-option-desc p {
+  margin: 0;
+}
+.ask-user-popup-options button .ask-option-label .katex,
+.ask-user-popup-options button .ask-option-desc .katex {
+  font-size: 1em;
 }
 .ask-user-popup-input-row {
   display: flex;

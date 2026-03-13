@@ -143,6 +143,155 @@ function renderMd(text) {
   return html;
 }
 
+function renderLatex(tex, displayMode = false) {
+  const source = String(tex || "").trim();
+  if (!source) return "";
+  if (typeof katex === "undefined") {
+    return `<code>${escHtml(source)}</code>`;
+  }
+  try {
+    return katex.renderToString(source, {
+      displayMode,
+      throwOnError: false,
+    });
+  } catch {
+    return `<code>${escHtml(source)}</code>`;
+  }
+}
+
+function renderInlineMd(text) {
+  const html = renderMd(text || "");
+  return html.replace(/^<p>([\s\S]*)<\/p>\s*$/i, "$1");
+}
+
+function renderCalcNoteHtml(note) {
+  if (note && typeof note === "object" && typeof note.latex === "string" && note.latex.trim()) {
+    return renderLatex(note.latex, true);
+  }
+  const text = typeof note === "string" ? note : String(note?.text ?? note ?? "");
+  return escHtml(text);
+}
+
+const _ENGINEERING_GREEK_BASES = {
+  "α": "\\alpha",
+  "β": "\\beta",
+  "γ": "\\gamma",
+  "χ": "\\chi",
+  "φ": "\\phi",
+  "Φ": "\\Phi",
+  "λ": "\\lambda",
+  "ψ": "\\psi",
+  "ε": "\\epsilon",
+  "ρ": "\\rho",
+  "μ": "\\mu",
+  "η": "\\eta",
+};
+
+const _ENGINEERING_NAME_OVERRIDES = {
+  "M_Ed": "M_{Ed}",
+  "M_Rd": "M_{Rd}",
+  "M_cr": "M_{cr}",
+  "M_b,Rd": "M_{b,Rd}",
+  "M_c,Rd": "M_{c,Rd}",
+  "M_pl,Rd": "M_{pl,Rd}",
+  "M_el,Rd": "M_{el,Rd}",
+  "N_Ed": "N_{Ed}",
+  "N_Rd": "N_{Rd}",
+  "N_b,Rd": "N_{b,Rd}",
+  "N_pl,Rd": "N_{pl,Rd}",
+  "N_t,Rd": "N_{t,Rd}",
+  "V_Ed": "V_{Ed}",
+  "V_Rd": "V_{Rd}",
+  "V_pl,Rd": "V_{pl,Rd}",
+  "W_y": "W_y",
+  "W_pl,y": "W_{pl,y}",
+  "W_el,y": "W_{el,y}",
+  "W_eff,y": "W_{eff,y}",
+  "f_y": "f_y",
+  "f_u": "f_u",
+  "χ_LT": "\\chi_{LT}",
+  "γ_M0": "\\gamma_{M0}",
+  "γ_M1": "\\gamma_{M1}",
+  "γ_M2": "\\gamma_{M2}",
+  "Φ_LT": "\\Phi_{LT}",
+  "φ_LT": "\\phi_{LT}",
+  "λ_LT": "\\lambda_{LT}",
+  "L_cr": "L_{cr}",
+};
+
+function engineeringBaseToLatex(base) {
+  if (_ENGINEERING_GREEK_BASES[base]) return _ENGINEERING_GREEK_BASES[base];
+  if (/^[A-Za-z]$/.test(base)) return base;
+  return null;
+}
+
+function engineeringTokenToLatex(token) {
+  const normalized = String(token || "").trim().replace(/\s+/g, "");
+  if (!normalized) return null;
+  if (_ENGINEERING_NAME_OVERRIDES[normalized]) return _ENGINEERING_NAME_OVERRIDES[normalized];
+  const match = normalized.match(/^([A-Za-z\u0370-\u03FF]+)(?:_([A-Za-z0-9,]+))?$/u);
+  if (!match) return null;
+  const [, baseRaw, subRaw] = match;
+  const base = engineeringBaseToLatex(baseRaw);
+  if (!base) return null;
+  if (!subRaw) return base;
+  return `${base}_{${subRaw}}`;
+}
+
+function eurocodeExpressionToLatex(text) {
+  let latex = String(text || "").trim();
+  if (!latex) return "";
+  latex = latex.replace(/([0-9]),([0-9])/g, "$1.$2");
+  latex = latex
+    .replace(/≤/g, " \\le ")
+    .replace(/≥/g, " \\ge ")
+    .replace(/×/g, " \\times ")
+    .replace(/·/g, " \\cdot ")
+    .replace(/[−–]/g, "-");
+  latex = latex.replace(/([A-Za-z\u0370-\u03FF]+_[A-Za-z0-9,]+)/gu, (token) => {
+    return engineeringTokenToLatex(token) || token;
+  });
+  latex = latex.replace(/\s+\((\d+\.\d+)\)\s*$/, String.raw`\qquad ($1)`);
+  return latex.replace(/\s+/g, " ").trim();
+}
+
+function bestEffortReferenceMd(text) {
+  let md = String(text || "");
+  if (!md.trim()) return "";
+
+  const placeholders = [];
+  const stash = (markdown) => {
+    const id = `\x00EUROCODE${placeholders.length}\x00`;
+    placeholders.push({ id, markdown });
+    return id;
+  };
+
+  md = md.replace(
+    /(:\s*)([^:\n]{0,260}?(?:[A-Za-z\u0370-\u03FF]+_[A-Za-z0-9,]+)[^:\n]{0,260}?(?:≤|≥|=|<|>)[^:\n]{0,180}?\(\d+\.\d+\))(?=\s+(?:where|NOTE|\([0-9]+\)|$))/gu,
+    (_match, prefix, expr) => `${prefix}\n\n${stash(`$$${eurocodeExpressionToLatex(expr)}$$`)}\n\n`,
+  );
+
+  md = md.replace(
+    /([A-Za-z\u0370-\u03FF]+_[A-Za-z0-9,]+)\s*=\s*([A-Za-z\u0370-\u03FF]+_[A-Za-z0-9,]+)/gu,
+    (match, lhs, rhs) => {
+      const left = engineeringTokenToLatex(lhs);
+      const right = engineeringTokenToLatex(rhs);
+      if (!left || !right) return match;
+      return stash(`$${left} = ${right}$`);
+    },
+  );
+
+  md = md.replace(/([A-Za-z\u0370-\u03FF]+_[A-Za-z0-9,]+)/gu, (token) => {
+    const latex = engineeringTokenToLatex(token);
+    return latex ? stash(`$${latex}$`) : token;
+  });
+
+  for (const { id, markdown } of placeholders) {
+    md = md.split(id).join(markdown);
+  }
+  return md;
+}
+
 function escHtml(s) {
   const d = document.createElement("div");
   d.textContent = s;
@@ -306,9 +455,19 @@ function buildCalcTabs(msgNode) {
     for (const [k, v] of Object.entries(outs)) {
       if (typeof v !== "object" || v === null) mergedOutputs[k] = v;
     }
-    // Collect notes
-    const notes = res.notes || [];
-    for (const n of notes) mergedNotes.push(typeof n === "string" ? n : String(n));
+    // Prefer structured LaTeX steps for math notes; fall back to plain text notes.
+    const steps = Array.isArray(res.intermediate?.steps) ? res.intermediate.steps : [];
+    const latexNotes = steps
+      .filter(step => step && typeof step === "object" && typeof step.latex === "string" && step.latex.trim())
+      .map(step => ({ latex: step.latex }));
+    if (latexNotes.length) {
+      mergedNotes.push(...latexNotes);
+    } else {
+      const notes = res.notes || [];
+      for (const n of notes) {
+        mergedNotes.push(typeof n === "string" ? n : String(n));
+      }
+    }
   }
 
   // Build groups to render: one merged "Calculation" + one per other tool
@@ -328,7 +487,12 @@ function buildCalcTabs(msgNode) {
         outputs[k] = v;
     }
     if (!Object.keys(outputs).length) continue;
-    groups.push({ label, inputs, outputs, notes: res.notes || [] });
+    groups.push({
+      label,
+      inputs,
+      outputs,
+      notes: (res.notes || []).map(note => (typeof note === "string" ? note : String(note))),
+    });
   }
 
   // Render each group as a <details class="tool-result">
@@ -375,7 +539,22 @@ function buildCalcTabs(msgNode) {
     // ── Notes ──
     if (g.notes.length) {
       const notesDiv = document.createElement("div");
-      notesDiv.innerHTML = `<strong>Notes</strong><ul>${g.notes.map(n => `<li>${escHtml(n)}</li>`).join("")}</ul>`;
+      notesDiv.className = "tool-notes";
+      const titleEl = document.createElement("strong");
+      titleEl.textContent = "Notes";
+      const notesList = document.createElement("ul");
+      notesList.className = "tool-note-list";
+      for (const note of g.notes) {
+        const li = document.createElement("li");
+        li.className = "tool-note-item";
+        if (note && typeof note === "object" && typeof note.latex === "string" && note.latex.trim()) {
+          li.classList.add("tool-note-equation");
+        }
+        li.innerHTML = renderCalcNoteHtml(note);
+        notesList.appendChild(li);
+      }
+      notesDiv.appendChild(titleEl);
+      notesDiv.appendChild(notesList);
       details.appendChild(notesDiv);
     }
 
@@ -441,9 +620,9 @@ function buildReferences(msgNode) {
       const paragraphs = c.text.split(/\n\n+/);
       for (const p of paragraphs) {
         if (!p.trim()) continue;
-        const pEl = document.createElement("p");
+        const pEl = document.createElement("div");
         pEl.className = "clause-p";
-        pEl.textContent = p.trim();
+        pEl.innerHTML = renderInlineMd(bestEffortReferenceMd(p.trim()));
         textDiv.appendChild(pEl);
       }
       details.appendChild(textDiv);
@@ -1881,8 +2060,8 @@ function showAskUserPopup(question, options, context, onAnswer) {
   const popupEl = overlay?.querySelector(".ask-user-popup");
   if (!overlay) return;
 
-  qEl.textContent = question;
-  ctxEl.textContent = context || "";
+  qEl.innerHTML = renderInlineMd(question || "");
+  ctxEl.innerHTML = context ? renderMd(context) : "";
   optsEl.innerHTML = "";
 
   if (options && options.length) {
@@ -1890,8 +2069,9 @@ function showAskUserPopup(question, options, context, onAnswer) {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.dataset.value = o.value || o.label;
-      btn.innerHTML = escHtml(o.label) +
-        (o.description ? `<span class="ask-option-desc">${escHtml(o.description)}</span>` : "");
+      btn.innerHTML =
+        `<span class="ask-option-label">${renderInlineMd(o.label || "")}</span>` +
+        (o.description ? `<span class="ask-option-desc">${renderInlineMd(o.description)}</span>` : "");
       btn.addEventListener("click", () => {
         inputEl.value = btn.dataset.value;
         inputEl.focus();

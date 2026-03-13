@@ -46,7 +46,9 @@ def calculate(inp: EffectiveLengthInput) -> dict:
         ],
         "notes": [
             f"Buckling length factor k = {k} for {cond['description']}.",
-            f"L_cr = k × L = {k} × {inp.system_length_m} = {L_cr:.4f} m",
+            {
+                "latex": rf"L_{{cr}} = k \cdot L = {k} \cdot {inp.system_length_m} = {L_cr:.4f}\,\mathrm{{m}}",
+            },
             "Actual k values may differ for semi-rigid connections; see EC3-1-1 Annex BB for frame analysis.",
         ],
     }

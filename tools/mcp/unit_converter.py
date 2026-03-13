@@ -77,7 +77,11 @@ def convert(inp: UnitConverterInput) -> dict:
             "factor": factor,
         },
         "clause_references": [],
-        "notes": [f"{inp.value:g} {from_u} = {result:g} {to_u} (factor: {factor:g})"],
+        "notes": [
+            {
+                "latex": rf"{inp.value:g}\,\mathrm{{{from_u}}} = {result:g}\,\mathrm{{{to_u}}}\quad (\text{{factor: }} {factor:g})",
+            }
+        ],
     }
 
 

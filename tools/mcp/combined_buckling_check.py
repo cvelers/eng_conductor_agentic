@@ -105,8 +105,12 @@ def calculate(inp: CombinedBucklingInput) -> dict:
             clause_ref("ec3.en1993-1-1.2005", "6.3.3(4)", "Uniform members in bending and axial compression"),
         ],
         "notes": [
-            f"Eq. 6.61 = {eq_6_61:.4f} ({'OK' if eq_6_61 <= 1.0 else 'FAIL'})",
-            f"Eq. 6.62 = {eq_6_62:.4f} ({'OK' if eq_6_62 <= 1.0 else 'FAIL'})",
+            {
+                "latex": rf"\text{{Eq. 6.61}} = {eq_6_61:.4f}\;(\text{{{'OK' if eq_6_61 <= 1.0 else 'FAIL'}}})",
+            },
+            {
+                "latex": rf"\text{{Eq. 6.62}} = {eq_6_62:.4f}\;(\text{{{'OK' if eq_6_62 <= 1.0 else 'FAIL'}}})",
+            },
             "Interaction factors k_ij should be from Annex A (Method 1) or Annex B (Method 2).",
         ],
     }
