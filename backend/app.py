@@ -31,7 +31,13 @@ from backend.agent.loop import run_agent_loop
 from backend.agent.tools import TOOLS, build_tool_dispatcher
 from backend.agent.prompt import SYSTEM_PROMPT
 from backend.agent.stream_adapter import adapt_event
-from backend.agent.context import convert_frontend_history, compact_if_needed, context_usage_snapshot, estimate_messages_tokens
+from backend.agent.context import (
+    compact_if_needed,
+    context_usage_snapshot,
+    convert_frontend_history,
+    estimate_messages_tokens,
+    should_continue_from_ask_user,
+)
 
 # FEA (kept as separate mode)
 from backend.orchestrator.fea_analyst import FEAAnalystLoop
@@ -241,14 +247,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 # message's tool_context ends with an ask_user call,
                 # the user's message is a reply — tell the agent to
                 # continue from where it left off, not replan.
-                _is_ask_reply = False
-                for prev in reversed(request.history or []):
-                    role = prev.role if hasattr(prev, "role") else prev.get("role", "")
-                    content = prev.content if hasattr(prev, "content") else prev.get("content", "")
-                    if role == "assistant":
-                        if "[tool_call] ask_user(" in (content or ""):
-                            _is_ask_reply = True
-                        break  # only check the last assistant message
+                _is_ask_reply = should_continue_from_ask_user(
+                    request.history,
+                    request.is_ask_user_reply,
+                )
 
                 user_content = request.message
                 if _is_ask_reply:

@@ -80,14 +80,24 @@ _SYSTEM_REMINDERS: dict[str, str] = {
         "\n\n<system-reminder>"
         "Review the engineering tools found. To use one, call `engineering_calculator` "
         "with the exact tool_name and the required parameters from the schema. "
-        "If no suitable tool was found, try different search terms or a different category."
+        "If no suitable tool was found, try different search terms or a different category. "
+        "Remember: engineering calculators compute numeric results but do NOT retrieve "
+        "Eurocode clause text. If your answer will cite specific clauses, also search "
+        "for them with `eurocode_search` or `read_clause`."
         "</system-reminder>"
     ),
     "engineering_calculator": (
         "\n\n<system-reminder>"
         "Check the calculation result. Verify inputs match the design requirements. "
         "If additional calculations are needed (e.g., you computed capacity but still "
-        "need to check utilization), search for more tools or use math_calculator."
+        "need to check utilization), search for more tools or use math_calculator. "
+        "IMPORTANT: This calculator only provides numeric results — if you plan to "
+        "cite Eurocode clauses in your answer (e.g. 'per Cl. 6.3.2'), you MUST "
+        "fetch the actual clause text with `eurocode_search` or `read_clause` first. "
+        "Calculator output alone does NOT ground a clause citation. Also preserve "
+        "symbol meaning: never feed a resistance/capacity result such as M_Rd, "
+        "Mc,Rd, Mb,Rd, N_Rd, or V_Rd back into a demand input such as M_Ed, N_Ed, "
+        "or V_Ed."
         "</system-reminder>"
     ),
     "todo_write": (
@@ -282,7 +292,9 @@ You are an independent auditor — the response author has no control over your 
 ## Instructions
 Check EVERY factual claim in the response against the evidence above:
 1. Every Eurocode clause cited (e.g. "Cl. 6.2.5") — is it in the tool results \
-or in a previous validated response?
+from explicit clause evidence returned by `eurocode_search` / `read_clause`, \
+or in a previous validated response/session memory? Calculator metadata alone \
+is NOT enough to ground a cited clause.
 2. Every numeric value stated (fy, Wpl, dimensions, safety factors) — does it \
 match a tool output or a value from a previous validated response? Check the \
 actual numbers.
@@ -290,15 +302,26 @@ actual numbers.
 a previous validated response?
 4. Any formula or rule — is it from a retrieved clause or previous response, \
 or recited from memory?
+5. If a calculator used assumed inputs, make sure those assumptions came from \
+the user, previous validated context, or were explicitly stated as assumptions \
+in the response. Do NOT accept silent assumptions just because the tool ran.
+6. Preserve engineering semantics of symbols and variable roles. A prior value \
+is only grounded for the SAME physical quantity. Flag demand/resistance swaps \
+such as using `M_Rd`, `M_c,Rd`, or `M_b,Rd` as `M_Ed`, or reusing any resistance \
+value as a load effect just because the number matches.
+7. Inspect calculator CALL arguments as well as final prose. A calculator run does \
+NOT make its inputs valid. If a tool input lacks evidence, contradicts prior context, \
+or changes the meaning of an established symbol, flag it.
 
 Values and clauses that appear in previously validated responses are considered \
-grounded — they were already verified in an earlier turn. Do NOT flag them.
+grounded — they were already verified in an earlier turn. However, grounding does \
+NOT transfer across different symbol meanings or variable roles. Do NOT treat a \
+previously validated resistance as evidence for a demand value, or vice versa.
 
 Respond with ONLY a JSON object (no markdown, no explanation):
 - If fully grounded: {{"valid": true}}
 - If issues found: {{"valid": false, "issues": ["issue1", "issue2", ...]}}\
 """
-
 
 def _build_tool_results_for_validator(all_messages: list[dict]) -> str:
     """Extract tool call/result pairs from message history for the validator."""
@@ -326,10 +349,31 @@ def _build_tool_results_for_validator(all_messages: list[dict]) -> str:
             tool_name = tc_id_to_name.get(msg.get("tool_call_id", ""), "")
             if tool_name in skip:
                 continue
-            content = msg.get("content", "")
-            raw = content.split("<system-reminder>")[0].strip()
-            if len(raw) > 6000:
-                raw = raw[:6000] + "\n... (truncated)"
+            validator_content = msg.get("validator_content")
+            if isinstance(validator_content, str):
+                raw = validator_content.strip()
+            else:
+                content = msg.get("content", "")
+                raw = content.split("<system-reminder>")[0].strip()
+
+            # Strip clause_references from engineering tool results.
+            # These are static registry metadata (e.g. "EN 1993-1-1 §6.3.2")
+            # about which clauses the tool *implements*, NOT evidence that the
+            # clause was actually retrieved.  Leaving them in causes the
+            # validator to wrongly treat cited clauses as grounded.
+            if tool_name in ("engineering_calculator", "search_engineering_tools"):
+                try:
+                    data = json.loads(raw)
+                    if isinstance(data, dict):
+                        data.pop("clause_references", None)
+                        # Also strip from nested results array
+                        for r in data.get("results", []):
+                            if isinstance(r, dict):
+                                r.pop("clause_references", None)
+                        raw = json.dumps(data, ensure_ascii=False, default=str)
+                except (json.JSONDecodeError, TypeError):
+                    pass
+
             blocks.append(f"[RESULT] {tool_name}:\n{raw}")
 
     return "\n\n".join(blocks) if blocks else "(no tool calls in this session)"
@@ -354,10 +398,10 @@ def _build_conversation_history_for_validator(all_messages: list[dict]) -> str:
             continue
         # Previous user questions
         if role == "user":
-            blocks.append(f"[USER] {content[:500]}")
+            blocks.append(f"[USER] {content}")
         # Previous assistant text responses (no tool_calls = final answer)
         elif role == "assistant" and not msg.get("tool_calls"):
-            blocks.append(f"[ASSISTANT — previously validated] {content[:3000]}")
+            blocks.append(f"[ASSISTANT — previously validated] {content}")
     return "\n\n".join(blocks) if blocks else ""
 
 
@@ -503,12 +547,11 @@ async def run_agent_loop(
         stream_tool_calls: dict[int, dict] = {}
         got_response = False
 
-        # Buffer text events — only flushed after we know the round's
-        # outcome (tool calls → flush immediately; final answer → hold
-        # for grounding validation, flush only if validation passes).
+        # Buffer text events until the round is complete.
+        # If the model emits tool calls, discard the text for that round:
+        # tool-call rounds are internal working state, not user-facing output.
+        # Only a no-tool final round is allowed to become visible answer text.
         pending_events: list[dict] = []
-
-        # Should we buffer deltas? Yes when validation could run.
         may_validate = (
             grounding_validation
             and validator_client is not None
@@ -528,10 +571,7 @@ async def run_agent_loop(
                             yield {"type": "thinking", "content": reasoning}
                         if visible:
                             assistant_content = visible
-                            if may_validate:
-                                pending_events.append({"type": "delta", "content": visible})
-                            else:
-                                yield {"type": "delta", "content": visible}
+                            pending_events.append({"type": "delta", "content": visible})
                     for idx, tc in enumerate(getattr(msg, "tool_calls", None) or []):
                         got_response = True
                         tc_entry: dict[str, Any] = {
@@ -566,10 +606,7 @@ async def run_agent_loop(
                         yield {"type": "thinking", "content": reasoning}
                     if visible:
                         assistant_content += visible
-                        if may_validate:
-                            pending_events.append({"type": "delta", "content": visible})
-                        else:
-                            yield {"type": "delta", "content": visible}
+                        pending_events.append({"type": "delta", "content": visible})
 
                 # Tool call deltas
                 delta_tc = getattr(delta, "tool_calls", None)
@@ -611,11 +648,9 @@ async def run_agent_loop(
             assistant_msg["tool_calls"] = tc_list
         all_messages.append(assistant_msg)
 
-        # Accumulate visible text across all rounds (matches what the
-        # frontend displays from delta events).
-        full_response += assistant_content
-
         if not tool_calls:
+            # Only a no-tool round is a candidate final answer.
+            full_response += assistant_content
             # ── Grounding validation (independent LLM) ───────────────
             # Always validate the final response if there was tool usage.
             has_tool_results = any(m.get("role") == "tool" for m in all_messages)
@@ -674,6 +709,9 @@ async def run_agent_loop(
             pending_events.clear()
             break
 
+        # Tool-call rounds are internal. Never surface their prose to the user.
+        pending_events.clear()
+
         # ── Loop detection ───────────────────────────────────────────
         # Don't count meta-tools toward tool budget
         _META_TOOLS = {"todo_write", "ask_user"}
@@ -710,16 +748,6 @@ async def run_agent_loop(
                 tool_round += 1
                 continue
 
-        # ── Flush buffered events for intermediate rounds ─────────
-        # When validation is enabled, hold ALL text until the final
-        # validation passes — the user must not see any response text
-        # before it is validated. When validation is off, flush
-        # immediately so the user sees intermediate reasoning.
-        if not may_validate:
-            for evt in pending_events:
-                yield evt
-            pending_events.clear()
-
         # ── Execute tool calls ───────────────────────────────────────
         # If ask_user is in the batch, execute it FIRST and skip the rest.
         # The agent shouldn't be calling other tools alongside ask_user.
@@ -727,7 +755,7 @@ async def run_agent_loop(
         if has_ask_user:
             tool_calls = [tc for tc in tool_calls if tc["name"] == "ask_user"][:1]
         asked_user = False
-        for tc in tool_calls:
+        for tc_idx, tc in enumerate(tool_calls):
             yield {"type": "tool_start", "tool": tc["name"], "args": tc["args"]}
             t0 = time.time()
             try:
@@ -824,13 +852,20 @@ async def run_agent_loop(
                 "role": "tool",
                 "tool_call_id": tc["id"],
                 "content": tool_content,
+                # Preserve full raw tool output for the grounding validator.
+                # The orchestrator still receives the budgeted `content` form.
+                "validator_content": result_str,
             })
+
+            if asked_user:
+                logger.info(
+                    "ask_user_hard_stop",
+                    extra={"skipped_following_calls": len(tool_calls) - tc_idx - 1},
+                )
+                break
 
         # If ask_user was called, stop the loop — wait for user input
         if asked_user:
-            # Flush any buffered text (the question preamble)
-            for evt in pending_events:
-                yield evt
             pending_events.clear()
             break
 
@@ -856,18 +891,30 @@ async def run_agent_loop(
 
 
 def _build_tool_context(all_messages: list[dict]) -> str:
-    """Build a full-fidelity record of tool calls and results for session memory.
+    """Build a curated record of tool calls and results for session memory.
 
-    Preserves all tool arguments, all clause content, all calculation outputs
-    and intermediate steps. The only data dropped are clauses with low
-    relevance scores (< 5.0) from search results.
+    Design decisions:
+      - **todo_write**: only the LAST call is kept (represents final plan
+        state).  Earlier calls are superseded and would waste tokens.
+      - **ask_user**: always included so the continuation agent knows what
+        question was asked and can resume seamlessly.
+      - **Search results (eurocode_search)**: only clauses with
+        ``selected=True`` (LLM-marked as truly needed) are kept.  Falls back
+        to score ≥ 5.0 when no clause has ``selected`` set (non-agentic mode).
+      - **Engineering calculator**: ``clause_references`` metadata is stripped.
+        These are static registry metadata about which clauses the tool
+        *implements*, NOT evidence that a clause was actually retrieved/read.
+        Keeping them would cause the grounding validator to wrongly treat them
+        as retrieved evidence.
     """
     blocks: list[str] = []
-    skip_tools = {"todo_write", "ask_user"}
-    _MIN_CLAUSE_SCORE = 5.0
 
     # Map tool_call_id → tool name so we can label tool results
     tc_id_to_name: dict[str, str] = {}
+
+    # Track the last todo_write call+result to append at the end
+    last_todo_call: str | None = None
+    last_todo_result: str | None = None
 
     for msg in all_messages:
         # ── Assistant tool calls: capture full args ──────────────────
@@ -878,24 +925,33 @@ def _build_tool_context(all_messages: list[dict]) -> str:
                 tc_id = tc.get("id", "")
                 if tc_id:
                     tc_id_to_name[tc_id] = name
-                if name in skip_tools:
-                    continue
+
                 try:
                     args = json.loads(fn.get("arguments", "{}"))
                 except (json.JSONDecodeError, TypeError):
                     args = {}
                 args_str = json.dumps(args, ensure_ascii=False)
+
+                if name == "todo_write":
+                    # Only keep the last todo_write — it supersedes earlier ones
+                    last_todo_call = f"[tool_call] {name}({args_str})"
+                    last_todo_result = None  # reset until result arrives
+                    continue
+
                 blocks.append(f"[tool_call] {name}({args_str})")
 
         # ── Tool results: preserve full data ─────────────────────────
         if msg.get("role") == "tool":
             tool_name = tc_id_to_name.get(msg.get("tool_call_id", ""), "")
-            if tool_name in skip_tools:
-                continue
 
             content = msg.get("content", "")
             # Strip system-reminder suffixes before parsing
             raw = content.split("<system-reminder>")[0].strip()
+
+            if tool_name == "todo_write":
+                # Keep the last todo result alongside the last call
+                last_todo_result = f"[tool_result] {tool_name}:\n{raw}"
+                continue
 
             try:
                 data = json.loads(raw)
@@ -909,17 +965,33 @@ def _build_tool_context(all_messages: list[dict]) -> str:
                 blocks.append(f"[tool_result] {tool_name}: {raw}")
                 continue
 
-            # ── Clauses: keep all relevant ones with full text ───────
-            if "clauses" in data:
-                kept_clauses = []
-                for c in data["clauses"]:
-                    score = c.get("score", 10)
-                    if isinstance(score, (int, float)) and score < _MIN_CLAUSE_SCORE:
-                        continue  # drop irrelevant clauses
-                    kept_clauses.append(c)
-                data["clauses"] = kept_clauses
+            # ── Search results: keep only LLM-selected clauses ───────
+            if "clauses" in data and "total_found" in data:
+                clauses = data["clauses"]
+                selected = [c for c in clauses
+                            if isinstance(c, dict) and c.get("selected")]
+                if selected:
+                    data["clauses"] = selected
+                else:
+                    # Fallback for non-agentic mode: keep score ≥ 5.0
+                    data["clauses"] = [
+                        c for c in clauses
+                        if isinstance(c.get("score", 10), (int, float))
+                        and c.get("score", 10) >= 5.0
+                    ]
 
-            # Remove empty/noise fields but keep everything else
+            # ── Engineering tools: strip clause_references ────────────
+            # These are static registry metadata about which clauses the
+            # tool *implements*, NOT evidence that a clause was actually
+            # retrieved.  Keeping them causes the grounding validator to
+            # treat them as retrieved evidence, masking missing lookups.
+            if tool_name in ("engineering_calculator", "search_engineering_tools"):
+                data.pop("clause_references", None)
+                for r in data.get("results", []):
+                    if isinstance(r, dict):
+                        r.pop("clause_references", None)
+
+            # Remove noise fields
             for drop_key in ("_referenced_but_not_retrieved",):
                 data.pop(drop_key, None)
 
@@ -927,6 +999,13 @@ def _build_tool_context(all_messages: list[dict]) -> str:
                 f"[tool_result] {tool_name}:\n"
                 + json.dumps(data, ensure_ascii=False, default=str)
             )
+
+    # Append the last todo_write (plan state) at the end — it's the
+    # most important context for continuation after ask_user.
+    if last_todo_call:
+        blocks.append(last_todo_call)
+    if last_todo_result:
+        blocks.append(last_todo_result)
 
     if not blocks:
         return ""

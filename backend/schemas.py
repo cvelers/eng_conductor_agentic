@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 class ChatMessage(BaseModel):
     role: str
     content: str
+    response_payload: Optional[dict[str, Any]] = None
 
 
 class Attachment(BaseModel):
@@ -24,6 +25,7 @@ class ChatRequest(BaseModel):
     thinking_mode: Literal["standard", "thinking", "extended"] = "thinking"
     attachments: list[Attachment] = Field(default_factory=list)
     is_edit: bool = False
+    is_ask_user_reply: bool = False
     web_search: bool = True
 
 

@@ -85,6 +85,19 @@ _TOOL_SCORE_SYSTEM = (
 )
 
 
+def _tool_score_max_tokens(entries: list[EngToolEntry], attempt: int = 1) -> int:
+    """Budget enough output tokens for the full tool-score map.
+
+    Some providers consume part of `max_tokens` on internal reasoning, so the
+    budget must be comfortably above the raw JSON size.  Keep a large floor and
+    scale with registry size, then allow one larger retry on parse failure.
+    """
+    base_budget = max(1200, 150 * len(entries))
+    if attempt <= 1:
+        return min(4000, base_budget)
+    return min(8000, max(base_budget * 2, 2400))
+
+
 def _build_catalogue(entries: list[EngToolEntry]) -> str:
     """Build a compact catalogue string for the LLM prompt."""
     lines: list[str] = []
@@ -110,14 +123,33 @@ def _llm_score_tools(
         "Score each tool. Return JSON only."
     )
 
-    raw = llm_provider.generate(
-        system_prompt=_TOOL_SCORE_SYSTEM,
-        user_prompt=user_prompt,
-        temperature=0.0,
-        max_tokens=400,
-    )
-
-    data = parse_json_loose(raw)
+    raw = ""
+    last_error: Exception | None = None
+    data: Any = None
+    for attempt in (1, 2):
+        raw = llm_provider.generate(
+            system_prompt=_TOOL_SCORE_SYSTEM,
+            user_prompt=user_prompt,
+            temperature=0.0,
+            max_tokens=_tool_score_max_tokens(entries, attempt=attempt),
+        )
+        try:
+            data = parse_json_loose(raw)
+            break
+        except ValueError as exc:
+            last_error = exc
+            if attempt == 2:
+                raise
+            logger.warning(
+                "LLM tool scoring JSON parse failed; retrying with larger output budget",
+                extra={
+                    "attempt": attempt,
+                    "entry_count": len(entries),
+                    "raw_preview": raw[:200],
+                },
+            )
+    if last_error is not None and data is None:
+        raise last_error
     if not isinstance(data, dict):
         logger.warning("LLM returned non-dict for tool scores: %s", type(data))
         return []

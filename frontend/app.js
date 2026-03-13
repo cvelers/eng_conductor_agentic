@@ -149,6 +149,59 @@ function escHtml(s) {
   return d.innerHTML;
 }
 
+function splitToolContextBlock(text) {
+  const raw = typeof text === "string" ? text : String(text || "");
+  const match = raw.match(/\s*(<tool-context>[\s\S]*?<\/tool-context>)\s*$/i);
+  if (match) {
+    return {
+      visible: raw.slice(0, match.index).replace(/\s+$/, ""),
+      toolContext: match[1].trim(),
+    };
+  }
+  const rawMarker = raw.search(/(?:^|\n)\s*(?=(?:<tool-context>|\[tool_call\]|\[tool_result\]))/i);
+  if (rawMarker >= 0) {
+    return {
+      visible: raw.slice(0, rawMarker).replace(/\s+$/, ""),
+      toolContext: raw.slice(rawMarker).trim(),
+    };
+  }
+  return { visible: raw, toolContext: "" };
+}
+
+function getSessionMemory(payload) {
+  const memory = payload?.session_memory;
+  return memory && typeof memory === "object" ? memory : null;
+}
+
+function formatPendingAskUserText(askUser) {
+  if (!askUser || typeof askUser !== "object" || !askUser.question) return "";
+  let text = "I need more information to continue.";
+  text += `\n\n${askUser.question}`;
+  if (askUser.context) text += `\n\n${askUser.context}`;
+  return text;
+}
+
+function getAssistantDisplayContent(message) {
+  const payload = message?.responsePayload || message?.response_payload || null;
+  const { visible } = splitToolContextBlock(message?.content || "");
+  const memory = getSessionMemory(payload);
+  if (memory?.state === "waiting_for_user") {
+    return visible || formatPendingAskUserText(memory.ask_user);
+  }
+  if (typeof payload?.answer === "string" && payload.answer) {
+    return splitToolContextBlock(payload.answer).visible;
+  }
+  return visible;
+}
+
+function serializeHistoryMessage(message) {
+  return {
+    role: message.role,
+    content: message.content || "",
+    response_payload: message.responsePayload || null,
+  };
+}
+
 // ---- Calculation Tabs (below response, one per calc tool result) ----
 
 const _CALC_TOOL_LABELS = {
@@ -222,8 +275,12 @@ function formatValue(key, val) {
 function buildCalcTabs(msgNode) {
   const calcContainer = msgNode.querySelector(".calc-tabs");
   if (!calcContainer) return;
+  calcContainer.innerHTML = "";
   const results = msgNode.__calcResults || [];
-  if (!results.length) return;
+  if (!results.length) {
+    calcContainer.classList.add("hidden");
+    return;
+  }
 
   calcContainer.classList.remove("hidden");
 
@@ -331,26 +388,41 @@ function buildCalcTabs(msgNode) {
 function buildReferences(msgNode) {
   const refSection = msgNode.querySelector(".ref-section");
   if (!refSection) return;
+  refSection.innerHTML = "";
   const allClauses = msgNode.__refClauses || [];
-  if (!allClauses.length) return;
+  if (!allClauses.length) {
+    refSection.classList.add("hidden");
+    return;
+  }
 
   // Only show clauses that were selected (green) in the search matrix
   const selectedKeys = msgNode.__selectedRefKeys;
   const clauses = selectedKeys && selectedKeys.size > 0
     ? allClauses.filter(c => selectedKeys.has(`${c.standard}:${c.clause_id}`))
     : allClauses; // fallback: show all if no matrix exists
-  if (!clauses.length) return;
+  const dedupedClauses = [];
+  const seenClauseKeys = new Set();
+  for (const clause of clauses) {
+    const clauseKey = `${clause.standard || ""}:${clause.clause_id || ""}`;
+    if (!clauseKey || seenClauseKeys.has(clauseKey)) continue;
+    seenClauseKeys.add(clauseKey);
+    dedupedClauses.push(clause);
+  }
+  if (!dedupedClauses.length) {
+    refSection.classList.add("hidden");
+    return;
+  }
 
   refSection.classList.remove("hidden");
 
   // Header
   const header = document.createElement("div");
   header.className = "ref-header";
-  header.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span>References</span><span class="ref-count">${clauses.length}</span>`;
+  header.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span>References</span><span class="ref-count">${dedupedClauses.length}</span>`;
   refSection.appendChild(header);
 
   // Each clause as an expandable card
-  for (const c of clauses) {
+  for (const c of dedupedClauses) {
     const details = document.createElement("details");
     details.className = "ref-clause";
 
@@ -1538,6 +1610,23 @@ function setThinkingState(msgNode, active) {
   }
 }
 
+function setComposerStreaming(active) {
+  if (!sendBtn) return;
+  if (active) {
+    sendBtn.disabled = false;
+    sendBtn.innerHTML = STOP_ICON;
+    sendBtn.setAttribute("aria-label", "Stop");
+    sendBtn.classList.add("stop-mode");
+    setThinkingModeDisabled(true);
+    return;
+  }
+  sendBtn.innerHTML = SEND_ICON;
+  sendBtn.setAttribute("aria-label", "Send");
+  sendBtn.classList.remove("stop-mode");
+  sendBtn.disabled = false;
+  setThinkingModeDisabled(false);
+}
+
 function previewPairs(obj, max = 3) {
   if (!obj || typeof obj !== "object") return "";
   const pairs = Object.entries(obj)
@@ -1889,6 +1978,41 @@ function finalizeAgentThinking(msgNode, taskCount) {
   const meta = msgNode.querySelector(".thinking-meta");
   if (meta) meta.textContent = `${taskCount} task${taskCount !== 1 ? "s" : ""} \u00B7 ${elapsed}s`;
   updateThinkingLabel(msgNode, "Completed. Expand to review steps.");
+}
+
+function pauseAgentThinking(msgNode, taskCount) {
+  const f = msgNode.__flow;
+  if (f) {
+    setNS(f, "orchestrator", "done");
+    setNS(f, "response", "done");
+    setNS(f, "user", "active");
+    setES(f, "u_o", "done");
+    setES(f, "o_r", "done");
+    applyFlow(msgNode);
+  }
+  setThinkingState(msgNode, false);
+  const elapsed = ((Date.now() - (msgNode.__thinkStart || Date.now())) / 1000).toFixed(1);
+  const meta = msgNode.querySelector(".thinking-meta");
+  if (meta) meta.textContent = `${taskCount} task${taskCount !== 1 ? "s" : ""} \u00B7 ${elapsed}s`;
+  updateThinkingLabel(msgNode, "Waiting for your answer.");
+}
+
+function pauseThinking(msgNode) {
+  const f = msgNode.__flow;
+  if (f) {
+    setNS(f, "orchestrator", "done");
+    setNS(f, "response", "done");
+    setNS(f, "user", "active");
+    setES(f, "u_o", "done");
+    setES(f, "o_r", "done");
+    applyFlow(msgNode);
+  }
+  setThinkingState(msgNode, false);
+  const elapsed = ((Date.now() - (msgNode.__thinkStart || Date.now())) / 1000).toFixed(1);
+  const steps = msgNode.__stepCount || 0;
+  const meta = msgNode.querySelector(".thinking-meta");
+  if (meta) meta.textContent = `${steps} steps \u00B7 ${elapsed}s`;
+  updateThinkingLabel(msgNode, "Waiting for your answer.");
 }
 
 // ---- FEA Panel Integration ----
@@ -2273,7 +2397,7 @@ function renderMessages() {
   if (!t) { updateWelcome(); return; }
   for (const m of t.messages || []) {
     if (m.role === "assistant") {
-      createMsg("assistant", m.content || "", { showThinking: false, responsePayload: m.responsePayload });
+      createMsg("assistant", getAssistantDisplayContent(m), { showThinking: false, responsePayload: m.responsePayload });
     } else {
       createMsg("user", m.content || "", { attachments: m.attachments });
     }
@@ -2309,10 +2433,7 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
 
   const threadMsgs = thread.messages || [];
   const prevMsgs = threadMsgs.slice(0, -1);
-  const history = prevMsgs.map(m => ({
-    role: m.role,
-    content: m.content || "",
-  }));
+  const history = prevMsgs.map(serializeHistoryMessage);
 
   // Build attachments payload for the API (with base64 data for images)
   const apiAttachments = attachments.map(a => ({
@@ -2329,14 +2450,15 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
   const res = await fetchWithAuth("/api/chat/stream", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      message: prompt,
-      history,
-      thinking_mode: thinkingMode,
-      attachments: apiAttachments,
-      is_edit: isEdit,
-      web_search: state.webSearchEnabled,
-    }),
+      body: JSON.stringify({
+        message: prompt,
+        history,
+        thinking_mode: thinkingMode,
+        attachments: apiAttachments,
+        is_edit: isEdit,
+        is_ask_user_reply: isContinuation,
+        web_search: state.webSearchEnabled,
+      }),
     signal: abortController.signal,
   });
   if (!res.ok || !res.body) throw new Error(`Request failed: ${res.status}`);
@@ -2349,12 +2471,21 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
   let isAgentMode = false;
   let agentTaskCount = 0;
   // Accumulators for "What I used" trace section
-  assistantNode.__toolTrace = [];
-  assistantNode.__usedClauses = [];
-  assistantNode.__calcResults = [];
-  assistantNode.__refClauses = []; // full clause objects for expandable references
+  if (!isContinuation) {
+    assistantNode.__toolTrace = [];
+    assistantNode.__usedClauses = [];
+    assistantNode.__calcResults = [];
+    assistantNode.__refClauses = [];
+    assistantNode.__selectedRefKeys = new Set();
+  } else {
+    assistantNode.__toolTrace = assistantNode.__toolTrace || [];
+    assistantNode.__usedClauses = assistantNode.__usedClauses || [];
+    assistantNode.__calcResults = assistantNode.__calcResults || [];
+    assistantNode.__refClauses = assistantNode.__refClauses || [];
+    assistantNode.__selectedRefKeys = assistantNode.__selectedRefKeys || new Set();
+  }
+  assistantNode.__pendingAskUser = null;
   assistantNode.__pendingCalcArgs = null; // stash tool_start args for calc tools
-  assistantNode.__selectedRefKeys = new Set(); // only green (selected) clauses become references
 
   while (true) {
     const { done, value } = await reader.read();
@@ -2394,6 +2525,11 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         updatePlanStep(assistantNode, event.step_id, event.status);
       }
       if (event.type === "ask_user") {
+        assistantNode.__pendingAskUser = {
+          question: event.question || "",
+          options: Array.isArray(event.options) ? event.options : [],
+          context: event.context || "",
+        };
         showAskUserPopup(event.question, event.options || [], event.context || "", async (answer) => {
           // Add the user's answer to thread history so the agent sees it
           thread.messages.push({ id: uid(), role: "user", content: answer, createdAt: now() });
@@ -2410,12 +2546,27 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
           updateThinkingLabel(assistantNode, "Continuing with your answer...");
           // Continue streaming into the SAME assistant bubble
           try {
+            setComposerStreaming(true);
+            if (assistantNode.__flow) {
+              const f = assistantNode.__flow;
+              setNS(f, "user", "done");
+              setNS(f, "orchestrator", "active");
+              setNS(f, "response", "active");
+              setES(f, "u_o", "active");
+              setES(f, "o_r", "active");
+              applyFlow(assistantNode);
+            }
+            setThinkingState(assistantNode, true);
+            appendLog(assistantNode, "Received your answer. Continuing the same run.");
             await streamChat(answer, assistantNode, thread, thinkingMode, [], { isContinuation: true });
           } catch (err) {
             if (err.name !== "AbortError") {
               const errContentEl = assistantNode.querySelector(".content");
               errContentEl.innerHTML += `<div class="error-msg">${escHtml(err.message)}</div>`;
             }
+          } finally {
+            state.abortController = null;
+            setComposerStreaming(false);
           }
         });
       }
@@ -2647,9 +2798,11 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         if (renderTimer) { clearTimeout(renderTimer); renderTimer = null; }
         contentEl.classList.remove("streaming");
         const payload = event.response;
+        const pendingAskUser = assistantNode.__pendingAskUser || null;
+        const waitingForUser = !!pendingAskUser;
+        const rawAnswer = payload.answer || (waitingForUser ? formatPendingAskUserText(pendingAskUser) : "");
+        const displayText = splitToolContextBlock(accumulated || rawAnswer).visible;
         lastPayload = payload;
-        // Use full accumulated text (includes prior run in continuation mode)
-        const displayText = accumulated || payload.answer;
         contentEl.innerHTML = renderMd(displayText);
         buildCalcTabs(assistantNode);
         buildReferences(assistantNode);
@@ -2661,7 +2814,7 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         };
         setTrace(assistantNode, tracePayload);
         // ── Agent→Flow bridge: finalize response ──
-        if (assistantNode.__flow) {
+        if (assistantNode.__flow && !waitingForUser) {
           const f = assistantNode.__flow;
           const ok = payload.supported !== false;
           setNS(f, "orchestrator", "done");
@@ -2671,40 +2824,61 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
           setNS(f, "user", "done");
           applyFlow(assistantNode);
         }
-        if (isAgentMode) {
+        if (waitingForUser) {
+          if (isAgentMode) {
+            pauseAgentThinking(assistantNode, agentTaskCount || 1);
+          } else {
+            pauseThinking(assistantNode);
+          }
+        } else if (isAgentMode) {
           finalizeAgentThinking(assistantNode, agentTaskCount || 1);
         } else {
           finalizeThinking(assistantNode, payload);
         }
-        appendLog(assistantNode, "Response complete.");
+        appendLog(assistantNode, waitingForUser ? "Waiting for your answer." : "Response complete.");
 
         if (!finalized) {
-          // Append tool context summary to stored content so future turns
-          // remember what tools were used and key data retrieved.
           const toolCtx = event.tool_context || "";
-          const storedContent = toolCtx
-            ? displayText + "\n\n" + toolCtx
-            : displayText;
+          const storedPayload = {
+            ...payload,
+            answer: displayText,
+            session_memory: {
+              tool_context: toolCtx,
+              state: waitingForUser ? "waiting_for_user" : "final",
+              ask_user: pendingAskUser,
+            },
+          };
           if (isContinuation) {
-            // Update the existing assistant message instead of adding a new one
             const lastAst = [...thread.messages].reverse().find(m => m.role === "assistant");
             if (lastAst) {
-              lastAst.content = storedContent;
-              lastAst.responsePayload = payload;
+              lastAst.content = displayText;
+              lastAst.responsePayload = storedPayload;
               lastAst.updatedAt = now();
+            } else {
+              thread.messages.push({
+                id: uid(),
+                role: "assistant",
+                content: displayText,
+                responsePayload: storedPayload,
+                createdAt: now(),
+              });
             }
           } else {
-            thread.messages.push({ id: uid(), role: "assistant", content: storedContent, responsePayload: payload, createdAt: now() });
+            thread.messages.push({
+              id: uid(),
+              role: "assistant",
+              content: displayText,
+              responsePayload: storedPayload,
+              createdAt: now(),
+            });
           }
           thread.updatedAt = now();
           if (canUseStoredThreads()) {
             if (auth.threadsSync) {
               if (isContinuation) {
-                // For sync, update the last assistant message
-                // (addMessageToApi appends; for now just save locally)
                 save();
               } else {
-                await addMessageToApi(thread.id, "assistant", storedContent, payload);
+                await addMessageToApi(thread.id, "assistant", displayText, storedPayload);
               }
             } else {
               save();
@@ -2713,6 +2887,7 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
           renderThreadList();
           finalized = true;
         }
+        assistantNode.__pendingAskUser = null;
       }
 
       if (event.type === "error") {
@@ -3359,11 +3534,7 @@ async function initialize() {
     input.value = "";
     clearAttachments();
     closeAttachMenu();
-    sendBtn.disabled = false;
-    sendBtn.innerHTML = STOP_ICON;
-    sendBtn.setAttribute("aria-label", "Stop");
-    sendBtn.classList.add("stop-mode");
-    setThinkingModeDisabled(true);
+    setComposerStreaming(true);
     createMsg("user", prompt, { attachments: currentAttachments });
     _cleanupFloatingDiagrams();
     const assistantNode = createMsg("assistant", "", { showThinking: true, prompt: fullPrompt });
@@ -3409,11 +3580,7 @@ async function initialize() {
       renderThreadList();
     } finally {
       state.abortController = null;
-      sendBtn.innerHTML = SEND_ICON;
-      sendBtn.setAttribute("aria-label", "Send");
-      sendBtn.classList.remove("stop-mode");
-      sendBtn.disabled = false;
-      setThinkingModeDisabled(false);
+      setComposerStreaming(false);
       input.focus();
     }
   });

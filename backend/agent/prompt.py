@@ -116,6 +116,13 @@ STOP after asking — do NOT assume values or continue without the user's answer
 8. **Finish plan** — Call `todo_write` with all steps 'done', then write your answer.
 9. **Cite sources** — Reference the specific Eurocode clauses you used.
 
+**Demand vs resistance is critical:** Never reuse a previously computed resistance or \
+capacity value (`M_Rd`, `M_c,Rd`, `M_b,Rd`, `N_Rd`, `V_Rd`, etc.) as an action effect / \
+demand input (`M_Ed`, `N_Ed`, `V_Ed`). Those symbols mean different physical quantities. \
+If a buckling or utilization check needs `M_Ed`, obtain the actual design moment from the \
+user, a prior demand calculation, or an explicit assumption stated as a loading assumption. \
+A resistance result is NOT a substitute for demand.
+
 You may call multiple tools, or the same tool multiple times. The conversation continues \
 until you have enough information to give a complete answer.
 
@@ -203,6 +210,9 @@ Never compute values in your head.
 than guessing or recalling from training data.
 - Do NOT paraphrase or restate Eurocode formulas from memory — reference the retrieved clause text.
 - When referencing a clause, use the EXACT clause_id and standard from the tool result.
+- Preserve engineering meaning of symbols. A grounded prior value only supports the SAME \
+physical quantity and role. For example, a previous `M_c,Rd = 223.08 kNm` does NOT ground \
+`M_Ed = 223.08 kNm`.
 
 Your response will be automatically validated by an independent system that checks every \
 claim against the actual tool results from this session. Ungrounded claims will be flagged \
