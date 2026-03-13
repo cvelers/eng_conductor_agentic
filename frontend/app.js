@@ -149,6 +149,48 @@ function escHtml(s) {
   return d.innerHTML;
 }
 
+function splitToolContextBlock(text) {
+  const raw = typeof text === "string" ? text : String(text || "");
+  const match = raw.match(/\s*(<tool-context>[\s\S]*?<\/tool-context>)\s*$/i);
+  if (!match) return { visible: raw, toolContext: "" };
+  return {
+    visible: raw.slice(0, match.index).replace(/\s+$/, ""),
+    toolContext: match[1].trim(),
+  };
+}
+
+function getSessionMemory(payload) {
+  const memory = payload?.session_memory;
+  return memory && typeof memory === "object" ? memory : null;
+}
+
+function formatPendingAskUserText(askUser) {
+  if (!askUser || typeof askUser !== "object" || !askUser.question) return "";
+  let text = "I need more information to continue.";
+  text += `\n\n${askUser.question}`;
+  if (askUser.context) text += `\n\n${askUser.context}`;
+  return text;
+}
+
+function getAssistantDisplayContent(message) {
+  const payload = message?.responsePayload || message?.response_payload || null;
+  const { visible } = splitToolContextBlock(message?.content || "");
+  const memory = getSessionMemory(payload);
+  if (memory?.state === "waiting_for_user") {
+    return visible || formatPendingAskUserText(memory.ask_user);
+  }
+  if (typeof payload?.answer === "string" && payload.answer) return payload.answer;
+  return visible;
+}
+
+function serializeHistoryMessage(message) {
+  return {
+    role: message.role,
+    content: message.content || "",
+    response_payload: message.responsePayload || null,
+  };
+}
+
 // ---- Calculation Tabs (below response, one per calc tool result) ----
 
 const _CALC_TOOL_LABELS = {
@@ -2273,7 +2315,7 @@ function renderMessages() {
   if (!t) { updateWelcome(); return; }
   for (const m of t.messages || []) {
     if (m.role === "assistant") {
-      createMsg("assistant", m.content || "", { showThinking: false, responsePayload: m.responsePayload });
+      createMsg("assistant", getAssistantDisplayContent(m), { showThinking: false, responsePayload: m.responsePayload });
     } else {
       createMsg("user", m.content || "", { attachments: m.attachments });
     }
@@ -2282,7 +2324,14 @@ function renderMessages() {
 }
 
 // ---- Streaming ----
-async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinking", attachments = [], { isEdit = false } = {}) {
+async function streamChat(
+  prompt,
+  assistantNode,
+  thread,
+  thinkingMode = "thinking",
+  attachments = [],
+  { isEdit = false, isContinuation = false } = {},
+) {
   const contentEl = assistantNode.querySelector(".content");
   contentEl.innerHTML = "";
   contentEl.classList.add("streaming");
@@ -2305,10 +2354,7 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
 
   const threadMsgs = thread.messages || [];
   const prevMsgs = threadMsgs.slice(0, -1);
-  const history = prevMsgs.map(m => ({
-    role: m.role,
-    content: m.content || "",
-  }));
+  const history = prevMsgs.map(serializeHistoryMessage);
 
   // Build attachments payload for the API (with base64 data for images)
   const apiAttachments = attachments.map(a => ({
@@ -2345,12 +2391,21 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
   let isAgentMode = false;
   let agentTaskCount = 0;
   // Accumulators for "What I used" trace section
-  assistantNode.__toolTrace = [];
-  assistantNode.__usedClauses = [];
-  assistantNode.__calcResults = [];
-  assistantNode.__refClauses = []; // full clause objects for expandable references
+  if (!isContinuation) {
+    assistantNode.__toolTrace = [];
+    assistantNode.__usedClauses = [];
+    assistantNode.__calcResults = [];
+    assistantNode.__refClauses = [];
+    assistantNode.__selectedRefKeys = new Set();
+  } else {
+    assistantNode.__toolTrace = assistantNode.__toolTrace || [];
+    assistantNode.__usedClauses = assistantNode.__usedClauses || [];
+    assistantNode.__calcResults = assistantNode.__calcResults || [];
+    assistantNode.__refClauses = assistantNode.__refClauses || [];
+    assistantNode.__selectedRefKeys = assistantNode.__selectedRefKeys || new Set();
+  }
+  assistantNode.__pendingAskUser = null;
   assistantNode.__pendingCalcArgs = null; // stash tool_start args for calc tools
-  assistantNode.__selectedRefKeys = new Set(); // only green (selected) clauses become references
 
   while (true) {
     const { done, value } = await reader.read();
@@ -2390,6 +2445,11 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         updatePlanStep(assistantNode, event.step_id, event.status);
       }
       if (event.type === "ask_user") {
+        assistantNode.__pendingAskUser = {
+          question: event.question || "",
+          options: Array.isArray(event.options) ? event.options : [],
+          context: event.context || "",
+        };
         showAskUserPopup(event.question, event.options || [], event.context || "", async (answer) => {
           // Add the user's answer to thread history so the agent sees it
           thread.messages.push({ id: uid(), role: "user", content: answer, createdAt: now() });
@@ -2403,7 +2463,7 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
           }
           // Continue streaming into the SAME assistant bubble
           try {
-            await streamChat(answer, assistantNode, thread, thinkingMode);
+            await streamChat(answer, assistantNode, thread, thinkingMode, [], { isContinuation: true });
           } catch (err) {
             if (err.name !== "AbortError") {
               const errContentEl = assistantNode.querySelector(".content");
@@ -2639,8 +2699,11 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         if (renderTimer) { clearTimeout(renderTimer); renderTimer = null; }
         contentEl.classList.remove("streaming");
         const payload = event.response;
+        const pendingAskUser = assistantNode.__pendingAskUser || null;
+        const waitingForUser = !!pendingAskUser;
+        const displayAnswer = payload.answer || (waitingForUser ? formatPendingAskUserText(pendingAskUser) : "");
         lastPayload = payload;
-        contentEl.innerHTML = renderMd(payload.answer);
+        contentEl.innerHTML = renderMd(displayAnswer);
         buildCalcTabs(assistantNode);
         buildReferences(assistantNode);
         // Build trace from accumulated tool data
@@ -2666,20 +2729,29 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         } else {
           finalizeThinking(assistantNode, payload);
         }
-        appendLog(assistantNode, "Response complete.");
+        appendLog(assistantNode, waitingForUser ? "Waiting for your answer." : "Response complete.");
 
         if (!finalized) {
-          // Append tool context summary to stored content so future turns
-          // remember what tools were used and key data retrieved.
           const toolCtx = event.tool_context || "";
-          const storedContent = toolCtx
-            ? payload.answer + "\n\n" + toolCtx
-            : payload.answer;
-          thread.messages.push({ id: uid(), role: "assistant", content: storedContent, responsePayload: payload, createdAt: now() });
+          const storedPayload = {
+            ...payload,
+            session_memory: {
+              tool_context: toolCtx,
+              state: waitingForUser ? "waiting_for_user" : "final",
+              ask_user: pendingAskUser,
+            },
+          };
+          thread.messages.push({
+            id: uid(),
+            role: "assistant",
+            content: displayAnswer,
+            responsePayload: storedPayload,
+            createdAt: now(),
+          });
           thread.updatedAt = now();
           if (canUseStoredThreads()) {
             if (auth.threadsSync) {
-              await addMessageToApi(thread.id, "assistant", storedContent, payload);
+              await addMessageToApi(thread.id, "assistant", displayAnswer, storedPayload);
             } else {
               save();
             }
@@ -2687,6 +2759,7 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
           renderThreadList();
           finalized = true;
         }
+        assistantNode.__pendingAskUser = null;
       }
 
       if (event.type === "error") {

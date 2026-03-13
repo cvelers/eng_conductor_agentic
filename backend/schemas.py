@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 class ChatMessage(BaseModel):
     role: str
     content: str
+    response_payload: Optional[dict[str, Any]] = None
 
 
 class Attachment(BaseModel):

@@ -37,6 +37,10 @@ COMPACTION_TARGET_RATIO = 0.55   # compact down to ~55%
 MIN_KEEP_MESSAGES = 6            # always keep last N messages at full fidelity
 MAX_SUMMARY_CHARS = 6500         # max length of compaction summary
 SUMMARY_PREFIX = "Conversation memory (auto-compacted):"
+_TOOL_CONTEXT_BLOCK_RE = re.compile(
+    r"\s*(<tool-context>[\s\S]*?</tool-context>)\s*$",
+    re.IGNORECASE,
+)
 
 
 # ── Token estimation ──────────────────────────────────────────────────
@@ -285,22 +289,101 @@ def compact_if_needed(
 # ── Frontend history conversion ───────────────────────────────────────
 
 
+def split_visible_and_tool_context(content: Any) -> tuple[str, str]:
+    """Split assistant content into visible text and hidden tool context."""
+    if content is None:
+        return "", ""
+    if not isinstance(content, str):
+        content = str(content)
+    match = _TOOL_CONTEXT_BLOCK_RE.search(content)
+    if not match:
+        return content, ""
+    visible = content[:match.start()].rstrip()
+    tool_context = match.group(1).strip()
+    return visible, tool_context
+
+
+def _message_response_payload(message: Any) -> dict[str, Any]:
+    if hasattr(message, "response_payload"):
+        payload = getattr(message, "response_payload")
+    elif isinstance(message, dict):
+        payload = message.get("response_payload")
+        if payload is None:
+            payload = message.get("responsePayload")
+    else:
+        payload = getattr(message, "responsePayload", None)
+    return payload if isinstance(payload, dict) else {}
+
+
+def extract_assistant_session_memory(message: Any) -> dict[str, Any]:
+    """Extract visible content and hidden session memory from an assistant turn."""
+    role = message.role if hasattr(message, "role") else message.get("role", "")
+    raw_content = message.content if hasattr(message, "content") else message.get("content", "")
+    visible_content, legacy_tool_context = split_visible_and_tool_context(raw_content)
+
+    payload = _message_response_payload(message)
+    session_memory = payload.get("session_memory", {}) if isinstance(payload, dict) else {}
+    if not isinstance(session_memory, dict):
+        session_memory = {}
+
+    tool_context = str(session_memory.get("tool_context") or legacy_tool_context or "").strip()
+    if role == "assistant" and not visible_content and isinstance(payload.get("answer"), str):
+        visible_content = payload["answer"]
+
+    state = str(session_memory.get("state") or "").strip() or (
+        "waiting_for_user" if "[tool_call] ask_user(" in tool_context else "final"
+    )
+
+    ask_user = session_memory.get("ask_user")
+    if not isinstance(ask_user, dict):
+        ask_user = None
+
+    return {
+        "role": role,
+        "visible_content": visible_content,
+        "tool_context": tool_context,
+        "state": state,
+        "ask_user": ask_user,
+        "response_payload": payload,
+    }
+
+
+def last_assistant_message_waiting_for_user(history: list[Any]) -> bool:
+    """True when the latest assistant turn paused on ask_user."""
+    for message in reversed(history or []):
+        role = message.role if hasattr(message, "role") else message.get("role", "")
+        if role != "assistant":
+            return False
+        memory = extract_assistant_session_memory(message)
+        if memory["state"] == "waiting_for_user":
+            return True
+        tool_context = memory["tool_context"]
+        return (
+            "[tool_call] ask_user(" in tool_context
+            or '"status": "waiting_for_user"' in tool_context
+        )
+    return False
+
+
 def convert_frontend_history(history: list) -> list[dict[str, Any]]:
     """Convert ChatMessage objects from frontend to OpenAI message format.
 
-    Strips ``<tool-context>`` blocks that the frontend appends to assistant
-    messages for session memory — the LLM should not see (or reproduce) those.
+    Assistant turns may carry hidden session memory in ``response_payload`` or
+    legacy ``<tool-context>`` blocks. That hidden memory is appended here so
+    the model receives the full pre-compaction session state.
     """
     messages: list[dict[str, Any]] = []
     for msg in history or []:
         role = msg.role if hasattr(msg, "role") else msg.get("role", "user")
         content = msg.content if hasattr(msg, "content") else msg.get("content", "")
-        # Strip tool-context blocks appended by the frontend
-        if role == "assistant" and "<tool-context>" in content:
-            content = re.sub(
-                r"\s*<tool-context>[\s\S]*?</tool-context>\s*$",
-                "",
-                content,
-            ).rstrip()
+        if role == "assistant":
+            memory = extract_assistant_session_memory(msg)
+            content = memory["visible_content"]
+            if memory["tool_context"]:
+                content = (
+                    f"{content}\n\n{memory['tool_context']}"
+                    if content
+                    else memory["tool_context"]
+                )
         messages.append({"role": role, "content": content})
     return messages

@@ -26,6 +26,7 @@ import time
 from typing import Any, AsyncIterator, Callable
 
 from openai import OpenAI
+from backend.agent.context import split_visible_and_tool_context
 
 logger = logging.getLogger(__name__)
 
@@ -282,7 +283,9 @@ You are an independent auditor — the response author has no control over your 
 ## Instructions
 Check EVERY factual claim in the response against the evidence above:
 1. Every Eurocode clause cited (e.g. "Cl. 6.2.5") — is it in the tool results \
-or in a previous validated response?
+from explicit clause evidence returned by `eurocode_search` / `read_clause`, \
+or in a previous validated response/session memory? Calculator metadata alone \
+is NOT enough to ground a cited clause.
 2. Every numeric value stated (fy, Wpl, dimensions, safety factors) — does it \
 match a tool output or a value from a previous validated response? Check the \
 actual numbers.
@@ -290,6 +293,9 @@ actual numbers.
 a previous validated response?
 4. Any formula or rule — is it from a retrieved clause or previous response, \
 or recited from memory?
+5. If a calculator used assumed inputs, make sure those assumptions came from \
+the user, previous validated context, or were explicitly stated as assumptions \
+in the response. Do NOT accept silent assumptions just because the tool ran.
 
 Values and clauses that appear in previously validated responses are considered \
 grounded — they were already verified in an earlier turn. Do NOT flag them.
@@ -298,6 +304,24 @@ Respond with ONLY a JSON object (no markdown, no explanation):
 - If fully grounded: {{"valid": true}}
 - If issues found: {{"valid": false, "issues": ["issue1", "issue2", ...]}}\
 """
+
+_STANDARD_WITH_REF_RE = re.compile(
+    r"\b(EN\s*1993(?:[- ]\d+)+)\b(?:[^A-Za-z0-9]{0,12}(?:Cl(?:ause)?\.?\s*)?)?"
+    r"(Table\s+\d+\.\d+(?:\.\d+)?|\d+\.\d+(?:\.\d+)?(?:\([^)]+\))?)",
+    re.IGNORECASE,
+)
+_CLAUSE_CITATION_RE = re.compile(
+    r"\b(?:Cl(?:ause)?\.?)\s*(\d+\.\d+(?:\.\d+)?(?:\([^)]+\))?)\b",
+    re.IGNORECASE,
+)
+_TABLE_CITATION_RE = re.compile(
+    r"\b(Table\s+\d+\.\d+(?:\.\d+)?)\b",
+    re.IGNORECASE,
+)
+_PERSISTED_TOOL_RESULT_RE = re.compile(
+    r"\[tool_result\]\s+([a-zA-Z0-9_]+):\n(.*?)(?=\n\[tool_(?:call|result)\]|\n</tool-context>|$)",
+    re.DOTALL,
+)
 
 
 def _build_tool_results_for_validator(all_messages: list[dict]) -> str:
@@ -361,6 +385,138 @@ def _build_conversation_history_for_validator(all_messages: list[dict]) -> str:
     return "\n\n".join(blocks) if blocks else ""
 
 
+def _normalize_standard_ref(standard: str) -> str:
+    digits = re.findall(r"\d+", standard or "")
+    if digits and digits[0] == "1993" and len(digits) >= 2:
+        return f"EN 1993-{'-'.join(digits[1:])}"
+    compact = re.sub(r"\s+", " ", (standard or "").strip())
+    return compact.upper()
+
+
+def _normalize_clause_ref(clause_id: str) -> str:
+    raw = (clause_id or "").strip()
+    if not raw:
+        return ""
+    if raw.lower().startswith("table"):
+        number = re.sub(r"(?i)^table\s*", "", raw).strip()
+        number = re.sub(r"\([^)]+\)", "", number)
+        return f"table {number}"
+    return re.sub(r"\([^)]+\)", "", raw)
+
+
+def _extract_cited_references(text: str) -> set[tuple[str | None, str]]:
+    refs: set[tuple[str | None, str]] = set()
+    for match in _STANDARD_WITH_REF_RE.finditer(text or ""):
+        refs.add((
+            _normalize_standard_ref(match.group(1)),
+            _normalize_clause_ref(match.group(2)),
+        ))
+    for match in _CLAUSE_CITATION_RE.finditer(text or ""):
+        refs.add((None, _normalize_clause_ref(match.group(1))))
+    for match in _TABLE_CITATION_RE.finditer(text or ""):
+        refs.add((None, _normalize_clause_ref(match.group(1))))
+    return {item for item in refs if item[1]}
+
+
+def _extract_clause_evidence_from_result(tool_name: str, raw: str) -> set[tuple[str | None, str]]:
+    if tool_name not in {"eurocode_search", "read_clause"}:
+        return set()
+    try:
+        data = json.loads(raw)
+    except (json.JSONDecodeError, TypeError):
+        return set()
+    if not isinstance(data, dict):
+        return set()
+
+    evidence: set[tuple[str | None, str]] = set()
+    for clause in data.get("clauses", []) or []:
+        if not isinstance(clause, dict):
+            continue
+        if tool_name == "eurocode_search" and not clause.get("selected"):
+            continue
+        clause_id = _normalize_clause_ref(str(clause.get("clause_id", "")))
+        if not clause_id:
+            continue
+        standard = _normalize_standard_ref(str(clause.get("standard", ""))) if clause.get("standard") else None
+        evidence.add((standard, clause_id))
+    return evidence
+
+
+def _iter_persisted_tool_results(content: str) -> list[tuple[str, str]]:
+    _, tool_context = split_visible_and_tool_context(content)
+    if not tool_context:
+        return []
+    return [
+        (match.group(1), match.group(2).strip())
+        for match in _PERSISTED_TOOL_RESULT_RE.finditer(tool_context)
+    ]
+
+
+def _collect_explicit_clause_evidence(messages: list[dict]) -> set[tuple[str | None, str]]:
+    evidence: set[tuple[str | None, str]] = set()
+    tc_id_to_name: dict[str, str] = {}
+
+    for msg in messages:
+        if msg.get("role") == "assistant" and msg.get("tool_calls"):
+            for tc in msg["tool_calls"]:
+                fn = tc.get("function", {})
+                tc_id = tc.get("id", "")
+                if tc_id:
+                    tc_id_to_name[tc_id] = fn.get("name", "")
+
+        if msg.get("role") == "tool":
+            tool_name = tc_id_to_name.get(msg.get("tool_call_id", ""), "")
+            raw = str(msg.get("content", "")).split("<system-reminder>")[0].strip()
+            evidence.update(_extract_clause_evidence_from_result(tool_name, raw))
+            continue
+
+        if msg.get("role") == "assistant" and not msg.get("tool_calls"):
+            content = str(msg.get("content", "") or "")
+            evidence.update(_extract_cited_references(content))
+            for tool_name, raw in _iter_persisted_tool_results(content):
+                evidence.update(_extract_clause_evidence_from_result(tool_name, raw))
+
+    return evidence
+
+
+def _format_citation_label(standard: str | None, clause_id: str) -> str:
+    if clause_id.startswith("table "):
+        base = f"Table {clause_id.split(' ', 1)[1]}"
+    else:
+        base = f"Clause {clause_id}"
+    return f"{standard} {base}" if standard else base
+
+
+def _deterministic_grounding_issues(response_text: str, all_messages: list[dict]) -> list[str]:
+    cited_refs = _extract_cited_references(response_text)
+    if not cited_refs:
+        return []
+
+    prior_messages = all_messages[:-1] if all_messages else []
+    explicit_evidence = _collect_explicit_clause_evidence(prior_messages)
+    explicit_ids = {clause_id for _, clause_id in explicit_evidence}
+
+    issues: list[str] = []
+    for standard, clause_id in sorted(cited_refs, key=lambda item: ((item[0] or ""), item[1])):
+        if standard:
+            if (standard, clause_id) in explicit_evidence or (None, clause_id) in explicit_evidence:
+                continue
+            issues.append(
+                f"{_format_citation_label(standard, clause_id)} is not grounded in explicit "
+                "retrieved clause evidence or previous validated session memory."
+            )
+            continue
+
+        if clause_id in explicit_ids:
+            continue
+        issues.append(
+            f"{_format_citation_label(None, clause_id)} is not grounded in explicit "
+            "retrieved clause evidence or previous validated session memory."
+        )
+
+    return issues
+
+
 async def _validate_grounding(
     client: OpenAI,
     model: str,
@@ -371,6 +527,10 @@ async def _validate_grounding(
     reasoning_effort: str | None = None,
 ) -> dict:
     """Call an independent LLM to validate grounding of the agent's response."""
+    deterministic_issues = _deterministic_grounding_issues(response_text, all_messages)
+    if deterministic_issues:
+        return {"valid": False, "issues": deterministic_issues}
+
     tool_results = _build_tool_results_for_validator(all_messages)
     conversation_history = _build_conversation_history_for_validator(all_messages)
 
@@ -722,7 +882,7 @@ async def run_agent_loop(
 
         # ── Execute tool calls ───────────────────────────────────────
         asked_user = False
-        for tc in tool_calls:
+        for tc_idx, tc in enumerate(tool_calls):
             yield {"type": "tool_start", "tool": tc["name"], "args": tc["args"]}
             t0 = time.time()
             try:
@@ -821,6 +981,13 @@ async def run_agent_loop(
                 "content": tool_content,
             })
 
+            if asked_user:
+                logger.info(
+                    "ask_user_hard_stop",
+                    extra={"skipped_following_calls": len(tool_calls) - tc_idx - 1},
+                )
+                break
+
         # If ask_user was called, stop the loop — wait for user input
         if asked_user:
             # Flush any buffered text (the question preamble)
@@ -853,13 +1020,14 @@ async def run_agent_loop(
 def _build_tool_context(all_messages: list[dict]) -> str:
     """Build a full-fidelity record of tool calls and results for session memory.
 
-    Preserves all tool arguments, all clause content, all calculation outputs
-    and intermediate steps. The only data dropped are clauses with low
-    relevance scores (< 5.0) from search results.
+    Persist only explicit evidence the agent chose to use:
+    selected search clauses, explicit read_clause fetches, ask_user state,
+    and non-reference calculation outputs. Ambient clause references from
+    calculator metadata are dropped so future turns only inherit deliberate
+    evidence, not every candidate citation the tools surfaced.
     """
     blocks: list[str] = []
-    skip_tools = {"todo_write", "ask_user"}
-    _MIN_CLAUSE_SCORE = 5.0
+    skip_tools = {"todo_write"}
 
     # Map tool_call_id → tool name so we can label tool results
     tc_id_to_name: dict[str, str] = {}
@@ -904,15 +1072,13 @@ def _build_tool_context(all_messages: list[dict]) -> str:
                 blocks.append(f"[tool_result] {tool_name}: {raw}")
                 continue
 
-            # ── Clauses: keep all relevant ones with full text ───────
-            if "clauses" in data:
-                kept_clauses = []
-                for c in data["clauses"]:
-                    score = c.get("score", 10)
-                    if isinstance(score, (int, float)) and score < _MIN_CLAUSE_SCORE:
-                        continue  # drop irrelevant clauses
-                    kept_clauses.append(c)
-                data["clauses"] = kept_clauses
+            if tool_name == "eurocode_search" and "clauses" in data:
+                data["clauses"] = [
+                    clause for clause in data["clauses"]
+                    if isinstance(clause, dict) and clause.get("selected")
+                ]
+            elif tool_name != "read_clause":
+                data.pop("clause_references", None)
 
             # Remove empty/noise fields but keep everything else
             for drop_key in ("_referenced_but_not_retrieved",):
