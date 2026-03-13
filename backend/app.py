@@ -36,7 +36,7 @@ from backend.agent.context import (
     context_usage_snapshot,
     convert_frontend_history,
     estimate_messages_tokens,
-    last_assistant_message_waiting_for_user,
+    should_continue_from_ask_user,
 )
 
 # FEA (kept as separate mode)
@@ -247,7 +247,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 # message's tool_context ends with an ask_user call,
                 # the user's message is a reply — tell the agent to
                 # continue from where it left off, not replan.
-                _is_ask_reply = last_assistant_message_waiting_for_user(request.history)
+                _is_ask_reply = should_continue_from_ask_user(
+                    request.history,
+                    request.is_ask_user_reply,
+                )
 
                 user_content = request.message
                 if _is_ask_reply:

@@ -41,6 +41,10 @@ _TOOL_CONTEXT_BLOCK_RE = re.compile(
     r"\s*(<tool-context>[\s\S]*?</tool-context>)\s*$",
     re.IGNORECASE,
 )
+_RAW_TOOL_MARKER_RE = re.compile(
+    r"(?:^|\n)\s*(?=(?:<tool-context>|\[tool_call\]|\[tool_result\]))",
+    re.IGNORECASE,
+)
 
 
 # ── Token estimation ──────────────────────────────────────────────────
@@ -296,11 +300,16 @@ def split_visible_and_tool_context(content: Any) -> tuple[str, str]:
     if not isinstance(content, str):
         content = str(content)
     match = _TOOL_CONTEXT_BLOCK_RE.search(content)
-    if not match:
-        return content, ""
-    visible = content[:match.start()].rstrip()
-    tool_context = match.group(1).strip()
-    return visible, tool_context
+    if match:
+        visible = content[:match.start()].rstrip()
+        tool_context = match.group(1).strip()
+        return visible, tool_context
+    raw_marker = _RAW_TOOL_MARKER_RE.search(content)
+    if raw_marker:
+        visible = content[:raw_marker.start()].rstrip()
+        tool_context = content[raw_marker.start():].strip()
+        return visible, tool_context
+    return content, ""
 
 
 def _message_response_payload(message: Any) -> dict[str, Any]:
@@ -328,7 +337,9 @@ def extract_assistant_session_memory(message: Any) -> dict[str, Any]:
 
     tool_context = str(session_memory.get("tool_context") or legacy_tool_context or "").strip()
     if role == "assistant" and not visible_content and isinstance(payload.get("answer"), str):
-        visible_content = payload["answer"]
+        visible_content, leaked_tool_context = split_visible_and_tool_context(payload["answer"])
+        if leaked_tool_context and not tool_context:
+            tool_context = leaked_tool_context
 
     state = str(session_memory.get("state") or "").strip() or (
         "waiting_for_user" if "[tool_call] ask_user(" in tool_context else "final"
@@ -363,6 +374,11 @@ def last_assistant_message_waiting_for_user(history: list[Any]) -> bool:
             or '"status": "waiting_for_user"' in tool_context
         )
     return False
+
+
+def should_continue_from_ask_user(history: list[Any], is_ask_user_reply: bool) -> bool:
+    """Only resume a paused ask_user run when the client marks it explicitly."""
+    return bool(is_ask_user_reply and last_assistant_message_waiting_for_user(history))
 
 
 def convert_frontend_history(history: list) -> list[dict[str, Any]]:

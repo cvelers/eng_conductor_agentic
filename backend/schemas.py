@@ -25,6 +25,7 @@ class ChatRequest(BaseModel):
     thinking_mode: Literal["standard", "thinking", "extended"] = "thinking"
     attachments: list[Attachment] = Field(default_factory=list)
     is_edit: bool = False
+    is_ask_user_reply: bool = False
     web_search: bool = True
 
 

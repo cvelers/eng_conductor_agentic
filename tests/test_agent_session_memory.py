@@ -18,6 +18,8 @@ if "openai" not in sys.modules:
 from backend.agent.context import (
     convert_frontend_history,
     last_assistant_message_waiting_for_user,
+    should_continue_from_ask_user,
+    split_visible_and_tool_context,
 )
 from backend.agent.prompt import SYSTEM_PROMPT
 from backend.agent.loop import (
@@ -80,6 +82,39 @@ def test_waiting_for_user_detected_from_structured_session_memory() -> None:
     ]
 
     assert last_assistant_message_waiting_for_user(history) is True
+
+
+def test_ask_user_continuation_requires_explicit_reply_flag() -> None:
+    history = [
+        {
+            "role": "assistant",
+            "content": "I need more information to continue.",
+            "response_payload": {
+                "session_memory": {
+                    "state": "waiting_for_user",
+                    "tool_context": (
+                        "<tool-context>\n"
+                        '[tool_call] ask_user({"question":"What is the unbraced length?"})\n'
+                        "[tool_result] ask_user:\n"
+                        '{"status":"waiting_for_user"}\n'
+                        "</tool-context>"
+                    ),
+                },
+            },
+        }
+    ]
+
+    assert should_continue_from_ask_user(history, False) is False
+    assert should_continue_from_ask_user(history, True) is True
+
+
+def test_split_visible_and_tool_context_strips_raw_tool_blocks() -> None:
+    visible, tool_context = split_visible_and_tool_context(
+        "Classification summary.\n[tool_call] todo_write({\"todos\":[]})"
+    )
+
+    assert visible == "Classification summary."
+    assert tool_context.startswith("[tool_call] todo_write(")
 
 
 def test_build_tool_context_keeps_only_selected_search_clauses() -> None:

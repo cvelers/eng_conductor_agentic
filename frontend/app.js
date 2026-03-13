@@ -152,11 +152,20 @@ function escHtml(s) {
 function splitToolContextBlock(text) {
   const raw = typeof text === "string" ? text : String(text || "");
   const match = raw.match(/\s*(<tool-context>[\s\S]*?<\/tool-context>)\s*$/i);
-  if (!match) return { visible: raw, toolContext: "" };
-  return {
-    visible: raw.slice(0, match.index).replace(/\s+$/, ""),
-    toolContext: match[1].trim(),
-  };
+  if (match) {
+    return {
+      visible: raw.slice(0, match.index).replace(/\s+$/, ""),
+      toolContext: match[1].trim(),
+    };
+  }
+  const rawMarker = raw.search(/(?:^|\n)\s*(?=(?:<tool-context>|\[tool_call\]|\[tool_result\]))/i);
+  if (rawMarker >= 0) {
+    return {
+      visible: raw.slice(0, rawMarker).replace(/\s+$/, ""),
+      toolContext: raw.slice(rawMarker).trim(),
+    };
+  }
+  return { visible: raw, toolContext: "" };
 }
 
 function getSessionMemory(payload) {
@@ -179,7 +188,9 @@ function getAssistantDisplayContent(message) {
   if (memory?.state === "waiting_for_user") {
     return visible || formatPendingAskUserText(memory.ask_user);
   }
-  if (typeof payload?.answer === "string" && payload.answer) return payload.answer;
+  if (typeof payload?.answer === "string" && payload.answer) {
+    return splitToolContextBlock(payload.answer).visible;
+  }
   return visible;
 }
 
@@ -2442,14 +2453,15 @@ async function streamChat(
   const res = await fetchWithAuth("/api/chat/stream", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      message: prompt,
-      history,
-      thinking_mode: thinkingMode,
-      attachments: apiAttachments,
-      is_edit: isEdit,
-      web_search: state.webSearchEnabled,
-    }),
+      body: JSON.stringify({
+        message: prompt,
+        history,
+        thinking_mode: thinkingMode,
+        attachments: apiAttachments,
+        is_edit: isEdit,
+        is_ask_user_reply: isContinuation,
+        web_search: state.webSearchEnabled,
+      }),
     signal: abortController.signal,
   });
   if (!res.ok || !res.body) throw new Error(`Request failed: ${res.status}`);
@@ -2787,7 +2799,8 @@ async function streamChat(
         const payload = event.response;
         const pendingAskUser = assistantNode.__pendingAskUser || null;
         const waitingForUser = !!pendingAskUser;
-        const displayAnswer = payload.answer || (waitingForUser ? formatPendingAskUserText(pendingAskUser) : "");
+        const rawAnswer = payload.answer || (waitingForUser ? formatPendingAskUserText(pendingAskUser) : "");
+        const displayAnswer = splitToolContextBlock(rawAnswer).visible;
         lastPayload = payload;
         contentEl.innerHTML = renderMd(displayAnswer);
         buildCalcTabs(assistantNode);
@@ -2827,6 +2840,7 @@ async function streamChat(
           const toolCtx = event.tool_context || "";
           const storedPayload = {
             ...payload,
+            answer: displayAnswer,
             session_memory: {
               tool_context: toolCtx,
               state: waitingForUser ? "waiting_for_user" : "final",
