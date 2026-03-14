@@ -123,7 +123,7 @@ function normalise(v) {
  * @param {{x:number,y:number,z:number}} nodeJ
  * @returns {{ xLocal: number[], yLocal: number[], zLocal: number[] }}
  */
-function localAxes(nodeI, nodeJ) {
+export function frame3dLocalAxes(nodeI, nodeJ) {
   const dx = nodeJ.x - nodeI.x;
   const dy = nodeJ.y - nodeI.y;
   const dz = nodeJ.z - nodeI.z;
@@ -162,7 +162,7 @@ function localAxes(nodeI, nodeJ) {
  * @returns {Float64Array} row-major 12x12
  */
 function transformationMatrix(nodeI, nodeJ) {
-  const { xLocal, yLocal, zLocal } = localAxes(nodeI, nodeJ);
+  const { xLocal, yLocal, zLocal } = frame3dLocalAxes(nodeI, nodeJ);
 
   // 3x3 rotation matrix (rows are local axes expressed in global coords)
   const R = [

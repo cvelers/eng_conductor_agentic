@@ -432,7 +432,7 @@ export class FEAPanelController {
       `<tr><td>${row.label}</td><td>${row.value}</td></tr>`
     )).join("");
     const forceNote = this._isComponentForceView()
-      ? '<tr><td colspan="2">3D frame force diagrams use member local axes.</td></tr>'
+      ? '<tr><td colspan="2">3D member-force diagrams use each member&apos;s local axes; reactions remain global Fx/Fy/Fz.</td></tr>'
       : "";
 
     container.innerHTML = `
@@ -609,12 +609,12 @@ export class FEAPanelController {
     ];
 
     if (this._isComponentForceView()) {
-      if (this._hasForceSeries("N")) options.push({ value: "axial", label: "Axial N" });
-      if (this._hasForceSeries("Mx")) options.push({ value: "torsion_mx", label: "Torsion Mx" });
-      if (this._hasForceSeries("My")) options.push({ value: "moment_my", label: "Bending My" });
-      if (this._hasForceSeries("Mz")) options.push({ value: "moment_mz", label: "Bending Mz" });
-      if (this._hasForceSeries("Vy")) options.push({ value: "shear_vy", label: "Shear Vy" });
-      if (this._hasForceSeries("Vz")) options.push({ value: "shear_vz", label: "Shear Vz" });
+      if (this._hasForceSeries("N")) options.push({ value: "axial", label: "Axial N (local x)" });
+      if (this._hasForceSeries("Mx")) options.push({ value: "torsion_mx", label: "Torsion Mx (about local x)" });
+      if (this._hasForceSeries("My")) options.push({ value: "moment_my", label: "Bending My (about local y)" });
+      if (this._hasForceSeries("Mz")) options.push({ value: "moment_mz", label: "Bending Mz (about local z)" });
+      if (this._hasForceSeries("Vy")) options.push({ value: "shear_vy", label: "Shear Vy (local y)" });
+      if (this._hasForceSeries("Vz")) options.push({ value: "shear_vz", label: "Shear Vz (local z)" });
       return options;
     }
 
@@ -670,11 +670,11 @@ export class FEAPanelController {
     if (this._isComponentForceView()) {
       return [
         this._formatForceSummary("N", "Max axial force"),
-        this._formatForceSummary("Mx", "Max torsion Mx"),
-        this._formatForceSummary("My", "Max bending My"),
-        this._formatForceSummary("Mz", "Max bending Mz"),
-        this._formatForceSummary("Vy", "Max shear Vy"),
-        this._formatForceSummary("Vz", "Max shear Vz"),
+        this._formatForceSummary("Mx", "Max torsion Mx (about local x)"),
+        this._formatForceSummary("My", "Max bending My (about local y)"),
+        this._formatForceSummary("Mz", "Max bending Mz (about local z)"),
+        this._formatForceSummary("Vy", "Max shear Vy (local y)"),
+        this._formatForceSummary("Vz", "Max shear Vz (local z)"),
       ].filter(Boolean);
     }
 

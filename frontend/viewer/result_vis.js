@@ -3,6 +3,7 @@
  */
 
 import { getThree } from "./scene.js";
+import { frame3dLocalAxes } from "../fea/elements/frame3d.js";
 
 // Color gradient: blue (low) → green → yellow → red (high)
 const CONTOUR_COLORS = [
@@ -76,6 +77,41 @@ function getDiagramSeries(forces, forceType) {
   }
 
   return Array.isArray(forces[forceType]) ? forces[forceType] : [];
+}
+
+function normalizeVector(vector, fallback = [0, 1, 0]) {
+  const [x = 0, y = 0, z = 0] = vector || [];
+  const length = Math.hypot(x, y, z);
+  if (length < 1e-12) return fallback.slice();
+  return [x / length, y / length, z / length];
+}
+
+function getForceDiagramAxis(forceType, nodeI, nodeJ) {
+  const dx = (nodeJ?.x || 0) - (nodeI?.x || 0);
+  const dy = (nodeJ?.y || 0) - (nodeI?.y || 0);
+  const dz = (nodeJ?.z || 0) - (nodeI?.z || 0);
+  const memberLength = Math.hypot(dx, dy, dz);
+  if (memberLength < 1e-9) return [0, 1, 0];
+
+  if (forceType === "M" || forceType === "V") {
+    return normalizeVector([-dy, dx, 0], [0, 1, 0]);
+  }
+
+  const { yLocal, zLocal } = frame3dLocalAxes(nodeI, nodeJ);
+  if (forceType === "N" || forceType === "Vy" || forceType === "Mz") {
+    return yLocal;
+  }
+  if (forceType === "Vz" || forceType === "My") {
+    return zLocal;
+  }
+  if (forceType === "Mx") {
+    return normalizeVector([
+      (yLocal[0] || 0) + (zLocal[0] || 0),
+      (yLocal[1] || 0) + (zLocal[1] || 0),
+      (yLocal[2] || 0) + (zLocal[2] || 0),
+    ], yLocal);
+  }
+  return yLocal;
 }
 
 /**
@@ -207,24 +243,7 @@ export function createForceDiagram(model, elementForces, forceType = "M", scaleF
     const L = Math.sqrt(dx * dx + dy * dy + dz * dz);
     if (L < 1e-6) continue;
 
-    // Perpendicular direction for diagram offset
-    // For 2D (XY plane): perpendicular is (-dy/L, dx/L, 0)
-    // For 3D: use cross product with up vector
-    let perpX, perpY, perpZ;
-    if (Math.abs(dz) < 1e-6 && Math.abs(dx) > 1e-6 || Math.abs(dy) > 1e-6) {
-      // 2D case (XY plane)
-      perpX = -dy / L;
-      perpY = dx / L;
-      perpZ = 0;
-    } else {
-      // 3D case: cross with global Z
-      perpX = dy / L;
-      perpY = -dx / L;
-      perpZ = 0;
-      const pLen = Math.sqrt(perpX * perpX + perpY * perpY);
-      if (pLen > 1e-6) { perpX /= pLen; perpY /= pLen; }
-      else { perpX = 0; perpY = 1; perpZ = 0; }
-    }
+    const [perpX, perpY, perpZ] = getForceDiagramAxis(forceType, n1, n2);
 
     // Build diagram outline
     const basePoints = [];
