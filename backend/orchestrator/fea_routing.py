@@ -1,29 +1,15 @@
-"""Routing for FEA-capable requests.
-
-Uses a small explicit override for unambiguous FEA commands and falls back to an
-LLM classifier for the ambiguous middle ground.
-"""
+"""Routing for FEA-capable requests via an LLM classifier."""
 
 from __future__ import annotations
 
 import logging
+import re
 from typing import Any
 
 from backend.llm.base import LLMProvider
 from backend.utils.json_utils import parse_json_loose
 
 logger = logging.getLogger(__name__)
-
-_EXPLICIT_FEA_CUES = (
-    " fea ",
-    " fem ",
-    "finite element",
-    "deformed shape",
-    "moment diagram",
-    "shear diagram",
-    "axial diagram",
-    "structural model",
-)
 
 FEA_ROUTER_SYSTEM = """\
 You are a routing classifier for a structural engineering assistant.
@@ -37,7 +23,7 @@ Route to `fea` when the user wants any of these:
 - global analysis results such as reactions, displacements, drift, internal forces, moment/shear/axial diagrams
 - self-weight, nodal loads, distributed loads, support conditions, geometry for a structural model
 - visual/model actions tied to the FEA viewer such as show model, deformed shape, moment diagram, shear diagram, axial diagram
-- continuation of an existing FEA thread
+- continuation of a recent conversation that is clearly about structural modeling, solving, or viewer results
 
 Route to `chat` when the user wants any of these:
 - Eurocode clause lookup or interpretation
@@ -48,7 +34,9 @@ Route to `chat` when the user wants any of these:
 Important follow-up rule:
 - For short follow-ups such as "what about ltb", "what clause applies", or "show the equation", inherit the topic from the recent conversation
 - If the recent conversation was a member-level resistance / Eurocode / hand-calculation discussion, keep routing to `chat`
-- Only treat a follow-up as `fea` when the thread already contains an actual FEA session or the user is now explicitly asking for model/solver/viewer behavior
+- Treat a follow-up as `fea` only when the recent conversation is clearly about a structural model, solver results, or viewer behavior
+- If the current request explicitly switches into model-building or FEA work, that overrides prior member-level chat context and must route to `fea`
+- Requests that explicitly ask to build, create, or analyse a structural model are `fea` even if the previous turn was a resistance check
 
 Examples:
 - "create analyze fea model 2x2 bays frame on selfweight" -> `fea`
@@ -57,9 +45,14 @@ Examples:
 - "Given IPE300, S355, what is the bending resistance?" then "what about ltb" -> `chat`
 - "what clause governs lateral torsional buckling?" -> `chat`
 
-Return JSON only:
-{"route":"fea"|"chat","reason":"one sentence"}
+Return ONLY one lowercase word:
+fea
+or
+chat
 """
+
+_ROUTE_TOKEN_RE = re.compile(r"\b(fea|chat)\b", re.IGNORECASE)
+_MALFORMED_ROUTE_RE = re.compile(r'["\']?route["\']?\s*:\s*["\']?(fea|chat)', re.IGNORECASE)
 
 
 def _history_row(item: Any) -> dict[str, Any]:
@@ -75,61 +68,39 @@ def _history_row(item: Any) -> dict[str, Any]:
     }
 
 
-def _looks_like_prior_fea_turn(payload: Any) -> bool:
-    if not isinstance(payload, dict):
-        return False
-    session_memory = payload.get("session_memory")
-    if isinstance(session_memory, dict):
-        fea_session = session_memory.get("fea_session")
-        if isinstance(fea_session, dict) and any(
-            key in fea_session for key in ("model_snapshot", "results_snapshot", "model_summary")
-        ):
-            return True
-    legacy_fea_session = payload.get("fea_session")
-    if isinstance(legacy_fea_session, dict):
-        return True
-    trace = payload.get("tool_trace")
-    if isinstance(trace, list):
-        for step in trace:
-            if not isinstance(step, dict):
-                continue
-            tool_name = str(step.get("tool_name", "") or "")
-            if tool_name.startswith("fea_"):
-                return True
-    answer = str(payload.get("answer", "") or "")
-    return "FEA analysis complete" in answer
-
-
-def _explicit_fea_override(message: str, history: list[Any] | None = None) -> dict[str, str] | None:
-    lower = f" {str(message or '').strip().lower()} "
-    if any(_looks_like_prior_fea_turn(_history_row(item).get("response_payload")) for item in (history or [])):
-        return {
-            "route": "fea",
-            "reason": "Continuing an existing FEA thread.",
-        }
-    if any(cue in lower for cue in _EXPLICIT_FEA_CUES):
-        return {
-            "route": "fea",
-            "reason": "The user explicitly requested FEA/global model analysis.",
-        }
-    return None
-
-
 def _build_history_excerpt(history: list[Any] | None, limit: int = 6) -> str:
     lines: list[str] = []
     for item in (history or [])[-limit:]:
         row = _history_row(item)
         role = str(row.get("role", "user") or "user").upper()
         content = str(row.get("content", "") or "").strip()
-        payload = row.get("response_payload")
-        suffix = " [prior_fea_turn]" if _looks_like_prior_fea_turn(payload) else ""
-        if not content and not suffix:
+        if not content:
             continue
         snippet = content.replace("\n", " ").strip()
         if len(snippet) > 400:
             snippet = snippet[:399].rstrip() + "…"
-        lines.append(f"{role}{suffix}: {snippet or '(no visible content)'}")
+        lines.append(f"{role}: {snippet or '(no visible content)'}")
     return "\n".join(lines) if lines else "(none)"
+
+
+def _recover_route_from_text(text: str) -> str:
+    raw = (text or "").strip()
+    if not raw:
+        return "chat"
+
+    first_line = raw.splitlines()[0].strip().strip("` ").lower()
+    if first_line in {"fea", "chat"}:
+        return first_line
+
+    malformed_match = _MALFORMED_ROUTE_RE.search(raw)
+    if malformed_match:
+        return malformed_match.group(1).lower()
+
+    token_match = _ROUTE_TOKEN_RE.match(first_line)
+    if token_match:
+        return token_match.group(1).lower()
+
+    return "chat"
 
 
 def classify_fea_route(
@@ -149,13 +120,28 @@ def classify_fea_route(
         system_prompt=FEA_ROUTER_SYSTEM,
         user_prompt=user_prompt,
         temperature=0.0,
-        max_tokens=120,
-        reasoning_effort=None,
+        max_tokens=32,
+        reasoning_effort="",
     )
     text = str(raw or "").strip()
+    direct_route = _recover_route_from_text(text)
+    if direct_route in {"fea", "chat"} and text.splitlines()[:1]:
+        first_line = text.splitlines()[0].strip().strip("` ").lower()
+        if first_line in {"fea", "chat"}:
+            return {"route": direct_route, "reason": ""}
+
     try:
         data = parse_json_loose(text)
     except Exception:
+        if direct_route != "chat" or _MALFORMED_ROUTE_RE.search(text):
+            logger.warning(
+                "fea_route_classifier_recovered_from_malformed_output",
+                extra={"raw": text[:300], "route": direct_route},
+            )
+            return {
+                "route": direct_route,
+                "reason": "Recovered from malformed classifier output.",
+            }
         logger.warning("fea_route_classifier_parse_failed", extra={"raw": text[:300]})
         return {"route": "chat", "reason": "Classifier output was malformed."}
     if not isinstance(data, dict):
@@ -172,7 +158,6 @@ def should_route_to_fea(
     message: str,
     history: list[Any] | None = None,
 ) -> bool:
-    override = _explicit_fea_override(message, history)
-    decision = override or classify_fea_route(llm, message, history)
+    decision = classify_fea_route(llm, message, history)
     logger.info("fea_route_decision", extra={"route": decision["route"], "reason": decision["reason"]})
     return decision["route"] == "fea"

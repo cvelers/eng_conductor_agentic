@@ -131,6 +131,10 @@ class Settings:
             return self.orchestrator_thread_log_path
         return self.project_root / "logs" / "orchestrator_threads.json"
 
+    @property
+    def resolved_uploads_path(self) -> Path:
+        return self.project_root / "data" / "uploads"
+
     @classmethod
     def load(cls) -> "Settings":
         project_root = Path(__file__).resolve().parents[1]

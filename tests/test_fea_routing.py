@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from backend.llm.base import LLMProvider
-from backend.orchestrator.fea_routing import classify_fea_route, should_route_to_fea
+from backend.orchestrator.fea_routing import FEA_ROUTER_SYSTEM, classify_fea_route, should_route_to_fea
 
 
 class StaticRouterLLM(LLMProvider):
@@ -9,6 +9,7 @@ class StaticRouterLLM(LLMProvider):
 
     def __init__(self, response: str) -> None:
         self.response = response
+        self.last_user_prompt = ""
 
     @property
     def available(self) -> bool:
@@ -23,6 +24,7 @@ class StaticRouterLLM(LLMProvider):
         max_tokens: int = 4000,
         reasoning_effort: str | None = None,
     ) -> str:
+        self.last_user_prompt = user_prompt
         return self.response
 
 
@@ -36,14 +38,14 @@ def test_fea_router_routes_frame_analysis_prompt_to_fea() -> None:
     ) is True
 
 
-def test_fea_router_explicit_fea_override_beats_chat_classifier() -> None:
+def test_fea_router_relies_on_classifier_even_for_explicit_fea_prompt() -> None:
     llm = StaticRouterLLM('{"route":"chat","reason":"Incorrect classifier response for test."}')
 
     assert should_route_to_fea(
         llm,
         "ok create analyze fea model 2x2 bays frame on selfweight",
         [],
-    ) is True
+    ) is False
 
 
 def test_fea_router_routes_eurocode_lookup_to_chat() -> None:
@@ -58,8 +60,8 @@ def test_fea_router_routes_eurocode_lookup_to_chat() -> None:
     assert decision["route"] == "chat"
 
 
-def test_fea_router_marks_followup_after_prior_fea_turn() -> None:
-    llm = StaticRouterLLM('{"route":"fea","reason":"This is a follow-up to an existing FEA thread."}')
+def test_fea_router_relies_on_classifier_for_prior_fea_history() -> None:
+    llm = StaticRouterLLM('{"route":"chat","reason":"Classifier remains authoritative for follow-ups."}')
     history = [
         {
             "role": "assistant",
@@ -72,49 +74,27 @@ def test_fea_router_marks_followup_after_prior_fea_turn() -> None:
         },
     ]
 
-    assert should_route_to_fea(llm, "show the deformed shape", history) is True
+    assert should_route_to_fea(llm, "show the deformed shape", history) is False
 
 
-def test_fea_router_does_not_treat_generic_chat_plan_as_prior_fea_turn() -> None:
-    llm = StaticRouterLLM('{"route":"chat","reason":"This is an LTB follow-up to a member-level chat answer."}')
-    history = [
-        {
-            "role": "assistant",
-            "content": "The bending resistance is 223.08 kNm.",
-            "response_payload": {
-                "answer": "The bending resistance is 223.08 kNm.",
-                "assumptions": ["The cross-section is Class 1 or 2."],
-                "tool_trace": [
-                    {"tool_name": "todo_write", "status": "ok"},
-                    {"tool_name": "eurocode_search", "status": "ok"},
-                    {"tool_name": "math_calculator", "status": "ok"},
-                ],
-            },
-        },
-    ]
-
-    assert should_route_to_fea(llm, "what about ltb", history) is False
-
-
-def test_fea_router_uses_structured_fea_session_memory_for_followups() -> None:
-    llm = StaticRouterLLM('{"route":"chat","reason":"Override should detect prior FEA session."}')
+def test_fea_router_passes_plain_history_without_prior_fea_hint() -> None:
+    llm = StaticRouterLLM('{"route":"chat","reason":"Prompt inspection test."}')
     history = [
         {
             "role": "assistant",
             "content": "Frame solved.",
             "response_payload": {
-                "answer": "Frame solved.",
-                "session_memory": {
-                    "state": "final",
-                    "fea_session": {
-                        "model_summary": "2D portal frame",
-                    },
-                },
+                "answer": "FEA analysis complete.",
+                "assumptions": ["2D frame idealised in the XY plane."],
+                "tool_trace": [{"tool_name": "fea_solve", "status": "ok"}],
             },
         },
     ]
 
-    assert should_route_to_fea(llm, "show the moment diagram", history) is True
+    classify_fea_route(llm, "show the deformed shape", history)
+
+    assert "[prior_fea_turn]" not in llm.last_user_prompt
+    assert "ASSISTANT: Frame solved." in llm.last_user_prompt
 
 
 def test_fea_router_falls_back_to_chat_on_malformed_output() -> None:
@@ -127,3 +107,20 @@ def test_fea_router_falls_back_to_chat_on_malformed_output() -> None:
     )
 
     assert decision["route"] == "chat"
+
+
+def test_fea_router_recovers_route_from_truncated_json_prefix() -> None:
+    llm = StaticRouterLLM('{"route":"fea')
+
+    decision = classify_fea_route(
+        llm,
+        "create fea model of simply supported beam",
+        [],
+    )
+
+    assert decision["route"] == "fea"
+
+
+def test_fea_router_prompt_explicitly_allows_switch_from_design_check_to_fea() -> None:
+    assert "overrides prior member-level chat context" in FEA_ROUTER_SYSTEM
+    assert "explicitly ask to build, create, or analyse a structural model" in FEA_ROUTER_SYSTEM

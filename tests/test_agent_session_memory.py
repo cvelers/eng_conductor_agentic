@@ -10,7 +10,8 @@ if "openai" not in sys.modules:
     openai_stub = types.ModuleType("openai")
 
     class _OpenAIStub:
-        pass
+        def __init__(self, *args: object, **kwargs: object) -> None:
+            return None
 
     openai_stub.OpenAI = _OpenAIStub
     sys.modules["openai"] = openai_stub
@@ -30,9 +31,14 @@ from backend.agent.loop import (
     _build_tool_results_for_validator,
     _build_tool_context,
     _extract_assumptions_from_response,
+    _latest_user_input_bundle,
+    _self_review_final_answer,
     _strip_assumptions_section_from_response,
+    _validate_grounding,
     run_agent_loop,
 )
+from backend.app import _prepare_request_bundle_for_execution
+from backend.schemas import ChatRequest
 
 
 def test_convert_frontend_history_restores_structured_tool_context() -> None:
@@ -170,6 +176,100 @@ def test_ask_user_continuation_requires_explicit_reply_flag() -> None:
 
     assert should_continue_from_ask_user(history, False) is False
     assert should_continue_from_ask_user(history, True) is True
+
+
+def test_prepare_request_bundle_routes_fea_before_ask_user_continuation(monkeypatch) -> None:
+    history = [
+        {
+            "role": "assistant",
+            "content": "Need span and load.",
+            "response_payload": {
+                "session_memory": {
+                    "state": "waiting_for_user",
+                    "ask_user": {
+                        "question": "What is the span and loading?",
+                        "context": "Need model inputs.",
+                    },
+                },
+                "tool_context": (
+                    "<tool-context>\n"
+                    '[tool_call] ask_user({"question":"What is the span and loading?"})\n'
+                    "[tool_result] ask_user:\n"
+                    '{"status":"waiting_for_user"}\n'
+                    "</tool-context>"
+                ),
+            },
+        }
+    ]
+    request = ChatRequest(
+        message="create fea model of simply supported beam",
+        history=history,
+        is_ask_user_reply=True,
+    )
+
+    seen: list[str] = []
+
+    def fake_should_route_to_fea(_provider, message: str, _history: list[object]) -> bool:
+        seen.append(message)
+        return True
+
+    monkeypatch.setattr("backend.app.should_route_to_fea", fake_should_route_to_fea)
+
+    route_to_fea, is_ask_reply, bundle = _prepare_request_bundle_for_execution(
+        SimpleNamespace(),
+        fea_provider=object(),
+        request=request,
+        request_id="req_1",
+    )
+
+    assert is_ask_reply is True
+    assert route_to_fea is True
+    assert seen == ["create fea model of simply supported beam"]
+    assert bundle.user_content == "create fea model of simply supported beam"
+
+
+def test_prepare_request_bundle_keeps_non_fea_ask_user_continuation(monkeypatch) -> None:
+    history = [
+        {
+            "role": "assistant",
+            "content": "Need the unbraced length.",
+            "response_payload": {
+                "session_memory": {
+                    "state": "waiting_for_user",
+                    "ask_user": {
+                        "question": "What is the unbraced length?",
+                        "context": "Need Lb for LTB.",
+                    },
+                },
+                "tool_context": (
+                    "<tool-context>\n"
+                    '[tool_call] ask_user({"question":"What is the unbraced length?"})\n'
+                    "[tool_result] ask_user:\n"
+                    '{"status":"waiting_for_user"}\n'
+                    "</tool-context>"
+                ),
+            },
+        }
+    ]
+    request = ChatRequest(
+        message="5 m",
+        history=history,
+        is_ask_user_reply=True,
+    )
+
+    monkeypatch.setattr("backend.app.should_route_to_fea", lambda *_args, **_kwargs: False)
+
+    route_to_fea, is_ask_reply, bundle = _prepare_request_bundle_for_execution(
+        SimpleNamespace(),
+        fea_provider=object(),
+        request=request,
+        request_id="req_2",
+    )
+
+    assert is_ask_reply is True
+    assert route_to_fea is False
+    assert bundle.user_content.startswith("[User's answer to your ask_user question]")
+    assert "5 m" in bundle.user_content
 
 
 def test_split_visible_and_tool_context_strips_raw_tool_blocks() -> None:
@@ -447,9 +547,92 @@ def test_prompts_require_preserving_demand_vs_resistance_semantics() -> None:
 def test_prompts_enforce_civil_scope_and_assumptions_section() -> None:
     assert "You ONLY help with civil engineering technical questions" in SYSTEM_PROMPT
     assert "## SCOPE GATE" in SYSTEM_PROMPT
+    assert "decide scope from the FULL user input bundle" in SYSTEM_PROMPT
+    assert 'Do NOT assume a generic question like "what is in this photo?" is out of scope' in SYSTEM_PROMPT
+    assert "Do NOT claim that you cannot view or inspect an attachment" in SYSTEM_PROMPT
     assert "Every in-scope technical answer MUST end with a markdown section titled `## Assumptions`" in SYSTEM_PROMPT
-    assert "the only valid response is a brief refusal" in _GROUNDING_VALIDATOR_PROMPT
+    assert "the FULL latest user input bundle" in _GROUNDING_VALIDATOR_PROMPT
+    assert 'Do NOT approve a draft that claims it cannot inspect the attachment' in _FINAL_ANSWER_REVIEW_PROMPT
+    assert 'Do NOT mark a generic question like "what is in this photo?" as `out_of_scope`' in _FINAL_ANSWER_REVIEW_PROMPT
     assert "required_action" in _FINAL_ANSWER_REVIEW_PROMPT
+
+
+def test_latest_user_input_bundle_preserves_multimodal_content() -> None:
+    raw_content, text_content = _latest_user_input_bundle(
+        [
+            {"role": "assistant", "content": "Earlier answer."},
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": "What is in this photo?"},
+                    {"type": "image_url", "image_url": {"url": "data:image/png;base64,abcd"}},
+                ],
+            },
+        ]
+    )
+
+    assert isinstance(raw_content, list)
+    assert text_content == "What is in this photo?\n[Image attachment]"
+
+
+def test_multimodal_user_message_is_forwarded_to_self_review_and_validator() -> None:
+    captured_payloads: list[dict[str, object]] = []
+
+    class _FakeCompletions:
+        def create(self, **kwargs):
+            captured_payloads.append(kwargs)
+            prompt = kwargs["messages"][0]["content"]
+            if "Decision rules" in prompt:
+                content = json.dumps(
+                    {
+                        "answer_type": "civil_engineering_technical",
+                        "requires_validation": True,
+                        "required_action": "answer_ok",
+                        "reason": "ok",
+                    }
+                )
+            else:
+                content = json.dumps({"valid": True})
+            return SimpleNamespace(
+                choices=[SimpleNamespace(message=SimpleNamespace(content=content))]
+            )
+
+    class _FakeClient:
+        def __init__(self) -> None:
+            self.chat = SimpleNamespace(completions=_FakeCompletions())
+
+    all_messages = [
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": "What is in this photo?"},
+                {"type": "image_url", "image_url": {"url": "data:image/png;base64,abcd"}},
+            ],
+        }
+    ]
+
+    asyncio.run(
+        _self_review_final_answer(
+            client=_FakeClient(),
+            model="fake",
+            response_text="This appears to be a steel beam detail.",
+            all_messages=all_messages,
+        )
+    )
+    asyncio.run(
+        _validate_grounding(
+            client=_FakeClient(),
+            model="fake",
+            response_text="This appears to be a steel beam detail.\n\n## Assumptions\n- None.",
+            all_messages=all_messages,
+        )
+    )
+
+    assert len(captured_payloads) == 2
+    assert captured_payloads[0]["messages"][0]["role"] == "system"
+    assert captured_payloads[0]["messages"][1]["content"] == all_messages[0]["content"]
+    assert captured_payloads[1]["messages"][0]["role"] == "system"
+    assert captured_payloads[1]["messages"][1]["content"] == all_messages[0]["content"]
 
 
 def test_extract_assumptions_from_response_reads_markdown_section() -> None:
@@ -704,6 +887,74 @@ def test_run_agent_loop_discards_assistant_text_from_ask_user_round() -> None:
     assert not any(event.get("type") == "delta" for event in events)
     assert any(event.get("type") == "ask_user" for event in events)
     assert events[-1] == {"type": "done", "content": "", "assumptions": []}
+
+
+def test_run_agent_loop_emits_fea_handoff_for_fea_analyzer_tool() -> None:
+    class FakeCompletions:
+        def __init__(self, response: object) -> None:
+            self._response = response
+
+        def create(self, **_: object) -> object:
+            return self._response
+
+    class FakeClient:
+        def __init__(self, response: object) -> None:
+            self.chat = SimpleNamespace(completions=FakeCompletions(response))
+
+    def tool_call(name: str, args: dict[str, object], call_id: str) -> object:
+        return SimpleNamespace(
+            id=call_id,
+            function=SimpleNamespace(name=name, arguments=json.dumps(args)),
+        )
+
+    response = SimpleNamespace(
+        choices=[
+            SimpleNamespace(
+                message=SimpleNamespace(
+                    content="",
+                    tool_calls=[
+                        tool_call(
+                            "fea_analyzer",
+                            {"task": "Create a simply supported beam model and solve it."},
+                            "tc_fea",
+                        ),
+                    ],
+                )
+            )
+        ]
+    )
+
+    dispatched: list[str] = []
+
+    def dispatcher(tool_name: str, args: dict[str, object]) -> str:
+        dispatched.append(tool_name)
+        return json.dumps({"unexpected": tool_name, "args": args})
+
+    async def collect() -> list[dict]:
+        events: list[dict] = []
+        async for event in run_agent_loop(
+            client=FakeClient(response),
+            model="fake",
+            system_prompt="system",
+            messages=[{"role": "user", "content": "create fea model of simply supported beam"}],
+            tools=[],
+            tool_dispatcher=dispatcher,
+            max_rounds=1,
+            grounding_validation=False,
+        ):
+            events.append(event)
+        return events
+
+    events = asyncio.run(collect())
+
+    assert dispatched == []
+    assert any(event.get("type") == "tool_start" and event.get("tool") == "fea_analyzer" for event in events)
+    assert any(event.get("type") == "tool_result" and event.get("tool") == "fea_analyzer" for event in events)
+    assert {
+        "type": "fea_handoff",
+        "task": "Create a simply supported beam model and solve it.",
+    } in events
+    assert not any(event.get("type") == "done" for event in events)
 
 
 def test_run_agent_loop_final_answer_excludes_intermediate_tool_round_text() -> None:

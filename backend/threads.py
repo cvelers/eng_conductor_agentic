@@ -31,6 +31,11 @@ class MessageCreate(BaseModel):
     response_payload: dict | None = None
 
 
+class MessagePatch(BaseModel):
+    content: str | None = None
+    response_payload: dict | None = None
+
+
 class ThreadTruncate(BaseModel):
     """Truncate a thread: keep only the first `keep_count` messages.
 
@@ -288,6 +293,70 @@ def create_threads_router(settings: Any) -> APIRouter:
             "content": msg_row.get("content", body.content),
             "responsePayload": msg_row.get("response_payload"),
             "createdAt": msg_row.get("created_at"),
+        }
+
+    @router.patch("/{thread_id}/messages/{message_id}")
+    async def patch_message(
+        thread_id: str,
+        message_id: str,
+        body: MessagePatch,
+        user: dict = Depends(user_dep),
+    ):
+        supabase = get_supabase()
+        if not supabase:
+            raise HTTPException(503, "Thread sync not configured")
+
+        user_id = user.get("sub")
+        if not user_id:
+            raise HTTPException(401, "Invalid token")
+
+        thread_res = (
+            supabase.table("threads")
+            .select("id")
+            .eq("id", thread_id)
+            .eq("user_id", user_id)
+            .maybe_single()
+            .execute()
+        )
+        if not thread_res.data:
+            raise HTTPException(404, "Thread not found")
+
+        updates: dict[str, Any] = {}
+        if body.content is not None:
+            updates["content"] = body.content
+        if body.response_payload is not None:
+            updates["response_payload"] = body.response_payload
+        if not updates:
+            raise HTTPException(400, "No message updates supplied")
+
+        try:
+            res = (
+                supabase.table("messages")
+                .update(updates)
+                .eq("id", message_id)
+                .eq("thread_id", thread_id)
+                .execute()
+            )
+            row = (res.data or [{}])[0]
+            if not row:
+                raise HTTPException(404, "Message not found")
+
+            now_iso = datetime.now(timezone.utc).isoformat()
+            supabase.table("threads").update({"updated_at": now_iso}).eq(
+                "id", thread_id
+            ).eq("user_id", user_id).execute()
+        except HTTPException:
+            raise
+        except Exception as exc:
+            logger.exception("message_patch_failed")
+            raise HTTPException(500, str(exc)) from exc
+
+        return {
+            "id": str(row.get("id", message_id)),
+            "role": row.get("role", "user"),
+            "content": row.get("content", body.content or ""),
+            "responsePayload": row.get("response_payload"),
+            "createdAt": row.get("created_at"),
         }
 
     @router.post("/{thread_id}/truncate")

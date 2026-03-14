@@ -41,7 +41,7 @@ FULL_FIDELITY_TOOL_RESULTS = 4
 # After this many total tool calls, inject budget guidance.
 TOOL_BUDGET_WARN_THRESHOLD = 10
 
-_META_TOOLS = {"todo_write", "ask_user"}
+_META_TOOLS = {"todo_write", "ask_user", "fea_analyzer"}
 _GROUNDING_EVIDENCE_TOOLS = {
     "eurocode_search",
     "read_clause",
@@ -123,6 +123,12 @@ _SYSTEM_REMINDERS: dict[str, str] = {
         "\n\n<system-reminder>"
         "The question has been shown to the user. STOP immediately — "
         "do NOT call any more tools or write an answer. Wait for the user's response."
+        "</system-reminder>"
+    ),
+    "fea_analyzer": (
+        "\n\n<system-reminder>"
+        "The request has been handed off to the dedicated FEA analyst. STOP immediately — "
+        "do NOT call more tools or write a parallel chat answer."
         "</system-reminder>"
     ),
 }
@@ -222,6 +228,31 @@ def _is_internal_harness_user_message(content: str) -> bool:
         or text.startswith("SELF-REVIEW FAILED")
         or text.startswith("STOP CALLING TOOLS.")
     )
+
+
+def _message_content_to_text(content: Any) -> str:
+    if content is None:
+        return ""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts: list[str] = []
+        for item in content:
+            if isinstance(item, str):
+                parts.append(item)
+                continue
+            if not isinstance(item, dict):
+                parts.append(str(item))
+                continue
+            item_type = str(item.get("type", "") or "").lower()
+            if item_type == "text":
+                text = item.get("text")
+                if isinstance(text, str) and text:
+                    parts.append(text)
+            elif item_type == "image_url":
+                parts.append("[Image attachment]")
+        return "\n".join(part for part in parts if part).strip()
+    return str(content)
 
 
 _ASSUMPTIONS_SECTION_RE = re.compile(
@@ -362,10 +393,15 @@ You are an independent auditor — the response author has no control over your 
 
 ## Instructions
 Check EVERY factual claim in the response against the evidence above:
-1. First determine whether the latest user question is a civil engineering technical question \
-or a direct follow-up to an earlier civil engineering answer in this thread. If it is NOT, then \
-the only valid response is a brief refusal that says the assistant only helps with civil engineering \
-technical questions.
+1. First determine scope from the FULL latest user input bundle: the user's text, any attachment \
+content supplied with that user message, and any direct in-scope thread continuity. Do NOT assume \
+attachments are automatically technical. Do NOT treat a generic question like "what is in this photo?" \
+as out of scope unless the attachment content itself is non-engineering. If the combined input is NOT \
+a civil engineering technical request or a direct follow-up to an earlier civil engineering answer in \
+this thread, then the only valid response is a brief refusal that says the assistant only helps with \
+civil engineering technical questions.
+   Also, do NOT accept a claim like "I cannot view the attachment" unless the current user input \
+   explicitly says attachment processing failed or no attachment content was actually supplied.
 2. For in-scope technical answers, every stated or implied assumption / default / modelling \
 idealisation must be explicitly listed in a dedicated `Assumptions` section near the end of the \
 response. If there were no assumptions, the response should say so explicitly (for example `- None.`). \
@@ -478,27 +514,40 @@ def _build_conversation_history_for_validator(all_messages: list[dict]) -> str:
     for msg in all_messages:
         role = msg.get("role", "")
         content = msg.get("content", "")
-        if not content:
+        text_content = _message_content_to_text(content).strip()
+        if not text_content:
             continue
         # Keep structured continuation memory / compaction summaries as validator evidence.
         if role == "system":
-            text = str(content).strip()
             if (
-                text.startswith("Continuation memory:")
-                or "Conversation memory (auto-compacted):" in text
-                or text.startswith("<tool-context>")
+                text_content.startswith("Continuation memory:")
+                or "Conversation memory (auto-compacted):" in text_content
+                or text_content.startswith("<tool-context>")
             ):
-                blocks.append(f"[SESSION MEMORY]\n{text}")
+                blocks.append(f"[SESSION MEMORY]\n{text_content}")
             continue
-        if role == "user" and _is_internal_harness_user_message(str(content)):
+        if role == "user" and _is_internal_harness_user_message(text_content):
             continue
         # Previous user questions
         if role == "user":
-            blocks.append(f"[USER] {content}")
+            blocks.append(f"[USER] {text_content}")
         # Previous assistant text responses (no tool_calls = final answer)
         elif role == "assistant" and not msg.get("tool_calls"):
-            blocks.append(f"[ASSISTANT — previously validated] {content}")
+            blocks.append(f"[ASSISTANT — previously validated] {text_content}")
     return "\n\n".join(blocks) if blocks else ""
+
+
+def _latest_user_input_bundle(all_messages: list[dict]) -> tuple[Any | None, str]:
+    """Return the latest non-internal user message as (raw_content, flattened_text)."""
+    for msg in reversed(all_messages):
+        if msg.get("role") != "user":
+            continue
+        raw_content = msg.get("content", "")
+        text_content = _message_content_to_text(raw_content).strip()
+        if not text_content or _is_internal_harness_user_message(text_content):
+            continue
+        return raw_content, text_content
+    return None, ""
 
 
 _FINAL_ANSWER_REVIEW_PROMPT = """\
@@ -526,12 +575,19 @@ more evidence from tools before answering.
 ## Decision rules
 - Choose exactly one `answer_type`:
   - `civil_engineering_technical`: civil engineering technical content, calculations, \
-code interpretation, factual design guidance, or technical follow-up grounded in engineering context.
+code interpretation, factual design guidance, attachment-driven technical interpretation, \
+or technical follow-up grounded in engineering context.
   - `conversation_meta`: questions about what was said earlier in the chat, what the user \
 first asked, what you answered previously, or other conversation-management/meta content \
 that only recalls established thread history.
   - `out_of_scope`: anything that is not a civil engineering technical request or a direct \
 follow-up to an in-scope engineering discussion.
+- Decide scope from the FULL latest user input bundle: the user's text plus any attachment \
+content supplied with that same message. Do NOT assume attachments are automatically technical. \
+Do NOT mark a generic question like "what is in this photo?" as `out_of_scope` unless the \
+attachment content itself is non-engineering.
+- Do NOT approve a draft that claims it cannot inspect the attachment unless the current user \
+  input explicitly says attachment processing failed or no attachment content was supplied.
 - Set `requires_validation=true` for `civil_engineering_technical`.
 - Set `requires_validation=false` for `conversation_meta` and `out_of_scope`.
 - Set `required_action` to exactly one of:
@@ -569,22 +625,22 @@ async def _self_review_final_answer(
     """Ask the same model whether the draft answer is technical and/or unsupported."""
     tool_results = _build_tool_results_for_validator(all_messages)
     conversation_history = _build_conversation_history_for_validator(all_messages) or "(none)"
-    latest_user_message = ""
-    for msg in reversed(all_messages):
-        if msg.get("role") == "user":
-            latest_user_message = str(msg.get("content", "") or "").strip()
-            if latest_user_message and not _is_internal_harness_user_message(latest_user_message):
-                break
+    latest_user_content, latest_user_message = _latest_user_input_bundle(all_messages)
     prompt = _FINAL_ANSWER_REVIEW_PROMPT.format(
         latest_user_message=latest_user_message or "(none)",
         conversation_history=conversation_history,
         tool_results=tool_results,
         response=response_text,
     )
+    review_messages: list[dict[str, Any]] = [{"role": "system", "content": prompt}]
+    if latest_user_content is not None:
+        review_messages.append({"role": "user", "content": latest_user_content})
+    else:
+        review_messages.append({"role": "user", "content": latest_user_message or "(none)"})
 
     request_kwargs: dict[str, Any] = {
         "model": model,
-        "messages": [{"role": "user", "content": prompt}],
+        "messages": review_messages,
         "temperature": 0.0,
         "max_tokens": max_tokens,
         "stream": False,
@@ -643,15 +699,7 @@ async def _validate_grounding(
     """Call an independent LLM to validate grounding of the agent's response."""
     tool_results = _build_tool_results_for_validator(all_messages)
     conversation_history = _build_conversation_history_for_validator(all_messages)
-    latest_user_message = ""
-    for msg in reversed(all_messages):
-        if msg.get("role") != "user":
-            continue
-        content = str(msg.get("content", "") or "").strip()
-        if not content or _is_internal_harness_user_message(content):
-            continue
-        latest_user_message = content
-        break
+    latest_user_content, latest_user_message = _latest_user_input_bundle(all_messages)
 
     # Only include conversation history section if there are previous turns
     if conversation_history:
@@ -668,10 +716,15 @@ async def _validate_grounding(
         tool_results=tool_results,
         response=response_text,
     )
+    validator_messages: list[dict[str, Any]] = [{"role": "system", "content": prompt}]
+    if latest_user_content is not None:
+        validator_messages.append({"role": "user", "content": latest_user_content})
+    else:
+        validator_messages.append({"role": "user", "content": latest_user_message or "(none)"})
 
     request_kwargs: dict[str, Any] = {
         "model": model,
-        "messages": [{"role": "user", "content": prompt}],
+        "messages": validator_messages,
         "temperature": temperature,
         "max_tokens": max_tokens,
         "stream": False,
@@ -1075,6 +1128,9 @@ async def run_agent_loop(
         # ── Execute tool calls ───────────────────────────────────────
         # If ask_user is in the batch, execute it FIRST and skip the rest.
         # The agent shouldn't be calling other tools alongside ask_user.
+        has_fea_handoff = any(tc["name"] == "fea_analyzer" for tc in tool_calls)
+        if has_fea_handoff:
+            tool_calls = [tc for tc in tool_calls if tc["name"] == "fea_analyzer"][:1]
         has_ask_user = any(tc["name"] == "ask_user" for tc in tool_calls)
         if has_ask_user:
             tool_calls = [tc for tc in tool_calls if tc["name"] == "ask_user"][:1]
@@ -1082,6 +1138,22 @@ async def run_agent_loop(
         for tc_idx, tc in enumerate(tool_calls):
             yield {"type": "tool_start", "tool": tc["name"], "args": tc["args"]}
             t0 = time.time()
+            if tc["name"] == "fea_analyzer":
+                handoff_task = str(tc["args"].get("task", "") or "").strip()
+                if not handoff_task:
+                    handoff_task = _extract_task_anchor(all_messages) or "Run FEA analysis for the current request."
+                result_str = json.dumps({"status": "handoff", "task": handoff_task})
+                status = "ok"
+                elapsed_ms = int((time.time() - t0) * 1000)
+                yield {
+                    "type": "tool_result",
+                    "tool": tc["name"],
+                    "result": result_str,
+                    "status": status,
+                    "summary": "Handing off to FEA analyst.",
+                }
+                yield {"type": "fea_handoff", "task": handoff_task}
+                return
             try:
                 result_str = tool_dispatcher(tc["name"], tc["args"])
                 status = "ok"
@@ -1359,7 +1431,7 @@ def _extract_task_anchor(all_messages: list[dict]) -> str:
     for msg in reversed(all_messages):
         if msg.get("role") != "user":
             continue
-        content = str(msg.get("content", "") or "").strip()
+        content = _message_content_to_text(msg.get("content", "")).strip()
         if not content or _is_internal_harness_user_message(content):
             continue
         if content.startswith("[User's answer to your ask_user question]"):

@@ -1,54 +1,63 @@
 # Eurocodes Chatbot — EC3 Grounded Intelligence
 
-A single-page ChatGPT-like engineering assistant that answers questions about Eurocode 3 (steel structures) using **only** information from a local clause database and modular MCP calculator tools. Every claim is grounded with clause citations; every calculation traces back to a source.
+A single-page civil and structural engineering assistant with a FastAPI backend, a vanilla JS chat UI, Eurocode clause retrieval, direct engineering-calculation tools, and a separate browser-backed FEA analysis mode. The assistant stays scoped to civil/structural engineering questions and direct follow-ups to prior in-scope answers.
 
 ## Architecture
 
 ```
-┌────────────┐    ┌─────────────────────────────────┐    ┌──────────────┐
-│  Chat UI   │───▶│  Central Intelligence           │───▶│  13 MCP      │
-│  (vanilla  │    │  Orchestrator                    │    │  Calculator  │
-│   JS)      │◀───│  (Gemini / configurable LLM)     │◀───│  Tools       │
-└────────────┘    │                                  │    └──────────────┘
-                  │  Plan → Retrieve → Execute →     │
-                  │  Compose (grounded narrative)     │    ┌──────────────┐
-                  │                                  │───▶│  EC3 Clause  │
-                  └─────────────────────────────────┘    │  Database    │
-                                                         └──────────────┘
+┌────────────┐    ┌──────────────────────────────────────────┐
+│  Chat UI   │───▶│  FastAPI App                             │
+│  (vanilla  │    │  /api/chat + /api/chat/stream            │
+│   JS)      │◀───│                                          │
+└────────────┘    └──────────────────────────────────────────┘
+                            │
+                            ▼
+                ┌─────────────────────────────┐
+                │  Agent Loop                 │
+                │  Scope gate → Plan → Tools │
+                │  → Grounding → Answer      │
+                └─────────────────────────────┘
+                   │                    │
+                   ▼                    ▼
+        ┌──────────────────────┐   ┌─────────────────────────┐
+        │ Eurocode Retrieval   │   │ Engineering Tools       │
+        │ BM25F + optional LLM │   │ eurocodepy + local math │
+        │ sufficiency passes   │   │ + utility tool handlers │
+        └──────────────────────┘   └─────────────────────────┘
+                   │
+                   ▼
+        ┌──────────────────────┐
+        │ EC3 Clause Database  │
+        └──────────────────────┘
+
+Separate path for FEA requests:
+Chat UI ↔ FastAPI ↔ FEA Analyst ↔ Browser solver/viewer
 ```
 
-**State machine:** Intake → Plan → Input Resolution → Retrieval → Tools → Compose → Output
+**Runtime flow:** request intake → civil-engineering scope check → retrieval/tool calls → grounding validation → final answer
 
 ## Features
 
-- **Collapsible thinking** — ChatGPT-style: reasoning flow graph expands/collapses on click
-- **13 modular MCP tools** — building-block calculators (beams, bolts, welds, buckling, units...)
-- **Developer mode** — toggle to show a tool writer that generates new MCP tools from database clauses
-- **Agentic retrieval** — iterative lexical search with LLM-driven query refinement
-- **Grounded responses** — every answer cites clauses and tool references
-- **Markdown rendering** — responses render with proper formatting, bold results, collapsible sections
-- **Streaming** — real-time flow graph updates + chunked answer delivery
-- **Example prompts** — clickable starter queries on the welcome screen
+- **Civil-engineering scope gate** — the assistant refuses out-of-scope requests and only handles civil/structural engineering questions or direct in-scope follow-ups
+- **Agent loop orchestration** — tool-calling chat loop with planning, continuation memory, grounding checks, and streamed UI events
+- **Eurocode retrieval** — lexical search over local EC3 data with optional LLM-guided sufficiency/refinement
+- **Direct engineering calculations** — eurocodepy-backed EC3 checks plus local calculators and math utilities
+- **Separate FEA mode** — a dedicated analyst builds structural models and drives a browser-side solver/viewer
+- **Multimodal-ready technical inputs** — photos, screenshots, and attached technical files are part of the chat input surface for multimodal model workflows; the same civil-engineering scope rules still apply
+- **Grounded responses** — answers are assembled from retrieved clauses and tool outputs
+- **Streaming UI** — flow graph and answer tokens stream incrementally to the frontend
+- **Markdown + math rendering** — formatted answers with KaTeX-rendered equations
 
-## Tools (13 total)
+## Tool Surface
 
-| Tool | Description | Reference |
-|------|-------------|-----------|
-| `section_classification_ec3` | I/H section class (1-4) | EC3 5.5.2 |
-| `member_resistance_ec3` | M_Rd, N_Rd, V_Rd | EC3 6.2.4-6 |
-| `interaction_check_ec3` | Axial + bending interaction | EC3 6.2.9 |
-| `ipe_moment_resistance_ec3` | IPE-specific M_Rd | EC3 6.2.5 |
-| `simple_beam_calculator` | Moment, shear, deflection (SS beam) | Beam theory |
-| `cantilever_beam_calculator` | Moment, shear, deflection (cantilever) | Beam theory |
-| `steel_grade_properties` | fy, fu, ε lookup | EC3 Table 3.1 |
-| `effective_length_ec3` | Buckling length factor k | EC3 BB.1 |
-| `column_buckling_ec3` | Nb,Rd with χ and λ̄ | EC3 6.3.1 |
-| `bolt_shear_ec3` | Bolt shear resistance Fv,Rd | EC3-1-8 Table 3.4 |
-| `weld_resistance_ec3` | Fillet weld Fw,Rd | EC3-1-8 4.5.3.3 |
-| `deflection_check` | SLS deflection check | EC0 A1.4.3 |
-| `unit_converter` | Engineering unit conversion | — |
+The chat agent currently exposes several tool categories:
 
-All tools are modular Python scripts under `tools/mcp/`, each with Pydantic validation and JSON I/O.
+- **Eurocode retrieval tools**: `eurocode_search`, `read_clause`
+- **Engineering calculation tools**: `search_engineering_tools`, `engineering_calculator`, `math_calculator`
+- **Conversation control tools**: `todo_write`, `ask_user`
+- **General utility tools**: web/file/system helpers used by the current agent runtime
+
+Engineering calculations are primarily backed by the registry in `backend/eurocodepy/registry.py`, which currently includes EC3 section checks, LTB, flexural buckling, Euler critical force, profile lookups, steel-grade lookups, and bolt-property lookups.
 
 ## Quick Start
 
@@ -71,16 +80,18 @@ make test
 ## Configuration (.env)
 
 ```ini
-# Orchestrator (default: Gemini)
+# Orchestrator / main chat model (default: Gemini-compatible)
 ORCHESTRATOR_PROVIDER=gemini
-ORCHESTRATOR_MODEL=gemini-3.1-pro
+ORCHESTRATOR_MODEL=gemini-3.1-flash-lite-preview
 ORCHESTRATOR_API_KEY=your-key-here
 
-# Search agent (default: Kimi via OpenRouter)
-SEARCH_PROVIDER=openrouter
-SEARCH_MODEL=moonshotai/kimi-k2.5
+# Retrieval / search model
+SEARCH_PROVIDER=gemini
+SEARCH_MODEL=gemini-3.1-flash-lite-preview
 SEARCH_API_KEY=your-key-here
-SEARCH_DECOMPOSE_MAX_TOKENS=1200
+
+# Optional validator model
+VALIDATOR_API_KEY=your-key-here
 
 # Feature flags
 AGENTIC_SEARCH_ENABLED=true
@@ -101,9 +112,10 @@ EMBEDDINGS_ENABLED=false
 - "Column buckling check: IPE300, S355, 5m length, pinned-pinned"
 - "Fillet weld resistance: 5mm throat, 200mm length, S355"
 
-**Developer mode:**
-- Toggle "Dev Mode" in the top bar to access the tool writer
-- Describe a new tool and the system generates MCP-compatible Python code grounded in database clauses
+**Attachments / multimodal:**
+- Upload a photo, screenshot, or technical document together with the prompt
+- Intended use includes engineering drawings, calculation screenshots, detail photos, and similar technical inputs
+- The same scope gate still applies: non-civil-engineering content should be refused rather than answered
 
 ## Project Structure
 
@@ -111,22 +123,25 @@ EMBEDDINGS_ENABLED=false
 eng_conductor/
 ├── backend/
 │   ├── app.py                      # FastAPI application
-│   ├── config.py                   # Settings from .env
-│   ├── orchestrator/engine.py      # Central Intelligence Orchestrator
-│   ├── retrieval/agentic_search.py # Iterative clause retrieval
-│   ├── tools/runner.py             # MCP tool subprocess executor
-│   ├── tools/writer.py             # Dev mode tool generator
+│   ├── config.py                   # Runtime settings + cognitive config
+│   ├── agent/                      # Agent loop, prompt, context, tools
+│   ├── retrieval/agentic_search.py # Clause retrieval engine
+│   ├── eurocodepy/                 # Engineering-tool registry/search/dispatch
+│   ├── orchestrator/               # FEA analyst + FEA routing/tools
 │   ├── llm/                        # LLM provider abstraction
-│   └── utils/                      # Parsing, citations
+│   ├── registries/                 # Document registry loading
+│   └── utils/                      # Parsing, citations, JSON helpers
 ├── frontend/
 │   ├── index.html                  # Single-page chat UI
-│   ├── app.js                      # Streaming, flow graph, dev mode
-│   └── styles.css                  # Dark theme, responsive
+│   ├── app.js                      # Chat state, streaming, attachments
+│   ├── fea/                        # Solver, elements, worker
+│   ├── viewer/                     # 3D viewer / result visualization
+│   └── styles.css                  # Frontend styling
 ├── tools/
-│   ├── tool_registry.json          # 13 registered tools
-│   └── mcp/                        # All calculator scripts
+│   └── mcp/                        # Local calculation modules
 ├── data/
 │   ├── document_registry.json
 │   └── ec3/                        # EC3 clause data (JSON)
+├── cognitive_config.json           # Model/runtime tuning
 └── tests/
 ```

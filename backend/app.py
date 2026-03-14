@@ -17,6 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from openai import OpenAI
 
 from backend.auth import create_auth_router, require_auth
+from backend.attachments import AttachmentBundle, process_attachments, saved_attachments_payload
 from backend.config import Settings
 from backend.threads import create_threads_router
 from backend.llm.factory import get_search_provider, get_orchestrator_provider
@@ -92,6 +93,88 @@ def _history_payload(history: list) -> list[dict]:
             rows.append({"role": str(getattr(item, "role", "")), "content": str(getattr(item, "content", ""))})
     return rows
 
+
+def _prepare_attachment_bundle(
+    settings: Settings,
+    *,
+    message_text: str,
+    attachments: list,
+    request_id: str,
+) -> AttachmentBundle:
+    if not attachments:
+        return AttachmentBundle(user_content=message_text, routing_text=message_text)
+    try:
+        return process_attachments(
+            settings,
+            attachments,
+            message_text=message_text,
+            request_id=request_id,
+        )
+    except Exception:
+        logger.exception(
+            "attachment_processing_failed",
+            extra={"request_id": request_id, "attachments_count": len(attachments)},
+        )
+        fallback_note = (
+            "Technical attachments were supplied, but the attachment-processing step failed. "
+            "Use the text prompt only and state that attachment parsing was unavailable if needed."
+        )
+        composed = f"{message_text}\n\n{fallback_note}".strip() if message_text else fallback_note
+        return AttachmentBundle(user_content=composed, routing_text=composed)
+
+
+def _format_ask_user_continuation(message_text: str) -> str:
+    return (
+        "[User's answer to your ask_user question]\n"
+        f"{message_text}\n\n"
+        "CRITICAL: You are CONTINUING a previous calculation. "
+        "All section properties, material data, clauses, and calculations "
+        "from earlier tool calls are still in the conversation history — "
+        "reuse them. Do NOT call todo_write with a new plan. Do NOT "
+        "re-fetch section properties, material data, or clauses you "
+        "already have. Simply use the user's answer together with your "
+        "existing data to complete the remaining calculation steps."
+    )
+
+
+def _prepare_request_bundle_for_execution(
+    settings: Settings,
+    *,
+    fea_provider,
+    request: ChatRequest,
+    request_id: str,
+) -> tuple[bool, bool, AttachmentBundle]:
+    """Prepare the request bundle and decide whether this turn should enter FEA.
+
+    FEA routing is evaluated against the raw user turn first, before an ask_user
+    continuation wrapper can lock the turn into the normal chat path.
+    """
+    is_ask_reply = should_continue_from_ask_user(
+        request.history,
+        request.is_ask_user_reply,
+    )
+    raw_bundle = _prepare_attachment_bundle(
+        settings,
+        message_text=request.message,
+        attachments=request.attachments,
+        request_id=request_id,
+    )
+    route_to_fea = should_route_to_fea(
+        fea_provider,
+        raw_bundle.routing_text,
+        request.history,
+    )
+    if route_to_fea or not is_ask_reply:
+        return route_to_fea, is_ask_reply, raw_bundle
+
+    wrapped_bundle = _prepare_attachment_bundle(
+        settings,
+        message_text=_format_ask_user_continuation(request.message),
+        attachments=request.attachments,
+        request_id=request_id,
+    )
+    return False, True, wrapped_bundle
+
 def create_app(settings: Settings | None = None) -> FastAPI:
     load_dotenv()
     active_settings = settings or Settings.load()
@@ -156,19 +239,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.post("/api/chat")
     async def chat(request: ChatRequest) -> dict:
         """Non-streaming endpoint. Returns the same response the user sees."""
-        _is_ask_reply = should_continue_from_ask_user(
-            request.history,
-            request.is_ask_user_reply,
+        request_id = uuid4().hex
+        route_to_fea, _is_ask_reply, attachment_bundle = _prepare_request_bundle_for_execution(
+            active_settings,
+            fea_provider=fea_provider,
+            request=request,
+            request_id=request_id,
         )
-        if not _is_ask_reply and should_route_to_fea(
-            fea_provider,
-            request.message,
-            request.history,
-        ):
+        if route_to_fea:
             raise HTTPException(status_code=400, detail="FEA requests not supported on /api/chat")
 
         messages = convert_frontend_history(request.history)
-        messages.append({"role": "user", "content": request.message})
+        messages.append({"role": "user", "content": attachment_bundle.user_content})
 
         messages = compact_if_needed(
             messages, SYSTEM_PROMPT,
@@ -201,6 +283,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             validator_max_tokens=active_settings.validator_max_tokens,
             validator_reasoning_effort=active_settings.validator_reasoning_effort or None,
         ):
+            if event.get("type") == "fea_handoff":
+                raise HTTPException(status_code=400, detail="FEA requests not supported on /api/chat")
             if event.get("type") == "delta":
                 full_response += event.get("content", "")
             elif event.get("type") == "_session_memory":
@@ -212,7 +296,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             elif event.get("type") == "error":
                 raise HTTPException(status_code=500, detail=event.get("message", "Agent error"))
 
-        return {"answer": full_response, "assumptions": assumptions, "session_memory": session_memory}
+        return {
+            "answer": full_response,
+            "assumptions": assumptions,
+            "session_memory": session_memory,
+            "attachments": saved_attachments_payload(attachment_bundle.saved_attachments),
+        }
 
     @app.post("/api/chat/stream")
     async def chat_stream(request: ChatRequest) -> StreamingResponse:
@@ -223,16 +312,22 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             error_detail: str | None = None
             final_answer: str = ""
             try:
-                _is_ask_reply = should_continue_from_ask_user(
-                    request.history,
-                    request.is_ask_user_reply,
+                route_to_fea, _is_ask_reply, attachment_bundle = _prepare_request_bundle_for_execution(
+                    active_settings,
+                    fea_provider=fea_provider,
+                    request=request,
+                    request_id=request_id,
                 )
+                if attachment_bundle.saved_attachments:
+                    yield json.dumps(
+                        {
+                            "type": "user_attachments",
+                            "attachments": saved_attachments_payload(attachment_bundle.saved_attachments),
+                        },
+                        default=str,
+                    ) + "\n"
                 # ── FEA detection ────────────────────────────────────
-                if not _is_ask_reply and should_route_to_fea(
-                    fea_provider,
-                    request.message,
-                    request.history,
-                ):
+                if route_to_fea:
                     analyst = FEAAnalystLoop(
                         llm=fea_provider,
                         settings=active_settings,
@@ -241,7 +336,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     yield json.dumps({"type": "fea_session_created", "session_id": analyst.session_id}) + "\n"
                     try:
                         async for fea_event_type, fea_payload in analyst.run_stream(
-                            request.message, history=request.history,
+                            attachment_bundle.routing_text, history=request.history,
                         ):
                             yield json.dumps({"type": fea_event_type, **fea_payload}) + "\n"
                             all_events.append({"event_type": fea_event_type, **fea_payload})
@@ -258,21 +353,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 # message's tool_context ends with an ask_user call,
                 # the user's message is a reply — tell the agent to
                 # continue from where it left off, not replan.
-                user_content = request.message
-                if _is_ask_reply:
-                    user_content = (
-                        "[User's answer to your ask_user question]\n"
-                        f"{request.message}\n\n"
-                        "CRITICAL: You are CONTINUING a previous calculation. "
-                        "All section properties, material data, clauses, and calculations "
-                        "from earlier tool calls are still in the conversation history — "
-                        "reuse them. Do NOT call todo_write with a new plan. Do NOT "
-                        "re-fetch section properties, material data, or clauses you "
-                        "already have. Simply use the user's answer together with your "
-                        "existing data to complete the remaining calculation steps."
-                    )
-
-                messages.append({"role": "user", "content": user_content})
+                messages.append({"role": "user", "content": attachment_bundle.user_content})
 
                 # Auto-compact if conversation is long
                 messages = compact_if_needed(
@@ -317,6 +398,33 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                         memory = event.get("memory", {})
                         session_memory = memory if isinstance(memory, dict) else {}
                         continue
+                    if event.get("type") == "fea_handoff":
+                        handoff_task = str(event.get("task", "") or "").strip() or attachment_bundle.routing_text
+                        analyst = FEAAnalystLoop(
+                            llm=fea_provider,
+                            settings=active_settings,
+                        )
+                        fea_sessions[analyst.session_id] = analyst
+                        yield json.dumps({"type": "fea_session_created", "session_id": analyst.session_id}) + "\n"
+                        try:
+                            async for fea_event_type, fea_payload in analyst.run_stream(
+                                handoff_task, history=request.history,
+                            ):
+                                yield json.dumps({"type": fea_event_type, **fea_payload}) + "\n"
+                                all_events.append({"event_type": fea_event_type, **fea_payload})
+                                await asyncio.sleep(0.005)
+                        finally:
+                            fea_sessions.pop(analyst.session_id, None)
+                        yield json.dumps(
+                            {
+                                "type": "machine",
+                                "node": "fea_analyst",
+                                "status": "done",
+                                "title": "FEA Analyst",
+                                "detail": "Analysis complete.",
+                            }
+                        ) + "\n"
+                        return
                     adapted = adapt_event(event)
                     all_events.append(adapted)
                     if event.get("type") == "done":
@@ -363,6 +471,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                         "request": {
                             "message": request.message,
                             "history_len": len(request.history),
+                            "attachments_count": len(request.attachments),
                         },
                         "events_count": len(all_events),
                         "answer_len": len(final_answer),

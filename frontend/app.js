@@ -1,5 +1,6 @@
 const STORAGE_KEY = "ec3_chat_threads_v2";
 const THINKING_MODE_KEY = "ec3_thinking_mode";
+const MAX_ATTACHMENT_HISTORY_CHARS = 6000;
 
 const GRAPH_NODES = [
   { id: "user",         label: "User",          icon: "person",  col: 0,   row: 1 },
@@ -170,6 +171,41 @@ function renderCalcNoteHtml(note) {
   }
   const text = typeof note === "string" ? note : String(note?.text ?? note ?? "");
   return escHtml(text);
+}
+
+async function copyTextToClipboard(text) {
+  const value = String(text || "");
+  if (!value) return false;
+
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(value);
+      return true;
+    } catch {
+      // Fall back to a temporary textarea below.
+    }
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = value;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.top = "-9999px";
+  textarea.style.left = "-9999px";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+
+  let copied = false;
+  try {
+    copied = document.execCommand("copy");
+  } catch {
+    copied = false;
+  } finally {
+    textarea.remove();
+  }
+  return copied;
 }
 
 const _ENGINEERING_GREEK_BASES = {
@@ -354,10 +390,107 @@ function getAssistantDisplayContent(message) {
   return stripAssumptionsSectionFromMarkdown(visible);
 }
 
+function normalizeAttachment(att) {
+  if (!att || typeof att !== "object") return null;
+  const extractedText = att.extractedText ?? att.extracted_text ?? "";
+  const extractionNote = att.extractionNote ?? att.extraction_note ?? "";
+  return {
+    id: att.id || uid(),
+    name: att.name || "Attachment",
+    size: Number(att.size) || 0,
+    type: att.type || att.media_type || "",
+    isImage: att.isImage === true || att.is_image === true,
+    file: att.file || null,
+    dataUrl: att.dataUrl || att.data_url || null,
+    apiDataUrl: att.apiDataUrl || null,
+    storagePath: att.storagePath || att.storage_path || att.path || "",
+    storageUrl: att.storageUrl || att.storage_url || "",
+    extractedText: typeof extractedText === "string" ? extractedText : "",
+    extractionNote: typeof extractionNote === "string" ? extractionNote : "",
+  };
+}
+
+function normalizeAttachments(attachments) {
+  return (attachments || []).map(normalizeAttachment).filter(Boolean);
+}
+
+function mergePersistedAttachments(existing, persisted) {
+  const base = normalizeAttachments(existing);
+  const incoming = normalizeAttachments(persisted);
+  if (!incoming.length) return base;
+
+  const used = new Set();
+  const merged = base.map((att, index) => {
+    let match = incoming[index];
+    if (!match || used.has(index)) {
+      const foundIdx = incoming.findIndex((candidate, candidateIdx) =>
+        !used.has(candidateIdx)
+        && candidate.name === att.name
+        && candidate.type === att.type
+        && candidate.size === att.size
+        && candidate.isImage === att.isImage
+      );
+      match = foundIdx >= 0 ? incoming[foundIdx] : null;
+      if (foundIdx >= 0) used.add(foundIdx);
+    } else {
+      used.add(index);
+    }
+    return match ? { ...att, ...match, dataUrl: att.dataUrl || match.dataUrl || null } : att;
+  });
+
+  incoming.forEach((att, index) => {
+    if (!used.has(index)) merged.push(att);
+  });
+  return merged;
+}
+
+function buildStoredAttachmentPayload(attachments) {
+  return normalizeAttachments(attachments).map(att => ({
+    name: att.name,
+    size: att.size || 0,
+    type: att.type || "",
+    isImage: !!att.isImage,
+    storagePath: att.storagePath || "",
+    storageUrl: att.storageUrl || "",
+    extractedText: att.extractedText || "",
+    extractionNote: att.extractionNote || "",
+  }));
+}
+
+function composeUserHistoryContent(message) {
+  const base = message?.content || "";
+  const attachments = normalizeAttachments(message?.attachments);
+  if (!attachments.length) return base;
+  const markers = attachments.map(att =>
+    att.isImage ? `[Attached image: ${att.name}]` : `[Attached file: ${att.name} (${fmtFileSize(att.size || 0)})]`
+  ).join(" ");
+  let remaining = MAX_ATTACHMENT_HISTORY_CHARS;
+  const docBlocks = [];
+  for (const att of attachments) {
+    if (att.isImage || !att.extractedText || remaining <= 0) continue;
+    let clipped = att.extractedText.trim();
+    if (!clipped) continue;
+    if (clipped.length > remaining) {
+      clipped = clipped.slice(0, remaining).trimEnd() + "\n\n[Stored attachment text truncated]";
+    }
+    docBlocks.push(
+      `<attached-document-history name="${att.name}" type="${att.type || "application/octet-stream"}">\n${clipped}\n</attached-document-history>`
+    );
+    remaining -= clipped.length;
+  }
+  const sections = [];
+  if (markers) sections.push(markers);
+  if (base) sections.push(base);
+  if (docBlocks.length) {
+    sections.push(["Stored text from earlier document attachments:", "", ...docBlocks].join("\n"));
+  }
+  return sections.join("\n\n");
+}
+
 function serializeHistoryMessage(message) {
   return {
     role: message.role,
-    content: message.content || "",
+    content: message.role === "user" ? composeUserHistoryContent(message) : (message.content || ""),
     response_payload: message.responsePayload || null,
   };
 }
@@ -373,7 +506,7 @@ function serializeHistoryMessages(messages) {
   }
   return items.map((message, idx) => ({
     role: message.role,
-    content: message.content || "",
+    content: message.role === "user" ? composeUserHistoryContent(message) : (message.content || ""),
     response_payload: idx === lastAssistantIdx ? (message.responsePayload || null) : null,
   }));
 }
@@ -653,6 +786,15 @@ function stripAssumptionsSectionFromMarkdown(text) {
     .trim();
 }
 
+function isPlaceholderAssumption(text) {
+  const normalized = String(text || "")
+    .trim()
+    .replace(/^(?:[-*+]\s+|\d+\.\s+)/, "")
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+  return /^(?:none|none\.|no assumptions?|no assumptions?\.)$/.test(normalized);
+}
+
 function resolveAssumptions(payload, fallbackText = "") {
   const raw = [
     ...(Array.isArray(payload?.assumptions) ? payload.assumptions : []),
@@ -665,6 +807,7 @@ function resolveAssumptions(payload, fallbackText = "") {
   for (const item of raw) {
     const text = String(item || "").trim();
     if (!text) continue;
+    if (isPlaceholderAssumption(text)) continue;
     const key = text.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
@@ -761,6 +904,32 @@ function readFileAsDataUrl(file) {
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+}
+
+async function buildApiAttachments(attachments) {
+  const payloads = [];
+  for (const att of normalizeAttachments(attachments)) {
+    let dataUrl = att.dataUrl || att.apiDataUrl || null;
+    if (!dataUrl && att.file) {
+      try {
+        dataUrl = await readFileAsDataUrl(att.file);
+      } catch {
+        dataUrl = null;
+      }
+    }
+    payloads.push({
+      name: att.name,
+      type: att.type || "",
+      size: att.size || 0,
+      is_image: !!att.isImage,
+      data_url: dataUrl,
+      extracted_text: att.extractedText || null,
+      extraction_note: att.extractionNote || null,
+      storage_path: att.storagePath || null,
+      storage_url: att.storageUrl || null,
+    });
+  }
+  return payloads;
 }
 
 function isImageFile(file) {
@@ -958,6 +1127,33 @@ function resetGuestThread() {
   state.guestThread = emptyThread("Temporary chat");
 }
 
+function normalizeThreadMessage(message) {
+  const payload = message?.responsePayload || message?.response_payload || null;
+  const attachments = Array.isArray(message?.attachments)
+    ? normalizeAttachments(message.attachments)
+    : (message?.role === "user" ? normalizeAttachments(payload?.attachments) : []);
+  return {
+    id: message?.id || uid(),
+    syncedId: message?.syncedId || message?.synced_id || null,
+    role: message?.role || "user",
+    content: message?.content || "",
+    attachments,
+    responsePayload: payload,
+    createdAt: message?.createdAt || message?.created_at || now(),
+    updatedAt: message?.updatedAt || message?.updated_at || null,
+  };
+}
+
+function normalizeThread(thread) {
+  return {
+    id: thread?.id || uid(),
+    title: thread?.title || "New chat",
+    createdAt: thread?.createdAt || thread?.created_at || now(),
+    updatedAt: thread?.updatedAt || thread?.updated_at || now(),
+    messages: Array.isArray(thread?.messages) ? thread.messages.map(normalizeThreadMessage) : [],
+  };
+}
+
 function save() {
   if (!canUseStoredThreads()) return;
   if (auth.threadsSync) return;
@@ -972,13 +1168,7 @@ async function load() {
       const res = await fetchWithAuth("/api/threads");
       if (!res.ok) return;
       const data = await res.json();
-      const threads = (data.threads || []).map((t) => ({
-        id: t.id,
-        title: t.title || "New chat",
-        createdAt: t.createdAt,
-        updatedAt: t.updatedAt,
-        messages: [],
-      }));
+      const threads = (data.threads || []).map((t) => normalizeThread({ ...t, messages: [] }));
       state.threads = threads;
       if (threads.length && !state.activeThreadId) {
         state.activeThreadId = threads[0].id;
@@ -1002,7 +1192,10 @@ async function load() {
     const raw = current || fallback;
     if (!raw) return;
     const p = JSON.parse(raw);
-    if (p?.threads) { state.threads = p.threads; state.activeThreadId = p.activeThreadId || null; }
+    if (p?.threads) {
+      state.threads = p.threads.map(normalizeThread);
+      state.activeThreadId = p.activeThreadId || null;
+    }
     if (!current && fallback && key !== STORAGE_KEY) {
       localStorage.setItem(key, fallback);
     }
@@ -1015,7 +1208,22 @@ async function addMessageToApi(threadId, role, content, responsePayload = null) 
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ role, content, response_payload: responsePayload }),
   });
-  return res.ok;
+  if (!res.ok) return null;
+  return await res.json();
+}
+
+async function updateMessageApi(threadId, messageId, { content, responsePayload } = {}) {
+  const body = {};
+  if (typeof content === "string") body.content = content;
+  if (responsePayload && typeof responsePayload === "object") body.response_payload = responsePayload;
+  if (!Object.keys(body).length) return null;
+  const res = await fetchWithAuth(`/api/threads/${threadId}/messages/${messageId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) return null;
+  return await res.json();
 }
 
 async function truncateThreadApi(threadId, keepCount, updatedContent = null) {
@@ -1040,19 +1248,10 @@ async function loadThreadFromApi(threadId) {
   const res = await fetchWithAuth(`/api/threads/${threadId}`);
   if (!res.ok) return null;
   const t = await res.json();
-  return {
-    id: t.id,
-    title: t.title || "New chat",
-    createdAt: t.createdAt,
-    updatedAt: t.updatedAt,
-    messages: (t.messages || []).map((m) => ({
-      id: m.id,
-      role: m.role,
-      content: m.content || "",
-      responsePayload: m.responsePayload,
-      createdAt: m.createdAt,
-    })),
-  };
+  return normalizeThread({
+    ...t,
+    messages: (t.messages || []).map(m => ({ ...m, syncedId: m.id })),
+  });
 }
 
 async function createThread(title = "New chat") {
@@ -1492,6 +1691,67 @@ function pushToolBadge(f, tool) {
   addPopupChip(f, "tools", raw.toLowerCase(), raw);
 }
 
+function setFEAFlowActive(msgNode, { handoff = false } = {}) {
+  const f = msgNode.__flow;
+  if (!f) return;
+  setNS(f, "user", "done");
+  setNS(f, "database", "idle");
+  setNS(f, "tools", "idle");
+  setNS(f, "orchestrator", "done");
+  setNS(f, "fea_analyst", "active");
+  setNS(f, "response", "idle");
+  setES(f, "u_o", "done");
+  setES(f, "o_d", "idle");
+  setES(f, "d_o", "idle");
+  setES(f, "o_t", "idle");
+  setES(f, "t_o", "idle");
+  setES(f, "o_fa", handoff ? "active" : "done");
+  setES(f, "fa_o", "idle");
+  setES(f, "o_r", "idle");
+  applyFlow(msgNode);
+}
+
+function setFEAFlowWaitingForUser(msgNode) {
+  const f = msgNode.__flow;
+  if (!f) return;
+  setNS(f, "user", "active");
+  setNS(f, "database", "idle");
+  setNS(f, "tools", "idle");
+  setNS(f, "orchestrator", "done");
+  setNS(f, "fea_analyst", "done");
+  setNS(f, "response", "done");
+  setES(f, "u_o", "done");
+  setES(f, "o_d", "idle");
+  setES(f, "d_o", "idle");
+  setES(f, "o_t", "idle");
+  setES(f, "t_o", "idle");
+  setES(f, "o_fa", "done");
+  setES(f, "fa_o", "done");
+  setES(f, "o_r", "done");
+  applyFlow(msgNode);
+}
+
+function setFEAFlowComplete(msgNode, ok = true) {
+  const f = msgNode.__flow;
+  if (!f) return;
+  const status = ok ? "done" : "error";
+  setNS(f, "user", "done");
+  setNS(f, "database", "idle");
+  setNS(f, "tools", "idle");
+  setNS(f, "orchestrator", "done");
+  setNS(f, "fea_analyst", status);
+  setNS(f, "response", status);
+  setES(f, "u_o", "done");
+  setES(f, "o_d", "idle");
+  setES(f, "d_o", "idle");
+  setES(f, "o_t", "idle");
+  setES(f, "t_o", "idle");
+  setES(f, "o_fa", status);
+  setES(f, "fa_o", status);
+  setES(f, "o_r", status);
+  applyFlow(msgNode);
+}
+
 function applyFlow(n) {
   const f = n.__flow;
   if (!f) return;
@@ -1499,6 +1759,7 @@ function applyFlow(n) {
     const el = f.nodeEls[nd.id], s = f.ns[nd.id] || "idle";
     el.classList.remove("idle", "active", "done", "error");
     el.classList.add(s);
+    el.setAttribute("aria-label", `${nd.label}: ${s}`);
   }
   // flow-edge elements are inside diagramPanel which may be at body level
   const edgeContainer = f.diagramPanel || n;
@@ -1760,6 +2021,7 @@ function processEvent(f, ev) {
   } else if (node === "retrieval") {
     const skipped = m.skipped === true || /skipped/i.test(String(ev.detail || ""));
     setNS(f, "orchestrator", "done");
+    setES(f, "u_o", "done");
     if (skipped) {
       setNS(f, "database", "idle");
       setES(f, "o_d", "idle");
@@ -1782,6 +2044,7 @@ function processEvent(f, ev) {
     if (m.top_clauses?.length) pushDocBadges(f, m.top_clauses);
   } else if (node === "tools") {
     setNS(f, "orchestrator", "done");
+    setES(f, "u_o", "done");
     if (ev.skipped) {
       setNS(f, "tools", "idle");
       setES(f, "o_t", "idle");
@@ -1802,6 +2065,7 @@ function processEvent(f, ev) {
     if (m.tool) pushToolBadge(f, m.tool);
   } else if (node === "compose") {
     setNS(f, "orchestrator", s === "done" ? "done" : (s === "error" ? "error" : "active"));
+    setES(f, "u_o", "done");
     if (s === "error") setNS(f, "response", "error");
     setES(f, "o_r", s === "error" ? "error" : (s === "done" ? "done" : "active"));
     if (m.used_tools?.length) {
@@ -1810,6 +2074,7 @@ function processEvent(f, ev) {
     }
   } else if (node === "fea_analyst") {
     setNS(f, "orchestrator", "done");
+    setES(f, "u_o", "done");
     setNS(f, "fea_analyst", s === "error" ? "error" : (s === "done" ? "done" : "active"));
     setES(f, "o_fa", s === "error" ? "error" : (s === "done" ? "done" : "active"));
     if (s === "done") {
@@ -1821,6 +2086,7 @@ function processEvent(f, ev) {
     }
   } else if (node === "output") {
     setNS(f, "orchestrator", "done");
+    setES(f, "u_o", "done");
     setNS(f, "response", s === "error" ? "error" : (s === "done" ? "done" : "active"));
     setES(f, "o_r", s === "error" ? "error" : (s === "done" ? "done" : "active"));
     setNS(f, "user", "done");
@@ -2461,16 +2727,24 @@ function createMsg(role, content = "", opts = {}) {
 
     // Store original prompt + attachments for edit & resubmit
     node.__editContent = content;
-    node.__editAttachments = opts.attachments || [];
+    node.__displayAttachments = opts.attachments || [];
+    node.__editAttachments = opts.editAttachments || opts.attachments || [];
   }
 
   const copyBtn = node.querySelector(".copy-btn");
   if (copyBtn) {
-    copyBtn.addEventListener("click", () => {
+    copyBtn.addEventListener("click", async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
       const text = role === "assistant" ? (contentEl.innerText || contentEl.textContent) : content;
-      navigator.clipboard?.writeText(text);
-      copyBtn.title = "Copied!";
-      setTimeout(() => { copyBtn.title = "Copy to clipboard"; }, 1500);
+      const copied = await copyTextToClipboard(text);
+      copyBtn.title = copied ? "Copied!" : "Copy failed";
+      copyBtn.classList.toggle("copied", copied);
+      copyBtn.classList.toggle("copy-failed", !copied);
+      setTimeout(() => {
+        copyBtn.title = "Copy to clipboard";
+        copyBtn.classList.remove("copied", "copy-failed");
+      }, 1500);
     });
   }
 
@@ -2495,6 +2769,7 @@ function editAndResubmit(userMsgNode) {
   const originalHtml = contentEl.innerHTML;
   const prompt = userMsgNode.__editContent || "";
   const attachments = userMsgNode.__editAttachments || [];
+  const displayAttachments = userMsgNode.__displayAttachments || attachments;
 
   userMsgNode.classList.add("editing");
 
@@ -2539,7 +2814,7 @@ function editAndResubmit(userMsgNode) {
   cancelBtn.addEventListener("click", () => {
     contentEl.innerHTML = originalHtml;
     userMsgNode.classList.remove("editing");
-    if (attachments.length) attachLightboxListeners(contentEl);
+    if (displayAttachments.length) attachLightboxListeners(contentEl);
   });
 
   // Save → resubmit from this point
@@ -2550,7 +2825,7 @@ function editAndResubmit(userMsgNode) {
     userMsgNode.classList.remove("editing");
 
     // Update the displayed content
-    const attHtml = buildAttachmentHtml(attachments);
+    const attHtml = buildAttachmentHtml(displayAttachments);
     if (attHtml) {
       contentEl.innerHTML = attHtml;
       const span = document.createElement("span");
@@ -2575,15 +2850,15 @@ function editAndResubmit(userMsgNode) {
     const thread = currentThread();
     if (thread && thread.messages.length > idx) {
       thread.messages[idx].content = newText;
-      thread.messages[idx].attachments = attachments;
+      thread.messages[idx].attachments = normalizeAttachments(displayAttachments);
       thread.messages.length = idx + 1;
       thread.updatedAt = now();
     }
 
     // Build full prompt with attachment markers
     let fullPrompt = newText;
-    if (attachments.length) {
-      const fileDescs = attachments.map(a =>
+    if (displayAttachments.length) {
+      const fileDescs = displayAttachments.map(a =>
         a.isImage ? `[Attached image: ${a.name}]` : `[Attached file: ${a.name} (${fmtFileSize(a.size)})]`
       ).join(" ");
       fullPrompt = fullPrompt ? `${fileDescs}\n\n${fullPrompt}` : fileDescs;
@@ -2610,7 +2885,11 @@ function editAndResubmit(userMsgNode) {
     const assistantNode = createMsg("assistant", "", { showThinking: true, prompt: fullPrompt });
 
     try {
-      await streamChat(fullPrompt, assistantNode, thread, state.thinkingMode, attachments, { isEdit: true });
+      await streamChat(fullPrompt, assistantNode, thread, state.thinkingMode, attachments, {
+        isEdit: true,
+        userMessage: thread?.messages?.[idx] || null,
+        userNode: userMsgNode,
+      });
     } catch (err) {
       const errMsg = `Error: ${err.message}`;
       setThinkingState(assistantNode, false);
@@ -2704,7 +2983,14 @@ function renderMessages() {
 }
 
 // ---- Streaming ----
-async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinking", attachments = [], { isEdit = false, isContinuation = false } = {}) {
+async function streamChat(
+  prompt,
+  assistantNode,
+  thread,
+  thinkingMode = "thinking",
+  attachments = [],
+  { isEdit = false, isContinuation = false, userMessage = null, userNode = null } = {},
+) {
   const contentEl = assistantNode.querySelector(".content");
   contentEl.innerHTML = "";
   contentEl.classList.add("streaming");
@@ -2731,13 +3017,7 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
   const history = serializeHistoryMessages(prevMsgs);
 
   // Build attachments payload for the API (with base64 data for images)
-  const apiAttachments = attachments.map(a => ({
-    name: a.name,
-    type: a.type || "",
-    size: a.size || 0,
-    is_image: !!a.isImage,
-    data_url: a.isImage ? (a.dataUrl || null) : null,
-  }));
+  const apiAttachments = await buildApiAttachments(attachments);
 
   const abortController = new AbortController();
   state.abortController = abortController;
@@ -2794,6 +3074,32 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
       if (!line.trim()) continue;
       let event;
       try { event = JSON.parse(line); } catch { continue; }
+
+      if (event.type === "user_attachments") {
+        const persisted = normalizeAttachments(event.attachments);
+        if (userMessage) {
+          userMessage.attachments = mergePersistedAttachments(userMessage.attachments, persisted);
+          if (userNode) {
+            userNode.__displayAttachments = userMessage.attachments;
+            userNode.__editAttachments = mergePersistedAttachments(userNode.__editAttachments, userMessage.attachments);
+          }
+          if (canUseStoredThreads()) {
+            if (auth.threadsSync && userMessage.syncedId) {
+              try {
+                const updated = await updateMessageApi(thread.id, userMessage.syncedId, {
+                  responsePayload: { attachments: buildStoredAttachmentPayload(userMessage.attachments) },
+                });
+                if (updated?.id) userMessage.syncedId = updated.id;
+              } catch (err) {
+                console.warn("User attachment sync failed:", err);
+              }
+            } else if (!auth.threadsSync) {
+              save();
+            }
+          }
+        }
+        continue;
+      }
 
       // Legacy pipeline events
       if (event.type === "machine") updateFlow(assistantNode, event);
@@ -2888,6 +3194,7 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
             // Database tool → highlight database
             clearPopupLane(f, "docs");
             setNS(f, "orchestrator", "done");
+            setES(f, "u_o", "done");
             setNS(f, "database", "active");
             setES(f, "o_d", "active");
             setES(f, "d_o", "idle");
@@ -2897,6 +3204,7 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
           } else if (_CALC_TOOLS.has(event.tool)) {
             // Calc/engineering tool → highlight tools
             setNS(f, "orchestrator", "done");
+            setES(f, "u_o", "done");
             setNS(f, "tools", "active");
             setES(f, "o_t", "active");
             setES(f, "t_o", "idle");
@@ -2907,6 +3215,7 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
           } else {
             // Other tool → also highlight tools node
             setNS(f, "orchestrator", "done");
+            setES(f, "u_o", "done");
             setNS(f, "tools", "active");
             setES(f, "o_t", "active");
             applyFlow(assistantNode);
@@ -2992,6 +3301,7 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
           assistantNode.__deltaStarted = true;
           const f = assistantNode.__flow;
           setNS(f, "orchestrator", "done");
+          setES(f, "u_o", "done");
           setNS(f, "response", "active");
           setES(f, "o_r", "active");
           applyFlow(assistantNode);
@@ -3001,12 +3311,14 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
       // ── FEA events ──────────────────────────────────
       if (event.type === "fea_session_created") {
         assistantNode.__feaSessionId = event.session_id;
+        setFEAFlowActive(assistantNode, { handoff: true });
         if (!assistantNode.__feaPanelReady) {
           assistantNode.__feaPanelReady = initFEAPanel(assistantNode);
         }
       }
 
       if (event.type === "fea_state_restored") {
+        setFEAFlowActive(assistantNode, { handoff: true });
         if (!assistantNode.__feaPanelReady) {
           assistantNode.__feaPanelReady = initFEAPanel(assistantNode);
         }
@@ -3025,6 +3337,7 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
 
       if (event.type === "fea_thinking") {
         appendThinkingCard(assistantNode, event.content);
+        setFEAFlowActive(assistantNode);
         isAgentMode = true;
       }
 
@@ -3034,6 +3347,7 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
           appendLog(assistantNode, `FEA: ${event.tool}(${JSON.stringify(event.args).slice(0, 80)}...)`);
         }
         assistantNode.__toolTrace.push({ tool_name: event.tool, status: "running" });
+        setFEAFlowActive(assistantNode);
         isAgentMode = true;
       }
 
@@ -3044,10 +3358,12 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         }
         const traceEntry = assistantNode.__toolTrace.findLast(t => t.tool_name === event.tool && t.status === "running");
         if (traceEntry) traceEntry.status = event.status === "error" ? "error" : "ok";
+        setFEAFlowActive(assistantNode);
         isAgentMode = true;
       }
 
       if (event.type === "fea_command") {
+        setFEAFlowActive(assistantNode);
         // Initialize FEA panel lazily — must await before sending commands
         if (!assistantNode.__feaPanelReady) {
           assistantNode.__feaPanelReady = initFEAPanel(assistantNode);
@@ -3063,6 +3379,7 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
 
       if (event.type === "fea_solve_request") {
         appendThinkingCard(assistantNode, "Solving structural model...");
+        setFEAFlowActive(assistantNode);
         if (assistantNode.__feaPanelReady) {
           assistantNode.__feaPanelReady.then(() => {
             if (assistantNode.__feaPanel) {
@@ -3075,6 +3392,7 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
       }
 
       if (event.type === "fea_view_command") {
+        setFEAFlowActive(assistantNode);
         if (assistantNode.__feaPanelReady) {
           assistantNode.__feaPanelReady.then(() => {
             if (assistantNode.__feaPanel) {
@@ -3092,6 +3410,7 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         };
         setThinkingState(assistantNode, false);
         updateThinkingLabel(assistantNode, "Waiting for your answer.");
+        setFEAFlowWaitingForUser(assistantNode);
         showFEAQueryPopup(
           assistantNode,
           event.session_id,
@@ -3102,6 +3421,7 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
             assistantNode.__pendingAskUser = null;
             setThinkingState(assistantNode, true);
             updateThinkingLabel(assistantNode, "Continuing with your answer...");
+            setFEAFlowActive(assistantNode);
             appendLog(assistantNode, "Received your answer. Continuing FEA analysis.");
           },
         );
@@ -3123,6 +3443,7 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         const meta = assistantNode.querySelector(".thinking-meta");
         if (meta) meta.textContent = `${steps} steps \u00B7 ${elapsed}s`;
         updateThinkingLabel(assistantNode, "FEA analysis complete. Expand to review steps.");
+        setFEAFlowComplete(assistantNode);
 
         const feaContent = accumulated || event.summary || "FEA analysis complete.";
         const visibleFeaContent = stripAssumptionsSectionFromMarkdown(feaContent);
@@ -3898,8 +4219,14 @@ async function initialize() {
     setThinkingMode(thinkingMode);
 
     // Capture attachments before clearing
-    const currentAttachments = state.attachments.map(a => ({
-      id: a.id, name: a.name, size: a.size, type: a.type, isImage: a.isImage, dataUrl: a.dataUrl,
+    const rawAttachments = state.attachments.map(a => ({ ...a }));
+    const currentAttachments = rawAttachments.map(a => ({
+      id: a.id,
+      name: a.name,
+      size: a.size,
+      type: a.type,
+      isImage: a.isImage,
+      dataUrl: a.isImage ? a.dataUrl : null,
     }));
 
     // Build a prompt that includes file context for the AI
@@ -3923,11 +4250,24 @@ async function initialize() {
       thread.title = truncTitle(prompt || currentAttachments[0]?.name || "Temporary chat");
     }
 
-    thread.messages.push({ id: uid(), role: "user", content: prompt, attachments: currentAttachments, createdAt: now() });
+    const userMessage = {
+      id: uid(),
+      role: "user",
+      content: prompt,
+      attachments: normalizeAttachments(currentAttachments),
+      createdAt: now(),
+    };
+    thread.messages.push(userMessage);
     thread.updatedAt = now();
     if (canUseStoredThreads()) {
       if (auth.threadsSync) {
-        await addMessageToApi(thread.id, "user", fullPrompt);
+        const savedUserMessage = await addMessageToApi(
+          thread.id,
+          "user",
+          prompt,
+          { attachments: buildStoredAttachmentPayload(userMessage.attachments) },
+        );
+        if (savedUserMessage?.id) userMessage.syncedId = savedUserMessage.id;
       } else {
         save();
       }
@@ -3938,13 +4278,16 @@ async function initialize() {
     clearAttachments();
     closeAttachMenu();
     setComposerStreaming(true);
-    createMsg("user", prompt, { attachments: currentAttachments });
+    const userNode = createMsg("user", prompt, {
+      attachments: userMessage.attachments,
+      editAttachments: mergePersistedAttachments(rawAttachments, userMessage.attachments),
+    });
     _cleanupFloatingDiagrams();
     const assistantNode = createMsg("assistant", "", { showThinking: true, prompt: fullPrompt });
     updateWelcome();
 
     try {
-      await streamChat(fullPrompt, assistantNode, thread, state.thinkingMode, currentAttachments);
+      await streamChat(fullPrompt, assistantNode, thread, state.thinkingMode, rawAttachments, { userMessage, userNode });
     } catch (err) {
       if (err.name === "AbortError") {
         setThinkingState(assistantNode, false);

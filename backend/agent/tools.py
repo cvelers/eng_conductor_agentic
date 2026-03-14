@@ -191,6 +191,31 @@ TOOLS: list[dict[str, Any]] = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "fea_analyzer",
+            "description": (
+                "Hand off the request to the dedicated FEA analysis sub-agent when the user "
+                "wants an actual structural model, solver run, reactions/displacements/internal "
+                "forces, or viewer-style model/result interaction. Use this instead of writing "
+                "generic FEA guidance or code scripts in chat."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "task": {
+                        "type": "string",
+                        "description": (
+                            "Concise engineering task for the FEA analyst, including the model to "
+                            "build or modify and the result the user wants."
+                        ),
+                    },
+                },
+                "required": ["task"],
+            },
+        },
+    },
     # ── Planning ──────────────────────────────────────────────────────
     {
         "type": "function",

@@ -17,6 +17,10 @@ class Attachment(BaseModel):
     size: int = 0
     is_image: bool = False
     data_url: Optional[str] = None
+    extracted_text: Optional[str] = None
+    extraction_note: Optional[str] = None
+    storage_path: Optional[str] = None
+    storage_url: Optional[str] = None
 
 
 class ChatRequest(BaseModel):

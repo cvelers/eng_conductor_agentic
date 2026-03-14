@@ -230,6 +230,14 @@ body {
   display: flex; align-items: center; justify-content: center; border-radius: 6px;
 }
 .icon-btn:hover { color: var(--text); background: var(--panel); }
+.icon-btn.copied {
+  color: var(--accent-2);
+  background: var(--accent-glow);
+}
+.icon-btn.copy-failed {
+  color: var(--accent);
+  background: var(--accent-glow);
+}
 
 /* Edit button: subtle until hovered */
 .message.user .msg-actions { opacity: 0; transition: opacity 150ms ease; }
