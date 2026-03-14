@@ -34,9 +34,7 @@ from backend.agent.prompt import SYSTEM_PROMPT
 from backend.agent.stream_adapter import adapt_event
 from backend.agent.context import (
     compact_if_needed,
-    context_usage_snapshot,
     convert_frontend_history,
-    estimate_messages_tokens,
     should_continue_from_ask_user,
 )
 
@@ -45,6 +43,7 @@ from backend.orchestrator.fea_analyst import FEAAnalystLoop
 from backend.orchestrator.fea_routing import should_route_to_fea
 
 logger = logging.getLogger(__name__)
+_COMPACTION_TRIGGER_RATIO = 0.85
 
 
 def _append_thread_log(settings: Settings, payload: dict) -> None:
@@ -92,6 +91,123 @@ def _history_payload(history: list) -> list[dict]:
         else:
             rows.append({"role": str(getattr(item, "role", "")), "content": str(getattr(item, "content", ""))})
     return rows
+
+
+def _usage_prompt_tokens(response: object) -> int | None:
+    usage = getattr(response, "usage", None)
+    if usage is None and isinstance(response, dict):
+        usage = response.get("usage")
+    if usage is None:
+        return None
+    if isinstance(usage, dict):
+        raw = usage.get("prompt_tokens")
+    else:
+        raw = getattr(usage, "prompt_tokens", None)
+    try:
+        return int(raw) if raw is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
+def _exact_session_memory_usage(
+    client: OpenAI,
+    *,
+    model: str,
+    system_prompt: str,
+    messages: list[dict],
+    context_window: int,
+    base_system_prompt_tokens: int | None = None,
+) -> tuple[dict[str, object], int | None]:
+    """Return exact session-memory usage from provider-reported prompt tokens.
+
+    The count intentionally excludes the static system prompt so the UI reflects
+    persisted conversation/session memory rather than framework overhead.
+    """
+    request_kwargs = {
+        "model": model,
+        "messages": [{"role": "system", "content": system_prompt}, *messages],
+        "temperature": 0.0,
+        "max_tokens": 1,
+    }
+    try:
+        full_response = client.chat.completions.create(**request_kwargs)
+    except Exception as exc:
+        logger.exception("context_usage_probe_failed")
+        return (
+            {
+                "available": False,
+                "measurement": "provider_prompt_tokens",
+                "reason": f"Token count probe failed: {exc}",
+            },
+            base_system_prompt_tokens,
+        )
+
+    full_prompt_tokens = _usage_prompt_tokens(full_response)
+    if full_prompt_tokens is None:
+        return (
+            {
+                "available": False,
+                "measurement": "provider_prompt_tokens",
+                "reason": "Provider response did not include prompt_tokens.",
+            },
+            base_system_prompt_tokens,
+        )
+
+    system_prompt_tokens = base_system_prompt_tokens
+    if system_prompt_tokens is None:
+        try:
+            base_response = client.chat.completions.create(
+                model=model,
+                messages=[{"role": "system", "content": system_prompt}],
+                temperature=0.0,
+                max_tokens=1,
+            )
+        except Exception as exc:
+            logger.exception("context_usage_base_probe_failed")
+            return (
+                {
+                    "available": False,
+                    "measurement": "provider_prompt_tokens",
+                    "reason": f"Base token count probe failed: {exc}",
+                },
+                None,
+            )
+        system_prompt_tokens = _usage_prompt_tokens(base_response)
+        if system_prompt_tokens is None:
+            return (
+                {
+                    "available": False,
+                    "measurement": "provider_prompt_tokens",
+                    "reason": "Provider response did not include base prompt_tokens.",
+                },
+                None,
+            )
+
+    session_tokens = max(0, int(full_prompt_tokens) - int(system_prompt_tokens))
+    tokens_left = max(0, context_window - session_tokens)
+    used_percent = round(session_tokens / context_window * 100, 1) if context_window else 0.0
+    if used_percent >= 95:
+        level = "critical"
+    elif used_percent >= 85:
+        level = "high"
+    elif used_percent >= 65:
+        level = "medium"
+    else:
+        level = "low"
+
+    return (
+        {
+            "available": True,
+            "measurement": "provider_prompt_tokens",
+            "session_tokens": session_tokens,
+            "context_window": context_window,
+            "tokens_left": tokens_left,
+            "used_percent": used_percent,
+            "level": level,
+            "needs_compaction": session_tokens >= int(context_window * _COMPACTION_TRIGGER_RATIO),
+        },
+        system_prompt_tokens,
+    )
 
 
 def _prepare_attachment_bundle(
@@ -200,6 +316,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     # ── Tool dispatcher ──────────────────────────────────────────────
     tool_dispatcher = build_tool_dispatcher(retriever, clauses, search_provider)
+    base_system_prompt_tokens: int | None = None
 
     # ── Validator client (independent LLM for grounding checks) ──────
     validator_client: OpenAI | None = None
@@ -438,25 +555,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     yield json.dumps(adapted, default=str) + "\n"
                     await asyncio.sleep(0.005)
 
-                # Context circle shows the session history size (what the
-                # next request will actually receive), not the transient
-                # in-loop total with all tool calls.
-                if not session_tokens:
-                    session_tokens = estimate_messages_tokens(messages, SYSTEM_PROMPT)
-                cw = active_settings.agent_context_window
-                tokens_left = max(0, cw - session_tokens)
-                used_pct = round(session_tokens / cw * 100, 1) if cw else 0
-                level = "low" if used_pct < 50 else "medium" if used_pct < 75 else "high" if used_pct < 90 else "critical"
-                usage = {
-                    "estimated_tokens": session_tokens,
-                    "context_window": cw,
-                    "tokens_left": tokens_left,
-                    "used_percent": used_pct,
-                    "level": level,
-                    "needs_compaction": used_pct >= 85,
-                }
-                yield json.dumps({"type": "context_usage", **usage}) + "\n"
-
             except Exception as exc:
                 error_detail = str(exc)
                 logger.exception("chat_stream_failed")
@@ -509,17 +607,21 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.post("/api/context-usage")
     async def get_context_usage(request: ChatRequest):
-        """Return context usage snapshot for the frontend circle indicator.
-
-        Called after each message exchange to update the UI.
-        """
+        """Return exact session-memory token usage for the frontend circle."""
+        nonlocal base_system_prompt_tokens
         messages = convert_frontend_history(request.history)
         if request.message:
             messages.append({"role": "user", "content": request.message})
-        return context_usage_snapshot(
-            messages, SYSTEM_PROMPT,
+        usage, base_system_prompt_tokens = await asyncio.to_thread(
+            _exact_session_memory_usage,
+            client,
+            model=active_settings.orchestrator_model,
+            system_prompt=SYSTEM_PROMPT,
+            messages=messages,
             context_window=active_settings.agent_context_window,
+            base_system_prompt_tokens=base_system_prompt_tokens,
         )
+        return usage
 
     return app
 

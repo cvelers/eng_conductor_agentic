@@ -37,7 +37,7 @@ from backend.agent.loop import (
     _validate_grounding,
     run_agent_loop,
 )
-from backend.app import _prepare_request_bundle_for_execution
+from backend.app import _exact_session_memory_usage, _prepare_request_bundle_for_execution
 from backend.schemas import ChatRequest
 
 
@@ -75,6 +75,54 @@ def test_convert_frontend_history_restores_structured_tool_context() -> None:
             "content": tool_context,
         },
     ]
+
+
+def test_exact_session_memory_usage_uses_provider_prompt_tokens_without_heuristic() -> None:
+    class FakeCompletions:
+        def __init__(self) -> None:
+            self.calls: list[dict[str, object]] = []
+
+        def create(self, **kwargs: object) -> object:
+            self.calls.append(kwargs)
+            prompt_tokens = 140 if len(self.calls) == 1 else 40
+            return SimpleNamespace(usage=SimpleNamespace(prompt_tokens=prompt_tokens))
+
+    fake_client = SimpleNamespace(chat=SimpleNamespace(completions=FakeCompletions()))
+
+    usage, cached_base = _exact_session_memory_usage(
+        fake_client,
+        model="fake-model",
+        system_prompt="system prompt",
+        messages=[{"role": "user", "content": "hello"}],
+        context_window=1000,
+    )
+
+    assert usage["available"] is True
+    assert usage["measurement"] == "provider_prompt_tokens"
+    assert usage["session_tokens"] == 100
+    assert usage["tokens_left"] == 900
+    assert usage["used_percent"] == 10.0
+    assert cached_base == 40
+
+
+def test_exact_session_memory_usage_reports_unavailable_when_prompt_tokens_missing() -> None:
+    class FakeCompletions:
+        def create(self, **kwargs: object) -> object:  # noqa: ARG002
+            return SimpleNamespace(usage=SimpleNamespace(prompt_tokens=None))
+
+    fake_client = SimpleNamespace(chat=SimpleNamespace(completions=FakeCompletions()))
+
+    usage, cached_base = _exact_session_memory_usage(
+        fake_client,
+        model="fake-model",
+        system_prompt="system prompt",
+        messages=[{"role": "user", "content": "hello"}],
+        context_window=1000,
+    )
+
+    assert usage["available"] is False
+    assert usage["measurement"] == "provider_prompt_tokens"
+    assert cached_base is None
 
 
 def test_convert_frontend_history_only_injects_latest_structured_memory() -> None:

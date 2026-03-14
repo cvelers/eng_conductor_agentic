@@ -83,6 +83,7 @@ const state = {
   attachments: [],
   abortController: null,
   webSearchEnabled: false,
+  contextUsageRequestId: 0,
 };
 
 function uid() {
@@ -2951,6 +2952,14 @@ function renderContextUsage(usage) {
     return;
   }
 
+  if (usage.available === false) {
+    ring.style.strokeDashoffset = `${circumference}`;
+    btn.classList.remove("low", "medium", "high", "critical");
+    if (primary) primary.textContent = "Exact usage unavailable";
+    if (secondary) secondary.textContent = usage.reason || "\u2014";
+    return;
+  }
+
   const usedPercent = Math.max(0, Number(usage.used_percent) || 0);
   const fraction = Math.min(1, usedPercent / 100);
   ring.style.strokeDashoffset = `${circumference * (1 - fraction)}`;
@@ -2964,14 +2973,54 @@ function renderContextUsage(usage) {
   if (primary) primary.textContent = `${usedRounded}% used (${leftPercent}% left)`;
 
   const fmt = n => n >= 1_000_000 ? (n / 1_000_000).toFixed(1) + "M" : n >= 1000 ? (n / 1000).toFixed(0) + "k" : String(n);
-  if (secondary) secondary.textContent = `${fmt(usage.estimated_tokens || 0)} / ${fmt(usage.context_window || 0)} tokens`;
+  if (secondary) secondary.textContent = `${fmt(usage.session_tokens || 0)} / ${fmt(usage.context_window || 0)} session tokens`;
+}
+
+async function refreshContextUsage(thread = currentThread()) {
+  const requestId = ++state.contextUsageRequestId;
+  if (!thread) {
+    renderContextUsage(null);
+    return;
+  }
+
+  try {
+    const res = await fetchWithAuth("/api/context-usage", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: "",
+        history: serializeHistoryMessages(thread.messages || []),
+        thinking_mode: state.thinkingMode,
+        attachments: [],
+        is_edit: false,
+        is_ask_user_reply: false,
+        web_search: state.webSearchEnabled,
+      }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const usage = await res.json();
+    if (requestId !== state.contextUsageRequestId) return;
+    if (thread.id !== currentThread()?.id) return;
+    renderContextUsage(usage);
+  } catch (err) {
+    if (requestId !== state.contextUsageRequestId) return;
+    if (thread.id !== currentThread()?.id) return;
+    renderContextUsage({
+      available: false,
+      reason: err?.message || "Request failed",
+    });
+  }
 }
 
 function renderMessages() {
   _cleanupFloatingDiagrams();
   messagesEl.innerHTML = "";
   const t = currentThread();
-  if (!t) { updateWelcome(); return; }
+  if (!t) {
+    renderContextUsage(null);
+    updateWelcome();
+    return;
+  }
   for (const m of t.messages || []) {
     if (m.role === "assistant") {
       createMsg("assistant", getAssistantDisplayContent(m), { showThinking: false, responsePayload: m.responsePayload });
@@ -2979,6 +3028,7 @@ function renderMessages() {
       createMsg("user", m.content || "", { attachments: m.attachments });
     }
   }
+  void refreshContextUsage(t);
   updateWelcome();
 }
 
@@ -3501,6 +3551,7 @@ async function streamChat(
           }
           renderThreadList();
           finalized = true;
+          void refreshContextUsage(thread);
         }
         contentEl.classList.remove("streaming");
       }
@@ -3610,6 +3661,7 @@ async function streamChat(
           }
           renderThreadList();
           finalized = true;
+          void refreshContextUsage(thread);
         }
         assistantNode.__pendingAskUser = null;
       }
@@ -3642,12 +3694,8 @@ async function streamChat(
           }
           renderThreadList();
           finalized = true;
+          void refreshContextUsage(thread);
         }
-      }
-
-      // Context usage update (circle indicator)
-      if (event.type === "context_usage") {
-        renderContextUsage(event);
       }
     }
   }
