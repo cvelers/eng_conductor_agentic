@@ -70,6 +70,7 @@ def adapt_event(event: dict[str, Any]) -> dict[str, Any]:
                 "answer": event.get("content", ""),
                 "supported": True,
                 "sources": [],
+                "assumptions": event.get("assumptions", []),
             },
         }
 

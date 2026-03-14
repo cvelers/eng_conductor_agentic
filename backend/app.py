@@ -181,6 +181,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         ]
 
         full_response = ""
+        assumptions: list[str] = []
+        session_memory: dict[str, object] = {}
         async for event in run_agent_loop(
             client=client,
             model=active_settings.orchestrator_model,
@@ -201,10 +203,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         ):
             if event.get("type") == "delta":
                 full_response += event.get("content", "")
+            elif event.get("type") == "_session_memory":
+                memory = event.get("memory", {})
+                session_memory = memory if isinstance(memory, dict) else {}
+            elif event.get("type") == "done":
+                full_response = event.get("content", full_response)
+                assumptions = event.get("assumptions", []) if isinstance(event.get("assumptions", []), list) else []
             elif event.get("type") == "error":
                 raise HTTPException(status_code=500, detail=event.get("message", "Agent error"))
 
-        return {"answer": full_response}
+        return {"answer": full_response, "assumptions": assumptions, "session_memory": session_memory}
 
     @app.post("/api/chat/stream")
     async def chat_stream(request: ChatRequest) -> StreamingResponse:

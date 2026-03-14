@@ -43,11 +43,18 @@ Route to `chat` when the user wants any of these:
 - Eurocode clause lookup or interpretation
 - member resistance, connection design, buckling, LTB, section classification, material or profile data
 - conceptual explanation or hand calculations that do not require a global structural model
+- short follow-up questions that continue a member-level design check or code discussion from the prior chat turn
+
+Important follow-up rule:
+- For short follow-ups such as "what about ltb", "what clause applies", or "show the equation", inherit the topic from the recent conversation
+- If the recent conversation was a member-level resistance / Eurocode / hand-calculation discussion, keep routing to `chat`
+- Only treat a follow-up as `fea` when the thread already contains an actual FEA session or the user is now explicitly asking for model/solver/viewer behavior
 
 Examples:
 - "create analyze fea model 2x2 bays frame on selfweight" -> `fea`
 - "analyse a portal frame and show the moment diagram" -> `fea`
 - "check IPE300 bending resistance in S355 per EN 1993-1-1" -> `chat`
+- "Given IPE300, S355, what is the bending resistance?" then "what about ltb" -> `chat`
 - "what clause governs lateral torsional buckling?" -> `chat`
 
 Return JSON only:
@@ -71,7 +78,15 @@ def _history_row(item: Any) -> dict[str, Any]:
 def _looks_like_prior_fea_turn(payload: Any) -> bool:
     if not isinstance(payload, dict):
         return False
-    if isinstance(payload.get("assumptions"), list):
+    session_memory = payload.get("session_memory")
+    if isinstance(session_memory, dict):
+        fea_session = session_memory.get("fea_session")
+        if isinstance(fea_session, dict) and any(
+            key in fea_session for key in ("model_snapshot", "results_snapshot", "model_summary")
+        ):
+            return True
+    legacy_fea_session = payload.get("fea_session")
+    if isinstance(legacy_fea_session, dict):
         return True
     trace = payload.get("tool_trace")
     if isinstance(trace, list):
@@ -79,7 +94,7 @@ def _looks_like_prior_fea_turn(payload: Any) -> bool:
             if not isinstance(step, dict):
                 continue
             tool_name = str(step.get("tool_name", "") or "")
-            if tool_name.startswith("fea_") or tool_name in {"ask_user", "todo_write"}:
+            if tool_name.startswith("fea_"):
                 return True
     answer = str(payload.get("answer", "") or "")
     return "FEA analysis complete" in answer

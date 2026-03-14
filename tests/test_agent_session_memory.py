@@ -24,10 +24,13 @@ from backend.agent.context import (
 )
 from backend.agent.prompt import SYSTEM_PROMPT
 from backend.agent.loop import (
+    _FINAL_ANSWER_REVIEW_PROMPT,
     _GROUNDING_VALIDATOR_PROMPT,
     _build_conversation_history_for_validator,
     _build_tool_results_for_validator,
     _build_tool_context,
+    _extract_assumptions_from_response,
+    _strip_assumptions_section_from_response,
     run_agent_loop,
 )
 
@@ -441,6 +444,78 @@ def test_prompts_require_preserving_demand_vs_resistance_semantics() -> None:
     assert "Topic continuity is not evidence." in _GROUNDING_VALIDATOR_PROMPT
 
 
+def test_prompts_enforce_civil_scope_and_assumptions_section() -> None:
+    assert "You ONLY help with civil engineering technical questions" in SYSTEM_PROMPT
+    assert "## SCOPE GATE" in SYSTEM_PROMPT
+    assert "Every in-scope technical answer MUST end with a markdown section titled `## Assumptions`" in SYSTEM_PROMPT
+    assert "the only valid response is a brief refusal" in _GROUNDING_VALIDATOR_PROMPT
+    assert "required_action" in _FINAL_ANSWER_REVIEW_PROMPT
+
+
+def test_extract_assumptions_from_response_reads_markdown_section() -> None:
+    assumptions, found = _extract_assumptions_from_response(
+        "Result text.\n\n## Assumptions\n- Steel grade assumed as S355.\n- γ_M0 = 1.0.\n\n## Notes\nDone."
+    )
+
+    assert found is True
+    assert assumptions == ["Steel grade assumed as S355.", "γ_M0 = 1.0."]
+
+
+def test_strip_assumptions_section_from_response_removes_visible_duplicate() -> None:
+    stripped = _strip_assumptions_section_from_response(
+        "Answer body.\n\n## Assumptions\n- Steel grade assumed as S355.\n\n## References\n- EN 1993-1-1 6.2.5"
+    )
+
+    assert stripped == "Answer body.\n\n## References\n- EN 1993-1-1 6.2.5"
+
+
+def test_run_agent_loop_persists_assumptions_in_done_event_and_session_memory() -> None:
+    response = SimpleNamespace(
+        choices=[
+            SimpleNamespace(
+                message=SimpleNamespace(
+                    content=(
+                        "Grounded answer.\n\n"
+                        "## Assumptions\n"
+                        "- Steel grade assumed as S355.\n"
+                        "- γ_M0 = 1.0.\n"
+                    ),
+                    tool_calls=[],
+                )
+            )
+        ]
+    )
+
+    class FakeCompletions:
+        def create(self, **_: object) -> object:
+            return response
+
+    class FakeClient:
+        def __init__(self) -> None:
+            self.chat = SimpleNamespace(completions=FakeCompletions())
+
+    async def collect() -> list[dict]:
+        events: list[dict] = []
+        async for event in run_agent_loop(
+            client=FakeClient(),
+            model="fake",
+            system_prompt="system",
+            messages=[{"role": "user", "content": "check this beam"}],
+            tools=[],
+            tool_dispatcher=lambda *_: "{}",
+            max_rounds=1,
+            grounding_validation=False,
+        ):
+            events.append(event)
+        return events
+
+    events = asyncio.run(collect())
+
+    session_memory = next(event["memory"] for event in events if event.get("type") == "_session_memory")
+    assert session_memory["assumptions"] == ["Steel grade assumed as S355.", "γ_M0 = 1.0."]
+    assert events[-1]["assumptions"] == ["Steel grade assumed as S355.", "γ_M0 = 1.0."]
+
+
 def test_validator_view_preserves_full_tool_output_when_validator_content_exists() -> None:
     long_value = "X" * 7000
     all_messages = [
@@ -628,7 +703,7 @@ def test_run_agent_loop_discards_assistant_text_from_ask_user_round() -> None:
 
     assert not any(event.get("type") == "delta" for event in events)
     assert any(event.get("type") == "ask_user" for event in events)
-    assert events[-1] == {"type": "done", "content": ""}
+    assert events[-1] == {"type": "done", "content": "", "assumptions": []}
 
 
 def test_run_agent_loop_final_answer_excludes_intermediate_tool_round_text() -> None:
@@ -702,7 +777,7 @@ def test_run_agent_loop_final_answer_excludes_intermediate_tool_round_text() -> 
 
     deltas = [event["content"] for event in events if event.get("type") == "delta"]
     assert deltas == ["Final grounded answer."]
-    assert events[-1] == {"type": "done", "content": "Final grounded answer."}
+    assert events[-1] == {"type": "done", "content": "Final grounded answer.", "assumptions": []}
 
 
 def test_run_agent_loop_does_not_replay_hidden_tool_round_text_in_next_request() -> None:
@@ -970,6 +1045,105 @@ def test_run_agent_loop_self_review_rejects_ungrounded_no_tool_answer_and_forces
     assert deltas == ["Grounded shear answer."]
 
 
+def test_run_agent_loop_rewrites_out_of_scope_answer_without_tools() -> None:
+    class FakeCompletions:
+        def __init__(self, responses: list[object]) -> None:
+            self._responses = list(responses)
+            self.requests: list[dict[str, object]] = []
+
+        def create(self, **kwargs: object) -> object:
+            self.requests.append(kwargs)
+            if not self._responses:
+                raise AssertionError("No more fake responses configured")
+            return self._responses.pop(0)
+
+    class FakeClient:
+        def __init__(self, completions: FakeCompletions) -> None:
+            self.chat = SimpleNamespace(completions=completions)
+
+    draft_response = SimpleNamespace(
+        choices=[
+            SimpleNamespace(
+                message=SimpleNamespace(
+                    content="The capital of France is Paris.",
+                    tool_calls=[],
+                )
+            )
+        ]
+    )
+    self_review_reject = SimpleNamespace(
+        choices=[
+            SimpleNamespace(
+                message=SimpleNamespace(
+                    content=json.dumps({
+                        "answer_type": "out_of_scope",
+                        "requires_validation": False,
+                        "required_action": "rewrite_without_tools",
+                        "reason": "The user asked a non-civil-engineering question.",
+                    }),
+                )
+            )
+        ]
+    )
+    rewrite_response = SimpleNamespace(
+        choices=[
+            SimpleNamespace(
+                message=SimpleNamespace(
+                    content="I can only help with civil engineering technical questions. If you have one, send it.",
+                    tool_calls=[],
+                )
+            )
+        ]
+    )
+    self_review_accept = SimpleNamespace(
+        choices=[
+            SimpleNamespace(
+                message=SimpleNamespace(
+                    content=json.dumps({
+                        "answer_type": "out_of_scope",
+                        "requires_validation": False,
+                        "required_action": "answer_ok",
+                        "reason": "This is a proper scope refusal.",
+                    }),
+                )
+            )
+        ]
+    )
+
+    completions = FakeCompletions([
+        draft_response,
+        self_review_reject,
+        rewrite_response,
+        self_review_accept,
+    ])
+    client = FakeClient(completions)
+
+    async def collect() -> list[dict]:
+        events: list[dict] = []
+        async for event in run_agent_loop(
+            client=client,
+            model="fake",
+            system_prompt="system",
+            messages=[{"role": "user", "content": "what is the capital of france"}],
+            tools=[],
+            tool_dispatcher=lambda *_: "{}",
+            max_rounds=2,
+            grounding_validation=True,
+        ):
+            events.append(event)
+        return events
+
+    events = asyncio.run(collect())
+
+    assert len(completions.requests) == 4
+    assert not any(event.get("type") == "tool_start" for event in events)
+    assert events[-1] == {
+        "type": "done",
+        "content": "I can only help with civil engineering technical questions. If you have one, send it.",
+        "assumptions": [],
+    }
+
+
 def test_run_agent_loop_allows_history_only_followup_without_forced_research() -> None:
     class FakeCompletions:
         def __init__(self, responses: list[object]) -> None:
@@ -1050,6 +1224,7 @@ def test_run_agent_loop_allows_history_only_followup_without_forced_research() -
     assert events[-1] == {
         "type": "done",
         "content": "Using the previous calculation, M_cr = 731.79 kNm and λ̄_LT = 0.746.",
+        "assumptions": [],
     }
 
 

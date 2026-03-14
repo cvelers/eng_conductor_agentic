@@ -82,7 +82,8 @@ _SYSTEM_REMINDERS: dict[str, str] = {
     "math_calculator": (
         "\n\n<system-reminder>"
         "Verify calculation inputs match the Eurocode requirements. "
-        "If any input was assumed rather than looked up, state this clearly."
+        "If any input was assumed rather than looked up, state this clearly and include it "
+        "in the final `## Assumptions` section."
         + _TODO_NUDGE +
         "</system-reminder>"
     ),
@@ -107,7 +108,8 @@ _SYSTEM_REMINDERS: dict[str, str] = {
         "Calculator output alone does NOT ground a clause citation. Also preserve "
         "symbol meaning: never feed a resistance/capacity result such as M_Rd, "
         "Mc,Rd, Mb,Rd, N_Rd, or V_Rd back into a demand input such as M_Ed, N_Ed, "
-        "or V_Ed."
+        "or V_Ed. Any defaulted or idealized input must appear in the final "
+        "`## Assumptions` section."
         "</system-reminder>"
     ),
     "todo_write": (
@@ -222,6 +224,52 @@ def _is_internal_harness_user_message(content: str) -> bool:
     )
 
 
+_ASSUMPTIONS_SECTION_RE = re.compile(
+    r"(?ims)(?:^|\n)\s{0,3}#{1,6}\s*assumptions\s*$\n?(?P<body>.*?)(?=(?:\n\s{0,3}#{1,6}\s+\S)|\Z)"
+)
+_MARKDOWN_LIST_PREFIX_RE = re.compile(r"^(?:[-*+]\s+|\d+\.\s+)")
+
+
+def _extract_assumptions_from_response(response_text: str) -> tuple[list[str], bool]:
+    """Return (assumptions, found_section) from a markdown response."""
+    match = _ASSUMPTIONS_SECTION_RE.search(str(response_text or ""))
+    if not match:
+        return [], False
+
+    body = match.group("body").strip()
+    if not body:
+        return [], True
+
+    items: list[str] = []
+    for raw_line in body.splitlines():
+        line = raw_line.strip()
+        if not line:
+            continue
+        line = _MARKDOWN_LIST_PREFIX_RE.sub("", line).strip()
+        if line:
+            items.append(line)
+
+    if not items and body:
+        items = [re.sub(r"\s+", " ", body)]
+
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for item in items:
+        key = item.casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(item)
+    return deduped, True
+
+
+def _strip_assumptions_section_from_response(response_text: str) -> str:
+    """Remove the visible assumptions section after assumptions were extracted."""
+    stripped = _ASSUMPTIONS_SECTION_RE.sub("\n", str(response_text or ""))
+    stripped = re.sub(r"\n{3,}", "\n\n", stripped)
+    return stripped.strip()
+
+
 # ── Tool call accumulation ───────────────────────────────────────────
 
 
@@ -298,7 +346,7 @@ def _extract_clause_ids_from_result(result_str: str) -> set[str]:
 # ── Grounding validation (independent LLM check) ────────────────────
 
 _GROUNDING_VALIDATOR_PROMPT = """\
-You are a grounding validator for an engineering assistant. Your ONLY job is to \
+You are a grounding validator for a civil engineering assistant. Your ONLY job is to \
 check whether the response below is fully supported by the available evidence. \
 You are an independent auditor — the response author has no control over your verdict.
 
@@ -314,36 +362,44 @@ You are an independent auditor — the response author has no control over your 
 
 ## Instructions
 Check EVERY factual claim in the response against the evidence above:
-1. Every Eurocode clause cited (e.g. "Cl. 6.2.5") — is it in the tool results \
+1. First determine whether the latest user question is a civil engineering technical question \
+or a direct follow-up to an earlier civil engineering answer in this thread. If it is NOT, then \
+the only valid response is a brief refusal that says the assistant only helps with civil engineering \
+technical questions.
+2. For in-scope technical answers, every stated or implied assumption / default / modelling \
+idealisation must be explicitly listed in a dedicated `Assumptions` section near the end of the \
+response. If there were no assumptions, the response should say so explicitly (for example `- None.`). \
+Do NOT accept silent assumptions just because a tool ran.
+3. Every Eurocode clause cited (e.g. "Cl. 6.2.5") — is it in the tool results \
 from explicit clause evidence returned by `eurocode_search` / `read_clause`, \
 or in a previous validated response/session memory? Calculator metadata alone \
 is NOT enough to ground a cited clause.
-2. Every numeric value stated (fy, Wpl, dimensions, safety factors) — does it \
+4. Every numeric value stated (fy, Wpl, dimensions, safety factors) — does it \
 match a tool output or a value from a previous validated response? Check the \
 actual numbers.
-3. Every calculation result — was it produced by a calculator tool or stated in \
+5. Every calculation result — was it produced by a calculator tool or stated in \
 a previous validated response?
-4. Any formula or rule — is it from a retrieved clause or previous response, \
+6. Any formula or rule — is it from a retrieved clause or previous response, \
 or recited from memory?
-5. If a calculator used assumed inputs, make sure those assumptions came from \
-the user, previous validated context, or were explicitly stated as assumptions \
-in the response. Do NOT accept silent assumptions just because the tool ran.
-6. Preserve engineering semantics of symbols and variable roles. A prior value \
+7. If a calculator used assumed inputs, make sure those assumptions came from \
+the user, previous validated context, or were explicitly stated in the response's \
+`Assumptions` section.
+8. Preserve engineering semantics of symbols and variable roles. A prior value \
 is only grounded for the SAME physical quantity. Flag demand/resistance swaps \
 such as using `M_Rd`, `M_c,Rd`, or `M_b,Rd` as `M_Ed`, or reusing any resistance \
 value as a load effect just because the number matches.
-7. Inspect calculator CALL arguments as well as final prose. A calculator run does \
+9. Inspect calculator CALL arguments as well as final prose. A calculator run does \
 NOT make its inputs valid. If a tool input lacks evidence, contradicts prior context, \
 or changes the meaning of an established symbol, flag it.
-8. Prior validated conversation/session memory only grounds facts that are EXPLICITLY \
+10. Prior validated conversation/session memory only grounds facts that are EXPLICITLY \
 present there. It does NOT license new technical explanations, new formulas, new clauses, \
 new checks, or a new topic just because the same member, standard, or design context was \
 discussed earlier.
-9. Topic continuity is not evidence. If the response introduces a new subject (for example, \
+11. Topic continuity is not evidence. If the response introduces a new subject (for example, \
 shear after earlier turns only discussed bending/classification/LTB), that new subject must \
 be explicitly supported by current tool results or explicit prior validated text about that \
 same subject.
-10. If current-turn tool results are empty or irrelevant to the response topic, and prior \
+12. If current-turn tool results are empty or irrelevant to the response topic, and prior \
 validated context does not explicitly contain the needed claim, the response is ungrounded.
 
 Values and clauses that appear in previously validated responses are considered \
@@ -452,9 +508,8 @@ before a draft answer is shown to the user.
 Your task is to decide:
 1. What kind of answer this is.
 2. Whether this draft answer needs grounding validation.
-3. Whether it already has enough support from prior validated conversation/session \
-memory and current tool results, or whether you should gather more evidence with tools \
-before answering.
+3. Whether the draft can be shown as-is, must be rewritten without tools, or requires \
+more evidence from tools before answering.
 
 ## Latest User Question
 {latest_user_message}
@@ -470,25 +525,35 @@ before answering.
 
 ## Decision rules
 - Choose exactly one `answer_type`:
+  - `civil_engineering_technical`: civil engineering technical content, calculations, \
+code interpretation, factual design guidance, or technical follow-up grounded in engineering context.
   - `conversation_meta`: questions about what was said earlier in the chat, what the user \
-first asked, what you answered previously, or other conversation-management/meta content.
-  - `nontechnical_chat`: greetings, acknowledgements, UI/help, or other clearly non-technical \
-chat.
-  - `technical_or_factual`: engineering, Eurocode, calculations, formulas, clauses, rules, \
-properties, design checks, or any factual/numeric explanation.
-- Set `requires_validation=true` for `technical_or_factual`.
-- Set `requires_validation=false` for `conversation_meta` and `nontechnical_chat`.
-- Set `requires_tools_before_answering=true` if the draft answer makes claims that are not \
-adequately supported by the evidence above.
-- Set `requires_tools_before_answering=false` if the draft answer is already supported by \
-prior validated context and/or current tool results.
+first asked, what you answered previously, or other conversation-management/meta content \
+that only recalls established thread history.
+  - `out_of_scope`: anything that is not a civil engineering technical request or a direct \
+follow-up to an in-scope engineering discussion.
+- Set `requires_validation=true` for `civil_engineering_technical`.
+- Set `requires_validation=false` for `conversation_meta` and `out_of_scope`.
+- Set `required_action` to exactly one of:
+  - `answer_ok`: the draft can be shown as-is
+  - `rewrite_without_tools`: the draft should be rewritten without calling tools
+  - `gather_tools`: the draft needs more evidence from tools before answering
+- Use `rewrite_without_tools` when:
+  - the user is out of scope and the draft does NOT clearly refuse / redirect to civil engineering scope
+  - the answer should stay within existing evidence but needs formatting repair, especially a final \
+    `## Assumptions` section for a civil engineering technical answer
+- Use `gather_tools` when the draft makes claims that are not adequately supported by the evidence above.
 - For `conversation_meta`, never require tools just to restate chat history.
 - Prior validated context can support the answer only when it explicitly contains the same \
 fact being restated. Do not treat "same standard", "same member", or "same topic area" as \
 enough evidence for new technical claims.
+- For `civil_engineering_technical`, require a final `## Assumptions` section. If it is missing \
+or incomplete but the answer otherwise stays within existing evidence, use `rewrite_without_tools`.
+- For `out_of_scope`, `answer_ok` is only allowed when the draft briefly refuses and redirects \
+the user back to civil engineering technical scope.
 
 Respond with ONLY JSON:
-{{"answer_type": "technical_or_factual", "requires_validation": true, "requires_tools_before_answering": false, "reason": "short reason"}}\
+{{"answer_type": "civil_engineering_technical", "requires_validation": true, "required_action": "answer_ok", "reason": "short reason"}}\
 """
 
 
@@ -540,11 +605,18 @@ async def _self_review_final_answer(
         data = json.loads(raw)
         if not isinstance(data, dict):
             raise ValueError("self-review did not return a JSON object")
-        answer_type = str(data.get("answer_type", "") or "").strip() or "technical_or_factual"
+        answer_type = str(data.get("answer_type", "") or "").strip() or "civil_engineering_technical"
+        required_action = str(data.get("required_action", "") or "").strip()
+        if required_action not in {"answer_ok", "rewrite_without_tools", "gather_tools"}:
+            required_action = (
+                "gather_tools"
+                if bool(data.get("requires_tools_before_answering"))
+                else "answer_ok"
+            )
         return {
             "answer_type": answer_type,
             "requires_validation": bool(data.get("requires_validation")),
-            "requires_tools_before_answering": bool(data.get("requires_tools_before_answering")),
+            "required_action": required_action,
             "reason": str(data.get("reason", "") or ""),
         }
     except Exception:
@@ -552,9 +624,9 @@ async def _self_review_final_answer(
         # Conservative fallback: validate the answer, but don't force tools solely
         # because the self-review channel failed.
         return {
-            "answer_type": "technical_or_factual",
+            "answer_type": "civil_engineering_technical",
             "requires_validation": True,
-            "requires_tools_before_answering": False,
+            "required_action": "answer_ok",
             "reason": "self-review failed",
         }
 
@@ -687,7 +759,9 @@ async def run_agent_loop(
     # Grounding validation retry tracking
     validation_retries = 0
     force_tool_use = False
+    force_no_tool_use = False
     used_grounding_tools_this_turn = False
+    final_assumptions: list[str] = []
 
     all_messages = [{"role": "system", "content": system_prompt}] + messages
 
@@ -706,8 +780,10 @@ async def run_agent_loop(
         }
 
         # Add tools (unless hard-stopped)
-        if loop_breaker_count >= LOOP_BREAKER_HARD_LIMIT:
-            request_kwargs["tool_choice"] = "none"
+        if loop_breaker_count >= LOOP_BREAKER_HARD_LIMIT or force_no_tool_use:
+            if tools:
+                request_kwargs["tools"] = tools
+                request_kwargs["tool_choice"] = "none"
         else:
             request_kwargs["tools"] = tools
             request_kwargs["tool_choice"] = "required" if force_tool_use and tools else "auto"
@@ -823,7 +899,7 @@ async def run_agent_loop(
             full_response += assistant_content
             review = {
                 "requires_validation": False,
-                "requires_tools_before_answering": False,
+                "required_action": "answer_ok",
                 "reason": "",
             }
             if grounding_validation and full_response.strip():
@@ -836,10 +912,13 @@ async def run_agent_loop(
                     reasoning_effort=reasoning_effort or None,
                 )
 
-            if review.get("requires_tools_before_answering") and tools:
+            required_action = str(review.get("required_action", "") or "answer_ok")
+
+            if required_action == "gather_tools" and tools:
                 pending_events.clear()
                 full_response = ""
                 force_tool_use = True
+                force_no_tool_use = False
                 all_messages.pop()
                 reason = str(review.get("reason", "") or "").strip()
                 all_messages.append({
@@ -848,6 +927,26 @@ async def run_agent_loop(
                         "SELF-REVIEW FAILED. Your draft answer is not sufficiently supported yet. "
                         + (f"Reason: {reason}\n\n" if reason else "")
                         + "Gather the missing evidence with the appropriate tools before answering."
+                    ),
+                })
+                tool_round += 1
+                continue
+
+            if required_action == "rewrite_without_tools":
+                pending_events.clear()
+                full_response = ""
+                force_tool_use = False
+                force_no_tool_use = True
+                all_messages.pop()
+                reason = str(review.get("reason", "") or "").strip()
+                all_messages.append({
+                    "role": "user",
+                    "content": (
+                        "SELF-REVIEW FAILED. Rewrite your draft answer without calling tools. "
+                        + (f"Reason: {reason}\n\n" if reason else "")
+                        + "Do not add new facts. If the user is out of scope, briefly refuse and "
+                        "redirect to civil engineering technical questions. If the answer is in scope, "
+                        "keep it grounded and repair the final `## Assumptions` section."
                     ),
                 })
                 tool_round += 1
@@ -918,6 +1017,14 @@ async def run_agent_loop(
                     tool_round += 1
                     continue
 
+            final_assumptions, _ = _extract_assumptions_from_response(full_response)
+            full_response = _strip_assumptions_section_from_response(full_response)
+            pending_events = (
+                [{"type": "delta", "content": full_response}]
+                if full_response
+                else []
+            )
+            force_no_tool_use = False
             # Validation passed (or not needed) — flush buffered deltas
             for evt in pending_events:
                 yield evt
@@ -928,6 +1035,7 @@ async def run_agent_loop(
         pending_events.clear()
         if any(tc["name"] not in _META_TOOLS for tc in tool_calls):
             force_tool_use = False
+        force_no_tool_use = False
 
         # ── Loop detection ───────────────────────────────────────────
         # Don't count meta-tools toward tool budget
@@ -1105,6 +1213,7 @@ async def run_agent_loop(
         all_messages,
         plan_steps=plan_steps,
         full_response=full_response,
+        assumptions=final_assumptions,
         ask_user_payload=last_ask_user_payload,
     )
     if session_memory:
@@ -1120,7 +1229,7 @@ async def run_agent_loop(
     session_tokens = estimate_messages_tokens(next_turn_msgs, system_prompt)
     yield {"type": "_session_tokens", "tokens": session_tokens}
 
-    yield {"type": "done", "content": full_response}
+    yield {"type": "done", "content": full_response, "assumptions": final_assumptions}
 
 
 def _build_tool_context(all_messages: list[dict]) -> str:
@@ -1414,6 +1523,7 @@ def _build_session_memory(
     *,
     plan_steps: list[dict[str, str]],
     full_response: str,
+    assumptions: list[str],
     ask_user_payload: dict[str, Any] | None,
 ) -> dict[str, Any]:
     """Build structured continuation memory for the next turn."""
@@ -1441,6 +1551,9 @@ def _build_session_memory(
             "text": step.get("text", ""),
             "status": step.get("status", "pending"),
         } for step in plan_steps[:8]]
+
+    if assumptions:
+        memory["assumptions"] = list(assumptions[:12])
 
     if ask_user_payload:
         memory["ask_user"] = ask_user_payload

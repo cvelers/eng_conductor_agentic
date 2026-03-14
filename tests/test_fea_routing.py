@@ -75,6 +75,48 @@ def test_fea_router_marks_followup_after_prior_fea_turn() -> None:
     assert should_route_to_fea(llm, "show the deformed shape", history) is True
 
 
+def test_fea_router_does_not_treat_generic_chat_plan_as_prior_fea_turn() -> None:
+    llm = StaticRouterLLM('{"route":"chat","reason":"This is an LTB follow-up to a member-level chat answer."}')
+    history = [
+        {
+            "role": "assistant",
+            "content": "The bending resistance is 223.08 kNm.",
+            "response_payload": {
+                "answer": "The bending resistance is 223.08 kNm.",
+                "assumptions": ["The cross-section is Class 1 or 2."],
+                "tool_trace": [
+                    {"tool_name": "todo_write", "status": "ok"},
+                    {"tool_name": "eurocode_search", "status": "ok"},
+                    {"tool_name": "math_calculator", "status": "ok"},
+                ],
+            },
+        },
+    ]
+
+    assert should_route_to_fea(llm, "what about ltb", history) is False
+
+
+def test_fea_router_uses_structured_fea_session_memory_for_followups() -> None:
+    llm = StaticRouterLLM('{"route":"chat","reason":"Override should detect prior FEA session."}')
+    history = [
+        {
+            "role": "assistant",
+            "content": "Frame solved.",
+            "response_payload": {
+                "answer": "Frame solved.",
+                "session_memory": {
+                    "state": "final",
+                    "fea_session": {
+                        "model_summary": "2D portal frame",
+                    },
+                },
+            },
+        },
+    ]
+
+    assert should_route_to_fea(llm, "show the moment diagram", history) is True
+
+
 def test_fea_router_falls_back_to_chat_on_malformed_output() -> None:
     llm = StaticRouterLLM("not json")
 

@@ -286,6 +286,7 @@ body {
 .calc-tabs .tool-result summary {
   padding: 9px 12px; cursor: pointer; font-size: 0.86rem;
   background: var(--panel); color: var(--text-2); font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
   transition: background 120ms;
 }
 .calc-tabs .tool-result summary:hover { background: var(--panel-3); }
@@ -294,6 +295,16 @@ body {
 .calc-tabs .tool-result > table { margin: 0; }
 .calc-tabs .tool-result > table th,
 .calc-tabs .tool-result > table td { border-left: none; border-right: none; }
+.calc-tabs .tool-result-count {
+  margin-left: auto;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-size: 0.74rem;
+  line-height: 1.4;
+  color: var(--accent);
+}
 /* Tool I/O tables */
 .calc-tabs .tool-io-table {
   table-layout: fixed; width: 100%; font-size: 0.84rem; margin: 0.5em 0 1em;
@@ -336,6 +347,34 @@ body {
 }
 .calc-tabs .tool-note-equation .katex-display {
   margin: 0;
+}
+.calc-tabs .assumption-list-flat {
+  list-style: none;
+  margin: 0;
+  padding: 12px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.calc-tabs .assumption-list-item {
+  margin: 0;
+  color: var(--text-2);
+}
+.calc-tabs .assumption-list-item > *:first-child { margin-top: 0; }
+.calc-tabs .assumption-list-item > *:last-child { margin-bottom: 0; }
+.calc-tabs .assumption-list-item p {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.65;
+}
+.calc-tabs .assumption-list-item strong {
+  color: var(--accent-2);
+  font-weight: 700;
+}
+.calc-tabs .assumption-list-item .katex-display {
+  margin: 0.5em 0 0;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 /* Expandable references (Eurocode clauses) */

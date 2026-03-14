@@ -397,6 +397,7 @@ def build_session_memory_context(
             "preferred_standard",
             "selected_clauses",
             "recent_tool_results",
+            "assumptions",
             "plan",
             "answer_summary",
             "ask_user",
@@ -447,6 +448,14 @@ def build_session_memory_context(
             summary = str(item.get("summary", "") or "").strip()
             if tool and summary:
                 lines.append(f"- {tool}: {summary}")
+
+    assumptions = session_memory.get("assumptions")
+    if isinstance(assumptions, list) and assumptions:
+        lines.append("Recorded assumptions:")
+        for item in assumptions[:8]:
+            text = str(item or "").strip()
+            if text:
+                lines.append(f"- {text}")
 
     plan = session_memory.get("plan")
     if isinstance(plan, list) and plan:

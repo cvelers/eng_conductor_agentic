@@ -349,9 +349,9 @@ function getAssistantDisplayContent(message) {
     return visible || formatPendingAskUserText(memory.ask_user);
   }
   if (typeof payload?.answer === "string" && payload.answer) {
-    return splitToolContextBlock(payload.answer).visible;
+    return stripAssumptionsSectionFromMarkdown(splitToolContextBlock(payload.answer).visible);
   }
-  return visible;
+  return stripAssumptionsSectionFromMarkdown(visible);
 }
 
 function serializeHistoryMessage(message) {
@@ -453,7 +453,8 @@ function buildCalcTabs(msgNode) {
   if (!calcContainer) return;
   calcContainer.innerHTML = "";
   const results = msgNode.__calcResults || [];
-  if (!results.length) {
+  const assumptions = Array.isArray(msgNode.__assumptions) ? msgNode.__assumptions : [];
+  if (!results.length && !assumptions.length) {
     calcContainer.classList.add("hidden");
     return;
   }
@@ -499,6 +500,9 @@ function buildCalcTabs(msgNode) {
 
   // Build groups to render: one merged "Calculation" + one per other tool
   const groups = [];
+  if (assumptions.length) {
+    groups.push({ kind: "assumptions", label: "Assumptions", assumptions });
+  }
   if (Object.keys(mergedOutputs).length) {
     groups.push({ label: "Calculation", inputs: mergedInputs, outputs: mergedOutputs, notes: mergedNotes });
   }
@@ -528,8 +532,26 @@ function buildCalcTabs(msgNode) {
     details.className = "tool-result";
 
     const summary = document.createElement("summary");
-    summary.innerHTML = `<strong>${escHtml(g.label)}</strong> detailed results`;
+    if (g.kind === "assumptions") {
+      summary.innerHTML = `<strong>${escHtml(g.label)}</strong><span class="tool-result-count">${g.assumptions.length}</span>`;
+    } else {
+      summary.innerHTML = `<strong>${escHtml(g.label)}</strong> detailed results`;
+    }
     details.appendChild(summary);
+
+    if (g.kind === "assumptions") {
+      const list = document.createElement("ul");
+      list.className = "assumption-list-flat";
+      for (const item of g.assumptions) {
+        const row = document.createElement("li");
+        row.className = "assumption-list-item";
+        row.innerHTML = renderMd(item);
+        list.appendChild(row);
+      }
+      details.appendChild(list);
+      calcContainer.appendChild(details);
+      continue;
+    }
 
     // ── Inputs table ──
     const inputEntries = Object.entries(g.inputs).filter(([, v]) => typeof v !== "object" || v === null);
@@ -587,6 +609,72 @@ function buildCalcTabs(msgNode) {
 
     calcContainer.appendChild(details);
   }
+}
+
+function extractAssumptionsFromMarkdown(text) {
+  const lines = String(text || "").split(/\r?\n/);
+  let inSection = false;
+  const items = [];
+
+  for (const rawLine of lines) {
+    if (!inSection) {
+      if (/^\s{0,3}#{1,6}\s*Assumptions\s*$/i.test(rawLine)) {
+        inSection = true;
+      }
+      continue;
+    }
+
+    if (/^\s{0,3}#{1,6}\s+\S/.test(rawLine)) break;
+
+    const trimmed = rawLine.trim();
+    if (!trimmed) continue;
+
+    const item = trimmed.replace(/^(?:[-*+]\s+|\d+\.\s+)/, "").trim();
+    if (item) items.push(item);
+  }
+
+  const deduped = [];
+  const seen = new Set();
+  for (const item of items) {
+    const key = item.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(item);
+  }
+  return deduped;
+}
+
+function stripAssumptionsSectionFromMarkdown(text) {
+  const source = String(text || "");
+  if (!source.trim()) return "";
+  return source
+    .replace(/(?:\n|^)\s{0,3}#{1,6}\s*Assumptions\s*\n[\s\S]*?(?=(?:\n\s{0,3}#{1,6}\s+\S)|$)/i, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function resolveAssumptions(payload, fallbackText = "") {
+  const raw = [
+    ...(Array.isArray(payload?.assumptions) ? payload.assumptions : []),
+    ...(Array.isArray(payload?.session_memory?.assumptions) ? payload.session_memory.assumptions : []),
+    ...extractAssumptionsFromMarkdown(fallbackText),
+  ];
+
+  const deduped = [];
+  const seen = new Set();
+  for (const item of raw) {
+    const text = String(item || "").trim();
+    if (!text) continue;
+    const key = text.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    deduped.push(text);
+  }
+  return deduped;
+}
+
+function syncAssumptions(msgNode, payload = null, fallbackText = "") {
+  msgNode.__assumptions = resolveAssumptions(payload, fallbackText);
 }
 
 // ---- Expandable References (Eurocode clauses used) ----
@@ -2349,6 +2437,8 @@ function createMsg(role, content = "", opts = {}) {
       node.querySelector(".thinking-panel")?.classList.add("hidden");
     }
     if (opts.responsePayload) {
+      syncAssumptions(node, opts.responsePayload, content);
+      buildCalcTabs(node);
       setTrace(node, opts.responsePayload);
       restoreFEAPanelFromPayload(node, opts.responsePayload).catch(err => {
         console.error("Stored FEA panel restore failed:", err);
@@ -3035,6 +3125,8 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         updateThinkingLabel(assistantNode, "FEA analysis complete. Expand to review steps.");
 
         const feaContent = accumulated || event.summary || "FEA analysis complete.";
+        const visibleFeaContent = stripAssumptionsSectionFromMarkdown(feaContent);
+        contentEl.innerHTML = renderMd(visibleFeaContent);
         const panelSnapshot = assistantNode.__feaPanel?.getSessionSnapshot
           ? assistantNode.__feaPanel.getSessionSnapshot()
           : null;
@@ -3042,7 +3134,7 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
           ? { ...event.session_memory }
           : { state: "final", fea_session: {} };
         if (!baseSessionMemory.state) baseSessionMemory.state = "final";
-        if (!baseSessionMemory.answer_summary) baseSessionMemory.answer_summary = feaContent;
+        if (!baseSessionMemory.answer_summary) baseSessionMemory.answer_summary = visibleFeaContent;
         if ((!Array.isArray(baseSessionMemory.plan) || !baseSessionMemory.plan.length) && assistantNode.__planSteps?.length) {
           baseSessionMemory.plan = assistantNode.__planSteps.map(step => ({ ...step }));
         }
@@ -3059,11 +3151,13 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         }
         baseSessionMemory.fea_session = feaSessionMemory;
         const tracePayload = {
-          answer: feaContent,
+          answer: visibleFeaContent,
           assumptions: Array.isArray(event.assumptions) ? event.assumptions : [],
           tool_trace: assistantNode.__toolTrace || [],
           session_memory: baseSessionMemory,
         };
+        syncAssumptions(assistantNode, tracePayload, feaContent);
+        buildCalcTabs(assistantNode);
         setTrace(assistantNode, tracePayload);
         assistantNode.__pendingAskUser = null;
 
@@ -3072,14 +3166,14 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
           thread.messages.push({
             id: uid(),
             role: "assistant",
-            content: feaContent,
+            content: visibleFeaContent,
             responsePayload: tracePayload,
             createdAt: now(),
           });
           thread.updatedAt = now();
           if (canUseStoredThreads()) {
             if (auth.threadsSync) {
-              await addMessageToApi(thread.id, "assistant", feaContent, tracePayload);
+              await addMessageToApi(thread.id, "assistant", visibleFeaContent, tracePayload);
             } else {
               save();
             }
@@ -3098,14 +3192,18 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         const pendingAskUser = assistantNode.__pendingAskUser || null;
         const waitingForUser = !!pendingAskUser;
         const rawAnswer = payload.answer || (waitingForUser ? formatPendingAskUserText(pendingAskUser) : "");
-        const displayText = splitToolContextBlock(accumulated || rawAnswer).visible;
+        const rawVisibleText = splitToolContextBlock(accumulated || rawAnswer).visible;
+        const displayText = stripAssumptionsSectionFromMarkdown(rawVisibleText);
+        const resolvedAssumptions = resolveAssumptions(payload, rawVisibleText);
         lastPayload = payload;
         contentEl.innerHTML = renderMd(displayText);
+        assistantNode.__assumptions = resolvedAssumptions;
         buildCalcTabs(assistantNode);
         buildReferences(assistantNode);
         // Build trace from accumulated tool data
         const tracePayload = {
           ...payload,
+          assumptions: resolvedAssumptions,
           what_i_used: assistantNode.__usedClauses || [],
           tool_trace: assistantNode.__toolTrace || [],
         };
@@ -3142,8 +3240,12 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
           const storedPayload = {
             ...payload,
             answer: displayText,
+            assumptions: resolvedAssumptions,
             session_memory: {
               ...eventSessionMemory,
+              assumptions: Array.isArray(eventSessionMemory.assumptions) && eventSessionMemory.assumptions.length
+                ? eventSessionMemory.assumptions
+                : resolvedAssumptions,
               tool_context: toolCtx || eventSessionMemory.tool_context || "",
               state: waitingForUser ? "waiting_for_user" : (eventSessionMemory.state || "final"),
               ask_user: pendingAskUser || eventSessionMemory.ask_user || null,
