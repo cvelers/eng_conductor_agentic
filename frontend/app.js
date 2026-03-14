@@ -322,6 +322,17 @@ function getSessionMemory(payload) {
   return memory && typeof memory === "object" ? memory : null;
 }
 
+function getFEASessionMemory(payload) {
+  const memory = getSessionMemory(payload);
+  if (memory?.fea_session && typeof memory.fea_session === "object") {
+    return memory;
+  }
+  if (payload?.fea_session && typeof payload.fea_session === "object") {
+    return { state: "final", fea_session: payload.fea_session };
+  }
+  return null;
+}
+
 function formatPendingAskUserText(askUser) {
   if (!askUser || typeof askUser !== "object" || !askUser.question) return "";
   let text = "I need more information to continue.";
@@ -349,6 +360,22 @@ function serializeHistoryMessage(message) {
     content: message.content || "",
     response_payload: message.responsePayload || null,
   };
+}
+
+function serializeHistoryMessages(messages) {
+  const items = Array.isArray(messages) ? messages : [];
+  let lastAssistantIdx = -1;
+  for (let i = items.length - 1; i >= 0; i -= 1) {
+    if (items[i]?.role === "assistant") {
+      lastAssistantIdx = i;
+      break;
+    }
+  }
+  return items.map((message, idx) => ({
+    role: message.role,
+    content: message.content || "",
+    response_payload: idx === lastAssistantIdx ? (message.responsePayload || null) : null,
+  }));
 }
 
 // ---- Calculation Tabs (below response, one per calc tool result) ----
@@ -2016,7 +2043,21 @@ function renderPlanCard(msgNode, steps) {
   if (!feed) return;
   // Reuse existing plan card if one exists (update in place)
   let card = feed.querySelector(".activity-card.plan-card");
-  const items = steps.map(s => {
+  const safeSteps = Array.isArray(steps)
+    ? steps
+        .map(s => {
+          const id = String(s?.id || "").trim();
+          const text = typeof s?.text === "string" ? s.text.trim() : "";
+          if (!id || !text) return null;
+          return { id, text, status: s.status || "pending" };
+        })
+        .filter(Boolean)
+    : [];
+  if (!safeSteps.length) {
+    card?.remove();
+    return;
+  }
+  const items = safeSteps.map(s => {
     const st = s.status || "pending";
     const icon = _STEP_ICONS[st] || _STEP_ICONS.pending;
     return `<div class="plan-step ${st}" data-step-id="${s.id}"><span class="step-icon">${icon}</span><span>${escHtml(s.text)}</span></div>`;
@@ -2226,6 +2267,7 @@ async function initFEAPanel(msgNode) {
   if (!feaSection) return;
 
   feaSection.classList.remove("hidden");
+  feaSection.classList.add("collapsed");
 
   try {
     const { FEAPanelController } = await import("/static/fea_panel.js");
@@ -2237,97 +2279,56 @@ async function initFEAPanel(msgNode) {
   }
 }
 
+async function restoreFEAPanelFromPayload(msgNode, payload) {
+  const memory = getFEASessionMemory(payload);
+  const feaSession = memory?.fea_session;
+  if (!feaSession || typeof feaSession !== "object") return;
+  if (!feaSession.model_snapshot || typeof feaSession.model_snapshot !== "object") return;
+
+  if (!msgNode.__feaPanelReady) {
+    msgNode.__feaPanelReady = initFEAPanel(msgNode);
+  }
+  try {
+    await msgNode.__feaPanelReady;
+    if (msgNode.__feaPanel) {
+      await msgNode.__feaPanel.restoreSessionSnapshot(feaSession);
+    }
+  } catch (err) {
+    console.error("Failed to restore FEA panel snapshot:", err);
+  }
+}
+
 /**
  * Show a popup for the FEA analyst to ask the user a clarifying question.
- * Mirrors the Claude Code AskUserQuestion pattern — options as pill buttons,
- * plus a free-text input.
+ * Reuses the main ask-user popup so FEA follows the same human-in-the-loop UX.
  */
-function showFEAQueryPopup(msgNode, sessionId, question, options, context) {
-  // Remove any existing popup
-  document.querySelector(".fea-query-overlay")?.remove();
+function showFEAQueryPopup(msgNode, sessionId, question, options, context, onAnswerSent) {
+  const normalizedOptions = Array.isArray(options)
+    ? options
+        .map(option => {
+          if (typeof option !== "string") return null;
+          const value = option.trim();
+          return value ? { label: value, value } : null;
+        })
+        .filter(Boolean)
+    : [];
 
-  const overlay = document.createElement("div");
-  overlay.className = "fea-query-overlay";
-
-  const optionButtons = options.length
-    ? `<div class="fea-query-options">${options.map(o =>
-        `<button class="fea-query-option" data-value="${escHtml(o)}">${escHtml(o)}</button>`
-      ).join("")}</div>
-      <div class="fea-query-divider">or type your answer</div>`
-    : "";
-
-  overlay.innerHTML = `
-    <div class="fea-query-modal">
-      <div class="fea-query-header">
-        <div class="fea-query-icon">&#128736;</div>
-        <div class="fea-query-title">FEA Analyst needs your input</div>
-      </div>
-      <div class="fea-query-body">
-        <div class="fea-query-question">${escHtml(question)}</div>
-        ${context ? `<div class="fea-query-context">${escHtml(context)}</div>` : ""}
-        ${optionButtons}
-        <div class="fea-query-input-row">
-          <input class="fea-query-input" type="text" placeholder="Type your answer..." autocomplete="off" />
-          <button class="fea-query-submit">Send</button>
-        </div>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-
-  const input = overlay.querySelector(".fea-query-input");
-  const submitBtn = overlay.querySelector(".fea-query-submit");
-  let selectedOption = null;
-
-  async function sendAnswer(answer) {
-    if (!answer.trim()) return;
-    submitBtn.disabled = true;
-    submitBtn.textContent = "Sending...";
+  showAskUserPopup(question, normalizedOptions, context, async (answer) => {
+    const value = String(answer || "").trim();
+    if (!value) return;
     try {
       await fetch("/api/fea/answer", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: sessionId, answer: answer.trim() }),
+        body: JSON.stringify({ session_id: sessionId, answer: value }),
       });
+      appendThinkingCard(msgNode, `You answered: ${value}`);
+      if (typeof onAnswerSent === "function") onAnswerSent(value);
     } catch (err) {
       console.error("Failed to send FEA answer:", err);
-    }
-    // Log the answer as a thinking card
-    appendThinkingCard(msgNode, `You answered: ${answer.trim()}`);
-    overlay.remove();
-  }
-
-  // Option buttons
-  overlay.querySelectorAll(".fea-query-option").forEach(btn => {
-    btn.addEventListener("click", () => {
-      // Toggle selection
-      overlay.querySelectorAll(".fea-query-option").forEach(b => b.classList.remove("selected"));
-      btn.classList.add("selected");
-      selectedOption = btn.dataset.value;
-      input.value = selectedOption;
-      input.focus();
-    });
-    // Double-click sends immediately
-    btn.addEventListener("dblclick", () => {
-      sendAnswer(btn.dataset.value);
-    });
-  });
-
-  // Submit
-  submitBtn.addEventListener("click", () => {
-    const val = input.value || selectedOption || "";
-    sendAnswer(val);
-  });
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      const val = input.value || selectedOption || "";
-      sendAnswer(val);
+      appendLog(msgNode, `Failed to send FEA answer: ${err.message}`);
     }
   });
-
-  // Focus the input
-  requestAnimationFrame(() => input.focus());
 }
 
 // ---- Messages ----
@@ -2349,6 +2350,9 @@ function createMsg(role, content = "", opts = {}) {
     }
     if (opts.responsePayload) {
       setTrace(node, opts.responsePayload);
+      restoreFEAPanelFromPayload(node, opts.responsePayload).catch(err => {
+        console.error("Stored FEA panel restore failed:", err);
+      });
     }
   } else {
     const attHtml = buildAttachmentHtml(opts.attachments);
@@ -2634,7 +2638,7 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
 
   const threadMsgs = thread.messages || [];
   const prevMsgs = threadMsgs.slice(0, -1);
-  const history = prevMsgs.map(serializeHistoryMessage);
+  const history = serializeHistoryMessages(prevMsgs);
 
   // Build attachments payload for the API (with base64 data for images)
   const apiAttachments = attachments.map(a => ({
@@ -2685,6 +2689,7 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
     assistantNode.__refClauses = assistantNode.__refClauses || [];
     assistantNode.__selectedRefKeys = assistantNode.__selectedRefKeys || new Set();
   }
+  assistantNode.__planSteps = assistantNode.__planSteps || [];
   assistantNode.__pendingAskUser = null;
   assistantNode.__pendingCalcArgs = null; // stash tool_start args for calc tools
 
@@ -2719,11 +2724,17 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
       }
       if (event.type === "plan") {
         renderPlanCard(assistantNode, event.steps);
+        assistantNode.__planSteps = Array.isArray(event.steps)
+          ? event.steps.map(step => ({ ...step }))
+          : [];
         agentTaskCount = event.steps?.length || 0;
         isAgentMode = true;
       }
       if (event.type === "plan_update") {
         updatePlanStep(assistantNode, event.step_id, event.status);
+        assistantNode.__planSteps = (assistantNode.__planSteps || []).map(step => (
+          step?.id === event.step_id ? { ...step, status: event.status } : step
+        ));
       }
       if (event.type === "ask_user") {
         assistantNode.__pendingAskUser = {
@@ -2900,6 +2911,26 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
       // ── FEA events ──────────────────────────────────
       if (event.type === "fea_session_created") {
         assistantNode.__feaSessionId = event.session_id;
+        if (!assistantNode.__feaPanelReady) {
+          assistantNode.__feaPanelReady = initFEAPanel(assistantNode);
+        }
+      }
+
+      if (event.type === "fea_state_restored") {
+        if (!assistantNode.__feaPanelReady) {
+          assistantNode.__feaPanelReady = initFEAPanel(assistantNode);
+        }
+        if (assistantNode.__feaPanelReady) {
+          assistantNode.__feaPanelReady.then(() => {
+            if (assistantNode.__feaPanel) {
+              assistantNode.__feaPanel.restoreSessionSnapshot({
+                model_snapshot: event.model_snapshot,
+                results_snapshot: event.results_snapshot,
+                model_summary: event.model_summary,
+              }).catch(e => console.error("FEA restore error:", e));
+            }
+          }).catch(e => console.error("FEA panel init error on restore:", e));
+        }
       }
 
       if (event.type === "fea_thinking") {
@@ -2908,8 +2939,21 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
       }
 
       if (event.type === "fea_tool_call") {
-        appendToolCard(assistantNode, event.tool, event.args, "running");
-        appendLog(assistantNode, `FEA: ${event.tool}(${JSON.stringify(event.args).slice(0, 80)}...)`);
+        if (event.tool !== "todo_write") {
+          appendToolCard(assistantNode, event.tool, event.args, "running");
+          appendLog(assistantNode, `FEA: ${event.tool}(${JSON.stringify(event.args).slice(0, 80)}...)`);
+        }
+        assistantNode.__toolTrace.push({ tool_name: event.tool, status: "running" });
+        isAgentMode = true;
+      }
+
+      if (event.type === "fea_tool_result") {
+        if (event.tool !== "todo_write") {
+          updateToolCard(assistantNode, event.tool, event.result, event.status, event.summary);
+          appendLog(assistantNode, `FEA ${event.tool}: ${event.status}${event.summary ? " — " + event.summary : ""}`);
+        }
+        const traceEntry = assistantNode.__toolTrace.findLast(t => t.tool_name === event.tool && t.status === "running");
+        if (traceEntry) traceEntry.status = event.status === "error" ? "error" : "ok";
         isAgentMode = true;
       }
 
@@ -2951,17 +2995,31 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
       }
 
       if (event.type === "fea_user_query") {
+        assistantNode.__pendingAskUser = {
+          question: event.question || "",
+          options: Array.isArray(event.options) ? event.options : [],
+          context: event.context || "",
+        };
+        setThinkingState(assistantNode, false);
+        updateThinkingLabel(assistantNode, "Waiting for your answer.");
         showFEAQueryPopup(
           assistantNode,
           event.session_id,
           event.question,
           event.options || [],
           event.context || "",
+          () => {
+            assistantNode.__pendingAskUser = null;
+            setThinkingState(assistantNode, true);
+            updateThinkingLabel(assistantNode, "Continuing with your answer...");
+            appendLog(assistantNode, "Received your answer. Continuing FEA analysis.");
+          },
         );
       }
 
       if (event.type === "fea_complete") {
-        // Clean up any lingering query popup
+        const askOverlay = document.getElementById("ask-user-overlay");
+        askOverlay?.classList.add("hidden");
         document.querySelector(".fea-query-overlay")?.remove();
         // Show the summary in the response area
         if (event.summary) {
@@ -2976,14 +3034,52 @@ async function streamChat(prompt, assistantNode, thread, thinkingMode = "thinkin
         if (meta) meta.textContent = `${steps} steps \u00B7 ${elapsed}s`;
         updateThinkingLabel(assistantNode, "FEA analysis complete. Expand to review steps.");
 
+        const feaContent = accumulated || event.summary || "FEA analysis complete.";
+        const panelSnapshot = assistantNode.__feaPanel?.getSessionSnapshot
+          ? assistantNode.__feaPanel.getSessionSnapshot()
+          : null;
+        const baseSessionMemory = event.session_memory && typeof event.session_memory === "object"
+          ? { ...event.session_memory }
+          : { state: "final", fea_session: {} };
+        if (!baseSessionMemory.state) baseSessionMemory.state = "final";
+        if (!baseSessionMemory.answer_summary) baseSessionMemory.answer_summary = feaContent;
+        if ((!Array.isArray(baseSessionMemory.plan) || !baseSessionMemory.plan.length) && assistantNode.__planSteps?.length) {
+          baseSessionMemory.plan = assistantNode.__planSteps.map(step => ({ ...step }));
+        }
+        if (!Array.isArray(baseSessionMemory.assumptions) || !baseSessionMemory.assumptions.length) {
+          baseSessionMemory.assumptions = Array.isArray(event.assumptions) ? [...event.assumptions] : [];
+        }
+        const feaSessionMemory = baseSessionMemory.fea_session && typeof baseSessionMemory.fea_session === "object"
+          ? { ...baseSessionMemory.fea_session }
+          : {};
+        if (panelSnapshot?.model_snapshot) feaSessionMemory.model_snapshot = panelSnapshot.model_snapshot;
+        if (panelSnapshot?.results_snapshot) feaSessionMemory.results_snapshot = panelSnapshot.results_snapshot;
+        if (!feaSessionMemory.model_summary && panelSnapshot?.model_summary) {
+          feaSessionMemory.model_summary = panelSnapshot.model_summary;
+        }
+        baseSessionMemory.fea_session = feaSessionMemory;
+        const tracePayload = {
+          answer: feaContent,
+          assumptions: Array.isArray(event.assumptions) ? event.assumptions : [],
+          tool_trace: assistantNode.__toolTrace || [],
+          session_memory: baseSessionMemory,
+        };
+        setTrace(assistantNode, tracePayload);
+        assistantNode.__pendingAskUser = null;
+
         // Save to thread
         if (!finalized) {
-          const feaContent = accumulated || event.summary || "FEA analysis complete.";
-          thread.messages.push({ id: uid(), role: "assistant", content: feaContent, responsePayload: null, createdAt: now() });
+          thread.messages.push({
+            id: uid(),
+            role: "assistant",
+            content: feaContent,
+            responsePayload: tracePayload,
+            createdAt: now(),
+          });
           thread.updatedAt = now();
           if (canUseStoredThreads()) {
             if (auth.threadsSync) {
-              await addMessageToApi(thread.id, "assistant", feaContent, null);
+              await addMessageToApi(thread.id, "assistant", feaContent, tracePayload);
             } else {
               save();
             }

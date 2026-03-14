@@ -31,7 +31,8 @@ class LLMProvider(ABC):
         temperature: float = 0.0,
         max_tokens: int = 8000,
         reasoning_effort: str | None = None,
-    ) -> str:
+        tools: list[dict[str, Any]] | None = None,
+    ) -> str | dict[str, Any]:
         """Generate from a full messages list (multi-turn).
 
         Default implementation extracts system + user content and

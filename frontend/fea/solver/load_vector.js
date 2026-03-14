@@ -18,6 +18,7 @@
 
 import { beam2dEquivLoads } from '../elements/beam2d.js';
 import { frame3dEquivLoads } from '../elements/frame3d.js';
+import { getSelfWeightDistributedLoad } from '../load_helpers.js';
 import { elementLength, elementAngle } from './assembler.js';
 
 // ---------------------------------------------------------------------------
@@ -221,46 +222,15 @@ function addDistributedLoad(F, load, model, nodeMap, dofPerNode) {
  * @param {number} dofPerNode
  */
 function addSelfWeight(F, load, model, nodeMap, dofPerNode) {
-  const factor = load.factor !== undefined ? load.factor : 1.0;
-  const g = load.g || 9.81; // gravitational acceleration
-
-  // Gravity direction (defaults to -Y for 2D, -Z for 3D)
-  let gx, gy, gz;
-  if (load.direction) {
-    gx = (load.direction.x || 0) * g * factor;
-    gy = (load.direction.y || 0) * g * factor;
-    gz = (load.direction.z || 0) * g * factor;
-  } else {
-    // Default: gravity in negative Y for 2D, negative Z for 3D
-    gx = 0;
-    if (model.analysisType === 'frame3d' || model.analysisType === 'truss3d') {
-      gy = 0;
-      gz = -g * factor;
-    } else {
-      gy = -g * factor;
-      gz = 0;
-    }
-  }
-
   for (const [elemId, element] of entries(model.elements)) {
-    const section = getEntry(model.sections, element.sectionId);
-    const material = getEntry(model.materials, element.materialId);
-
-    if (!material.rho && material.rho !== 0) {
-      continue; // skip elements without density
-    }
-
-    const A = section.A;
-    const rho = material.rho;
+    const distributed = getSelfWeightDistributedLoad(model, element, load);
+    if (!distributed) continue;
     const L = elementLength(model, element);
 
-    // Total weight of element
-    const mass = A * rho * L;
-
     // Distributed self-weight per unit length in global coords
-    const qx = rho * A * gx;
-    const qy = rho * A * gy;
-    const qz = rho * A * gz;
+    const qx = distributed.qx;
+    const qy = distributed.qy;
+    const qz = distributed.qz;
 
     const [nid1, nid2] = element.nodeIds;
     const startDOF1 = nodeMap.get(nid1);

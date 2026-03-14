@@ -3,6 +3,7 @@
  */
 
 import { getThree } from "./scene.js";
+import { getSelfWeightDistributedLoad } from "../fea/load_helpers.js";
 
 const FORCE_COLOR = 0xff4444;    // red for forces
 const MOMENT_COLOR = 0x4488ff;   // blue for moments
@@ -140,6 +141,23 @@ export function createDistributedLoadVis(node1, node2, qx, qy, qz, maxDim) {
   return group;
 }
 
+function createSelfWeightVis(model, element, load, maxDim) {
+  const node1 = model.nodes[element.nodeIds[0]];
+  const node2 = model.nodes[element.nodeIds[1]];
+  if (!node1 || !node2) return null;
+
+  const gravity = getSelfWeightDistributedLoad(model, element, load);
+  if (!gravity) return null;
+  return createDistributedLoadVis(
+    node1,
+    node2,
+    gravity.qx,
+    gravity.qy,
+    gravity.qz,
+    maxDim,
+  );
+}
+
 /**
  * Build all load visualizations for a model and load case.
  */
@@ -176,6 +194,14 @@ export function buildAllLoads(model, loadCaseId, maxDim) {
       const qx = load.qx || 0, qy = load.qy || 0, qz = load.qz || 0;
       const vis = createDistributedLoadVis(n1, n2, qx, qy, qz, maxDim);
       if (vis) meshes.push(vis);
+    }
+
+    if (load.type === "self_weight") {
+      for (const elem of Object.values(model.elements)) {
+        if (!elem || !Array.isArray(elem.nodeIds) || elem.nodeIds.length < 2) continue;
+        const vis = createSelfWeightVis(model, elem, load, maxDim);
+        if (vis) meshes.push(vis);
+      }
     }
   }
 

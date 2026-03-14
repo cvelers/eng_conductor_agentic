@@ -1924,8 +1924,17 @@ body.chat-started .attach-menu {
   overflow: hidden;
 }
 .fea-panel.hidden { display: none; }
+.fea-panel.collapsed {
+  cursor: pointer;
+}
 .fea-panel.collapsed .fea-viewer-container,
 .fea-panel.collapsed .fea-results-table { display: none; }
+.fea-panel.collapsed > .panel-header {
+  border-bottom-color: transparent;
+}
+.fea-panel.collapsed .panel-collapse-btn {
+  transform: rotate(180deg);
+}
 .fea-panel .panel-header {
   display: flex;
   align-items: center;
@@ -2102,109 +2111,6 @@ body.chat-started .attach-menu {
   color: var(--danger);
   font-size: 13px;
 }
-
-/* ── FEA Query Popup (human-in-the-loop) ─────────────────── */
-.fea-query-overlay {
-  position: fixed; inset: 0; z-index: 100;
-  background: rgba(10, 11, 13, 0.88);
-  backdrop-filter: blur(12px);
-  display: grid; place-items: center;
-  animation: auth-fade-in 200ms ease-out;
-}
-.fea-query-modal {
-  width: min(480px, 92vw);
-  background: var(--panel);
-  border: 1px solid var(--border-2);
-  border-radius: 18px;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.02);
-  animation: auth-slide-in 220ms ease-out;
-  overflow: hidden;
-}
-.fea-query-header {
-  padding: 28px 28px 0;
-  display: flex; align-items: center; gap: 12px;
-}
-.fea-query-icon {
-  width: 40px; height: 40px; border-radius: 10px;
-  background: var(--accent-glow);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.2rem; flex-shrink: 0;
-}
-.fea-query-title {
-  font-size: 0.78rem; font-weight: 600;
-  color: var(--accent); letter-spacing: 0.03em;
-  text-transform: uppercase;
-}
-.fea-query-body { padding: 20px 28px 24px; }
-.fea-query-question {
-  font-size: 1.02rem; font-weight: 600;
-  color: var(--text); line-height: 1.45;
-  margin-bottom: 8px;
-}
-.fea-query-context {
-  font-size: 0.82rem; color: var(--muted);
-  line-height: 1.5; margin-bottom: 18px;
-}
-.fea-query-options {
-  display: flex; flex-wrap: wrap; gap: 8px;
-  margin-bottom: 16px;
-}
-.fea-query-option {
-  padding: 9px 18px; border-radius: 20px;
-  border: 1px solid var(--border-2);
-  background: var(--bg-3); color: var(--text-2);
-  font-size: 0.88rem; font-weight: 500;
-  cursor: pointer; font-family: inherit;
-  transition: all 150ms ease;
-}
-.fea-query-option:hover {
-  border-color: var(--accent);
-  color: var(--text);
-  background: rgba(79, 156, 247, 0.08);
-  box-shadow: 0 0 0 2px var(--accent-glow);
-}
-.fea-query-option.selected {
-  border-color: var(--accent);
-  background: rgba(79, 156, 247, 0.14);
-  color: var(--text);
-}
-.fea-query-divider {
-  display: flex; align-items: center; gap: 12px;
-  margin-bottom: 14px;
-  font-size: 0.72rem; color: var(--muted);
-  text-transform: uppercase; letter-spacing: 0.05em;
-}
-.fea-query-divider::before, .fea-query-divider::after {
-  content: ""; flex: 1;
-  border-top: 1px solid var(--border);
-}
-.fea-query-input-row {
-  display: flex; gap: 8px;
-}
-.fea-query-input {
-  flex: 1; border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--bg-3); color: var(--text);
-  padding: 11px 14px; font-size: 0.9rem;
-  outline: none; font-family: var(--font-sans);
-  transition: border-color 120ms, box-shadow 120ms;
-}
-.fea-query-input:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent-glow);
-}
-.fea-query-input::placeholder { color: var(--muted); }
-.fea-query-submit {
-  padding: 11px 20px; border: none;
-  border-radius: var(--radius-sm);
-  background: var(--accent); color: #fff;
-  font-weight: 600; font-size: 0.88rem;
-  cursor: pointer; font-family: inherit;
-  transition: background 120ms;
-  white-space: nowrap;
-}
-.fea-query-submit:hover { background: var(--accent-2); }
-.fea-query-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ── Search Matrix (Database Tunnel Visualization) ──────────────── */
 

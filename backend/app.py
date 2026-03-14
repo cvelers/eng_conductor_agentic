@@ -41,6 +41,7 @@ from backend.agent.context import (
 
 # FEA (kept as separate mode)
 from backend.orchestrator.fea_analyst import FEAAnalystLoop
+from backend.orchestrator.fea_routing import should_route_to_fea
 
 logger = logging.getLogger(__name__)
 
@@ -90,20 +91,6 @@ def _history_payload(history: list) -> list[dict]:
         else:
             rows.append({"role": str(getattr(item, "role", "")), "content": str(getattr(item, "content", ""))})
     return rows
-
-
-_FEA_KEYWORDS = frozenset([
-    "run fea", "finite element analysis", "finite element model",
-    "fem model", "fem analysis", "stiffness matrix",
-    "analyse the frame", "analyze the frame",
-    "structural analysis model", "run structural analysis",
-])
-
-
-def _is_fea_request(message: str) -> bool:
-    lower = message.lower()
-    return any(kw in lower for kw in _FEA_KEYWORDS)
-
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     load_dotenv()
@@ -169,7 +156,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @app.post("/api/chat")
     async def chat(request: ChatRequest) -> dict:
         """Non-streaming endpoint. Returns the same response the user sees."""
-        if _is_fea_request(request.message):
+        _is_ask_reply = should_continue_from_ask_user(
+            request.history,
+            request.is_ask_user_reply,
+        )
+        if not _is_ask_reply and should_route_to_fea(
+            fea_provider,
+            request.message,
+            request.history,
+        ):
             raise HTTPException(status_code=400, detail="FEA requests not supported on /api/chat")
 
         messages = convert_frontend_history(request.history)
@@ -220,8 +215,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             error_detail: str | None = None
             final_answer: str = ""
             try:
+                _is_ask_reply = should_continue_from_ask_user(
+                    request.history,
+                    request.is_ask_user_reply,
+                )
                 # ── FEA detection ────────────────────────────────────
-                if _is_fea_request(request.message):
+                if not _is_ask_reply and should_route_to_fea(
+                    fea_provider,
+                    request.message,
+                    request.history,
+                ):
                     analyst = FEAAnalystLoop(
                         llm=fea_provider,
                         settings=active_settings,
@@ -247,11 +250,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 # message's tool_context ends with an ask_user call,
                 # the user's message is a reply — tell the agent to
                 # continue from where it left off, not replan.
-                _is_ask_reply = should_continue_from_ask_user(
-                    request.history,
-                    request.is_ask_user_reply,
-                )
-
                 user_content = request.message
                 if _is_ask_reply:
                     user_content = (

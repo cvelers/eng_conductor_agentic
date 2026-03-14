@@ -10,29 +10,23 @@
 
 // ── Standard material presets (Eurocode steel grades) ─────────────
 const MATERIAL_PRESETS = {
-  S235: { E: 210000, nu: 0.3, rho: 7.85e-9, fy: 235, fu: 360, name: "S235" },
-  S275: { E: 210000, nu: 0.3, rho: 7.85e-9, fy: 275, fu: 430, name: "S275" },
-  S355: { E: 210000, nu: 0.3, rho: 7.85e-9, fy: 355, fu: 510, name: "S355" },
-  S420: { E: 210000, nu: 0.3, rho: 7.85e-9, fy: 420, fu: 520, name: "S420" },
-  S460: { E: 210000, nu: 0.3, rho: 7.85e-9, fy: 460, fu: 540, name: "S460" },
+  // Density in kg/mm^3 so A * rho * g produces N/mm when g is in m/s^2.
+  S235: { E: 210000, nu: 0.3, rho: 7.85e-6, fy: 235, fu: 360, name: "S235" },
+  S275: { E: 210000, nu: 0.3, rho: 7.85e-6, fy: 275, fu: 430, name: "S275" },
+  S355: { E: 210000, nu: 0.3, rho: 7.85e-6, fy: 355, fu: 510, name: "S355" },
+  S420: { E: 210000, nu: 0.3, rho: 7.85e-6, fy: 420, fu: 520, name: "S420" },
+  S460: { E: 210000, nu: 0.3, rho: 7.85e-6, fy: 460, fu: 540, name: "S460" },
 };
 
 // ── Restraint presets ─────────────────────────────────────────────
 const RESTRAINT_PRESETS = {
-  pin:      { dx: true, dy: true, dz: true, rx: false, ry: false, rz: false },
-  pinned:   { dx: true, dy: true, dz: true, rx: false, ry: false, rz: false },
-  hinge:    { dx: true, dy: true, dz: true, rx: false, ry: false, rz: false },
-  fixed:    { dx: true, dy: true, dz: true, rx: true,  ry: true,  rz: true  },
-  fixed_support: { dx: true, dy: true, dz: true, rx: true,  ry: true,  rz: true  },
-  encastre: { dx: true, dy: true, dz: true, rx: true,  ry: true,  rz: true  },
-  roller:   { dx: false, dy: true, dz: true, rx: false, ry: false, rz: false },
+  pin: { dx: true, dy: true, dz: true, rx: false, ry: false, rz: false },
+  fixed: { dx: true, dy: true, dz: true, rx: true, ry: true, rz: true },
   roller_x: { dx: false, dy: true, dz: true, rx: false, ry: false, rz: false },
   roller_y: { dx: true, dy: false, dz: true, rx: false, ry: false, rz: false },
-  roller_z: { dx: true, dy: true, dz: false, rx: false, ry: false, rz: false },
-  pin_2d:   { dx: true, dy: true, dz: false, rx: false, ry: false, rz: false },
-  roller_2d:{ dx: false, dy: true, dz: false, rx: false, ry: false, rz: false },
-  fixed_2d: { dx: true, dy: true, dz: false, rx: false, ry: false, rz: true  },
-  simply_supported: { dx: true, dy: true, dz: false, rx: false, ry: false, rz: false },
+  pin_2d: { dx: true, dy: true, dz: false, rx: false, ry: false, rz: false },
+  roller_2d: { dx: false, dy: true, dz: false, rx: false, ry: false, rz: false },
+  fixed_2d: { dx: true, dy: true, dz: false, rx: false, ry: false, rz: true },
 };
 
 
@@ -94,21 +88,12 @@ export class FEAModel {
 
   // ── Element operations ─────────────────────────────────────────
   _addElement(cmd) {
-    let nodeIds = cmd.node_ids || cmd.nodeIds || cmd.nodes || cmd.node_id || null;
-    // Handle node_start/node_end, start_node/end_node, from/to, n1/n2 variants
-    if (!nodeIds || (Array.isArray(nodeIds) && nodeIds.length === 0)) {
-      const start = cmd.node_start || cmd.nodeStart || cmd.start_node || cmd.startNode || cmd.from_node || cmd.fromNode || cmd.from || cmd.node1 || cmd.n1 || cmd.start || cmd.i || cmd.node_i || cmd.nodeI;
-      const end = cmd.node_end || cmd.nodeEnd || cmd.end_node || cmd.endNode || cmd.to_node || cmd.toNode || cmd.to || cmd.node2 || cmd.n2 || cmd.end || cmd.j || cmd.node_j || cmd.nodeJ;
-      if (start != null && end != null) {
-        nodeIds = [String(start), String(end)];
-      }
-    }
-    if (!nodeIds) nodeIds = [];
+    const nodeIds = Array.isArray(cmd.node_ids) ? cmd.node_ids.map(String) : [];
     this.elements[cmd.id] = {
-      type: cmd.type || "beam",
-      nodeIds: Array.isArray(nodeIds) ? nodeIds.map(String) : [String(nodeIds)],
-      sectionId: cmd.section_id || cmd.sectionId || null,
-      materialId: cmd.material_id || cmd.materialId || null,
+      type: cmd.type,
+      nodeIds,
+      sectionId: cmd.section_id || null,
+      materialId: cmd.material_id || null,
     };
   }
 
@@ -120,24 +105,23 @@ export class FEAModel {
 
   // ── Section assignment ─────────────────────────────────────────
   _assignSection(cmd) {
-    const elemIds = cmd.element_ids || cmd.elementIds || [];
+    const elemIds = Array.isArray(cmd.element_ids) ? cmd.element_ids : [];
     let secId, secProps;
 
-    if (cmd.profile_name || cmd.profileName) {
-      const profileName = cmd.profile_name || cmd.profileName;
+    if (cmd.profile_name) {
+      const profileName = cmd.profile_name;
       secId = `sec_${profileName}`;
       secProps = this._resolveProfile(profileName);
       if (!secProps) {
-        // Use properties embedded by backend if available, otherwise defaults
         if (cmd.properties) {
           secProps = { profileName, ...cmd.properties };
         } else {
-          console.warn(`FEAModel: profile "${profileName}" not found in database`);
-          secProps = { profileName, A: 0, Iy: 0, Iz: 0, J: 0, h: 0, b: 0, tw: 0, tf: 0, r: 0 };
+          console.warn(`FEAModel: profile "${profileName}" missing properties`);
+          return;
         }
       }
     } else if (cmd.properties) {
-      secId = cmd.section_id || cmd.sectionId || `sec_custom_${Object.keys(this.sections).length}`;
+      secId = cmd.section_id || `sec_custom_${Object.keys(this.sections).length}`;
       secProps = cmd.properties;
     } else {
       return;
@@ -167,15 +151,19 @@ export class FEAModel {
 
   // ── Material assignment ────────────────────────────────────────
   _assignMaterial(cmd) {
-    const elemIds = cmd.element_ids || cmd.elementIds || [];
+    const elemIds = Array.isArray(cmd.element_ids) ? cmd.element_ids : [];
     let matId, matProps;
 
     if (cmd.grade) {
       const grade = cmd.grade.toUpperCase();
       matId = `mat_${grade}`;
-      matProps = MATERIAL_PRESETS[grade] || { E: 210000, nu: 0.3, rho: 7.85e-9, fy: 355, fu: 510, name: grade };
+      matProps = MATERIAL_PRESETS[grade];
+      if (!matProps) {
+        console.warn(`FEAModel: unsupported steel grade "${grade}"`);
+        return;
+      }
     } else if (cmd.properties) {
-      matId = cmd.material_id || cmd.materialId || `mat_custom_${Object.keys(this.materials).length}`;
+      matId = cmd.material_id || `mat_custom_${Object.keys(this.materials).length}`;
       matProps = cmd.properties;
     } else {
       return;
@@ -189,16 +177,15 @@ export class FEAModel {
 
   // ── Restraints ─────────────────────────────────────────────────
   _setRestraint(cmd) {
-    const nodeId = cmd.node_id || cmd.nodeId;
+    const nodeId = cmd.node_id;
     if (cmd.type) {
-      // Normalize: lowercase, replace spaces/hyphens with underscores
-      const normalized = cmd.type.toLowerCase().replace(/[\s-]/g, "_");
-      const preset = RESTRAINT_PRESETS[normalized];
+      const preset = RESTRAINT_PRESETS[cmd.type];
       if (preset) {
         this.restraints[nodeId] = { ...preset };
         return;
       }
-      console.warn(`FEAModel: unknown restraint type "${cmd.type}" (normalized: "${normalized}"), falling back to DOF flags`);
+      console.warn(`FEAModel: unknown restraint type "${cmd.type}"`);
+      return;
     }
     this.restraints[nodeId] = {
       dx: !!cmd.dx, dy: !!cmd.dy, dz: !!cmd.dz,
@@ -323,14 +310,66 @@ export class FEAModel {
   }
 
   // ── Serialization (for Web Worker transfer) ────────────────────
+  _serializedElementType(element) {
+    const role = String(element?.type || "").toLowerCase();
+    if (this.analysisType === "truss2d" || this.analysisType === "truss3d") {
+      return this.analysisType;
+    }
+    if (role === "truss") {
+      return this.analysisType === "beam2d" ? "truss2d" : "truss3d";
+    }
+    return this.analysisType;
+  }
+
+  _serializeLoad(load) {
+    const out = { ...load };
+    if (out.node_id !== undefined) {
+      out.nodeId = String(out.node_id);
+      delete out.node_id;
+    }
+    if (out.element_id !== undefined) {
+      out.elementId = String(out.element_id);
+      delete out.element_id;
+    }
+    return out;
+  }
+
   serialize() {
+    const elements = {};
+    for (const [elemId, element] of Object.entries(this.elements)) {
+      elements[elemId] = {
+        ...element,
+        type: this._serializedElementType(element),
+        nodeIds: Array.isArray(element.nodeIds) ? [...element.nodeIds] : [],
+      };
+    }
+
+    const loadCases = {};
+    for (const [lcId, loadCase] of Object.entries(this.loadCases)) {
+      loadCases[lcId] = {
+        name: loadCase.name || lcId,
+        loads: Array.isArray(loadCase.loads)
+          ? loadCase.loads.map(load => this._serializeLoad(load))
+          : [],
+      };
+    }
+
+    const supports = {};
+    for (const [nodeId, conditions] of Object.entries(this.restraints)) {
+      supports[`SUP_${nodeId}`] = {
+        nodeId,
+        conditions: { ...conditions },
+      };
+    }
+
     return {
       nodes: { ...this.nodes },
-      elements: { ...this.elements },
+      elements,
       materials: { ...this.materials },
       sections: { ...this.sections },
+      supports,
       restraints: { ...this.restraints },
-      loadCases: { ...this.loadCases },
+      loadCases,
       analysisType: this.analysisType,
     };
   }

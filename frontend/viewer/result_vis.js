@@ -32,6 +32,52 @@ function getContourColor(t) {
   ];
 }
 
+function maxAbs(values) {
+  let max = 0;
+  for (const value of values || []) {
+    const abs = Math.abs(value || 0);
+    if (abs > max) max = abs;
+  }
+  return max;
+}
+
+function dominantSignedValue(...values) {
+  let best = 0;
+  for (const value of values) {
+    if (Math.abs(value || 0) > Math.abs(best)) best = value || 0;
+  }
+  return best;
+}
+
+function getDiagramSeries(forces, forceType) {
+  if (!forces || typeof forces !== "object") return [];
+
+  if (forceType === "N") {
+    return Array.isArray(forces.N) ? forces.N : [];
+  }
+
+  if (forceType === "M") {
+    if (Array.isArray(forces.M) && forces.M.length) return forces.M;
+    const my = Array.isArray(forces.My) ? forces.My : [];
+    const mz = Array.isArray(forces.Mz) ? forces.Mz : [];
+    if (my.length || mz.length) {
+      const length = Math.max(my.length, mz.length);
+      return Array.from({ length }, (_unused, idx) => dominantSignedValue(my[idx], mz[idx]));
+    }
+    return Array.isArray(forces.Mx) ? forces.Mx : [];
+  }
+
+  if (forceType === "V") {
+    if (Array.isArray(forces.V) && forces.V.length) return forces.V;
+    const vy = Array.isArray(forces.Vy) ? forces.Vy : [];
+    const vz = Array.isArray(forces.Vz) ? forces.Vz : [];
+    const length = Math.max(vy.length, vz.length);
+    return Array.from({ length }, (_unused, idx) => dominantSignedValue(vy[idx], vz[idx]));
+  }
+
+  return Array.isArray(forces[forceType]) ? forces[forceType] : [];
+}
+
 /**
  * Create deformed shape visualization for beam/frame structures.
  * Draws deformed member lines with scaled displacements.
@@ -114,12 +160,12 @@ export function createForceDiagram(model, elementForces, forceType = "M", scaleF
   // Find max value for scaling
   let maxVal = 0;
   for (const ef of Object.values(elementForces)) {
-    const vals = ef[forceType] || ef.M || [];
+    const vals = getDiagramSeries(ef, forceType);
     for (const v of vals) {
       if (Math.abs(v) > maxVal) maxVal = Math.abs(v);
     }
   }
-  if (maxVal < 1e-10) return group;
+  if (maxVal < 1e-10) return null;
 
   // Get model size for auto-scaling the diagram height
   const bbox = model.getBoundingBox ? model.getBoundingBox() : { min: { x: 0, y: 0, z: 0 }, max: { x: 1000, y: 1000, z: 1000 } };
@@ -132,16 +178,22 @@ export function createForceDiagram(model, elementForces, forceType = "M", scaleF
 
   const colorMap = {
     M: 0xff4466,  // red-pink for moment
+    Mx: 0xff4466,
+    My: 0xff4466,
+    Mz: 0xff4466,
     V: 0x44aaff,  // blue for shear
+    Vy: 0x44aaff,
+    Vz: 0x44aaff,
     N: 0x44ff88,  // green for axial
   };
   const color = colorMap[forceType] || 0xffffff;
+  let builtAny = false;
 
   for (const [elemId, elem] of Object.entries(model.elements)) {
     const ef = elementForces[elemId];
     if (!ef) continue;
 
-    const vals = ef[forceType] || [];
+    const vals = getDiagramSeries(ef, forceType);
     const stations = ef.stations || [];
     if (vals.length === 0 || stations.length === 0) continue;
 
@@ -196,6 +248,7 @@ export function createForceDiagram(model, elementForces, forceType = "M", scaleF
     // Diagram line
     const diagGeo = new THREE.BufferGeometry().setFromPoints(diagPoints);
     group.add(new THREE.Line(diagGeo, new THREE.LineBasicMaterial({ color })));
+    builtAny = true;
 
     // Closing lines (connect diagram ends to member)
     if (basePoints.length > 0) {
@@ -236,6 +289,7 @@ export function createForceDiagram(model, elementForces, forceType = "M", scaleF
     }
   }
 
+  if (!builtAny) return null;
   group.userData = { type: "result", kind: `diagram_${forceType}` };
   return group;
 }

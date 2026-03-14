@@ -19,6 +19,7 @@ import { buildDOFMap, assembleGlobalK, elementLength, elementAngle } from './ass
 import { assembleLoadVector } from './load_vector.js';
 import { applyBoundaryConditionsPenalty, getRestrainedDOFs } from './boundary.js';
 import { solve } from './cholesky.js';
+import { getSelfWeightDistributedLoad } from '../load_helpers.js';
 import { beam2dInternalForces } from '../elements/beam2d.js';
 import { frame3dInternalForces } from '../elements/frame3d.js';
 import { trussInternalForce } from '../elements/truss.js';
@@ -182,6 +183,14 @@ function recoverBeam2dForces(model, element, u_elem, loadCase, elemId, numStatio
           qAxial = qx * c + qy * s;
         }
       }
+      if (load.type === 'self_weight') {
+        const gravity = getSelfWeightDistributedLoad(model, element, load);
+        if (!gravity) continue;
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+        qPerp += -gravity.qx * s + gravity.qy * c;
+        qAxial += gravity.qx * c + gravity.qy * s;
+      }
     }
   }
 
@@ -191,9 +200,12 @@ function recoverBeam2dForces(model, element, u_elem, loadCase, elemId, numStatio
   //   V(x) = V1 - q * x   (for uniform transverse load)
   //   M(x) = M1 + V1 * x - q * x^2 / 2
   //   N(x) = N1 - qAxial * x  (for uniform axial load)
-  const N1 = endForces.N[0];
-  const V1 = endForces.V[0];
-  const M1 = endForces.M[0];
+  const fixedEndAxial = (qAxial * L) / 2;
+  const fixedEndShear = (qPerp * L) / 2;
+  const fixedEndMoment = (qPerp * L * L) / 12;
+  const N1 = endForces.N[0] + fixedEndAxial;
+  const V1 = endForces.V[0] + fixedEndShear;
+  const M1 = endForces.M[0] + fixedEndMoment;
 
   const stations = new Float64Array(numStations);
   const N = new Float64Array(numStations);
@@ -253,6 +265,13 @@ function recoverFrame3dForces(model, element, u_elem, loadCase, elemId, numStati
         qyG += load.qy || 0;
         qzG += load.qz || 0;
       }
+      if (load.type === 'self_weight') {
+        const gravity = getSelfWeightDistributedLoad(model, element, load);
+        if (!gravity) continue;
+        qxG += gravity.qx;
+        qyG += gravity.qy;
+        qzG += gravity.qz;
+      }
     }
   }
 
@@ -287,12 +306,17 @@ function recoverFrame3dForces(model, element, u_elem, loadCase, elemId, numStati
   const qzL = qxG * zx + qyG * zy + qzG * zz_l;    // transverse z
 
   // Compute internal forces at stations
-  const N1 = endForces.N[0];
-  const Vy1 = endForces.Vy[0];
-  const Vz1 = endForces.Vz[0];
+  const fixedEndAxial = (qxL * L) / 2;
+  const fixedEndVy = (qyL * L) / 2;
+  const fixedEndVz = (qzL * L) / 2;
+  const fixedEndMy = -(qzL * L * L) / 12;
+  const fixedEndMz = (qyL * L * L) / 12;
+  const N1 = endForces.N[0] + fixedEndAxial;
+  const Vy1 = endForces.Vy[0] + fixedEndVy;
+  const Vz1 = endForces.Vz[0] + fixedEndVz;
   const Mx1 = endForces.Mx[0];
-  const My1 = endForces.My[0];
-  const Mz1 = endForces.Mz[0];
+  const My1 = endForces.My[0] + fixedEndMy;
+  const Mz1 = endForces.Mz[0] + fixedEndMz;
 
   const stations = new Float64Array(numStations);
   const N_arr = new Float64Array(numStations);
@@ -554,16 +578,16 @@ export function solveFEA(model, loadCaseId, progressCallback) {
   }
 
   // Max internal forces
-  let maxAxialForce = { elemId: null, value: 0 };
-  let maxShearForce = { elemId: null, value: 0, direction: null };
-  let maxMoment = { elemId: null, value: 0, direction: null };
+  let maxAxialForce = { elementId: null, value: 0 };
+  let maxShearForce = { elementId: null, value: 0, direction: null };
+  let maxMoment = { elementId: null, value: 0, direction: null };
 
   for (const [elemId, forces] of Object.entries(elementForces)) {
     // Axial force
     if (forces.N) {
       for (const val of forces.N) {
         if (Math.abs(val) > Math.abs(maxAxialForce.value)) {
-          maxAxialForce = { elemId, value: val };
+          maxAxialForce = { elementId: elemId, value: val };
         }
       }
     }
@@ -572,21 +596,21 @@ export function solveFEA(model, loadCaseId, progressCallback) {
     if (forces.V) {
       for (const val of forces.V) {
         if (Math.abs(val) > Math.abs(maxShearForce.value)) {
-          maxShearForce = { elemId, value: val, direction: 'V' };
+          maxShearForce = { elementId: elemId, value: val, direction: 'V' };
         }
       }
     }
     if (forces.Vy) {
       for (const val of forces.Vy) {
         if (Math.abs(val) > Math.abs(maxShearForce.value)) {
-          maxShearForce = { elemId, value: val, direction: 'Vy' };
+          maxShearForce = { elementId: elemId, value: val, direction: 'Vy' };
         }
       }
     }
     if (forces.Vz) {
       for (const val of forces.Vz) {
         if (Math.abs(val) > Math.abs(maxShearForce.value)) {
-          maxShearForce = { elemId, value: val, direction: 'Vz' };
+          maxShearForce = { elementId: elemId, value: val, direction: 'Vz' };
         }
       }
     }
@@ -595,28 +619,28 @@ export function solveFEA(model, loadCaseId, progressCallback) {
     if (forces.M) {
       for (const val of forces.M) {
         if (Math.abs(val) > Math.abs(maxMoment.value)) {
-          maxMoment = { elemId, value: val, direction: 'M' };
+          maxMoment = { elementId: elemId, value: val, direction: 'M' };
         }
       }
     }
     if (forces.Mz) {
       for (const val of forces.Mz) {
         if (Math.abs(val) > Math.abs(maxMoment.value)) {
-          maxMoment = { elemId, value: val, direction: 'Mz' };
+          maxMoment = { elementId: elemId, value: val, direction: 'Mz' };
         }
       }
     }
     if (forces.My) {
       for (const val of forces.My) {
         if (Math.abs(val) > Math.abs(maxMoment.value)) {
-          maxMoment = { elemId, value: val, direction: 'My' };
+          maxMoment = { elementId: elemId, value: val, direction: 'My' };
         }
       }
     }
     if (forces.Mx) {
       for (const val of forces.Mx) {
         if (Math.abs(val) > Math.abs(maxMoment.value)) {
-          maxMoment = { elemId, value: val, direction: 'Mx' };
+          maxMoment = { elementId: elemId, value: val, direction: 'Mx' };
         }
       }
     }
@@ -644,6 +668,7 @@ export function solveFEA(model, loadCaseId, progressCallback) {
       maxDisplacement,
       maxRotation,
       maxAxialForce,
+      maxShear: maxShearForce,
       maxShearForce,
       maxMoment,
       maxReaction,
