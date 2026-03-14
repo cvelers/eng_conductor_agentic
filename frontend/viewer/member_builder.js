@@ -6,8 +6,8 @@
 import { getProfileShape } from "../fea/profiles/profile_geometry.js";
 import { getThree } from "./scene.js";
 
-const STEEL_COLOR = 0x708090;  // slate gray
-const STEEL_EMISSIVE = 0x111122;
+const STEEL_COLOR = 0x8899aa;  // steel blue-gray
+const STEEL_EMISSIVE = 0x0a0a14;
 
 /**
  * Build a 3D mesh for a beam/column member by extruding its cross-section profile.
@@ -45,15 +45,19 @@ export function buildMemberMesh(node1, node2, sectionProps, options = {}) {
     bevelEnabled: false,
   });
 
-  const material = new THREE.MeshPhongMaterial({
+  geometry.computeVertexNormals();
+
+  const material = new THREE.MeshLambertMaterial({
     color: options.color || STEEL_COLOR,
     emissive: STEEL_EMISSIVE,
-    shininess: 60,
-    flatShading: false,
     transparent: !!options.opacity,
     opacity: options.opacity || 1,
     wireframe: !!options.wireframe,
-    side: THREE.DoubleSide,
+    side: THREE.FrontSide,
+    // Push solid mesh slightly back so edge wireframes render cleanly on top
+    polygonOffset: true,
+    polygonOffsetFactor: 1,
+    polygonOffsetUnits: 1,
   });
 
   const mesh = new THREE.Mesh(geometry, material);
@@ -121,4 +125,41 @@ export function buildAllMembers(model) {
   }
 
   return meshes;
+}
+
+/**
+ * Build edge wireframes from the actual 3D member meshes using EdgesGeometry.
+ * This highlights the true 3D profile edges of the extruded cross-sections.
+ *
+ * @param {Map<string, THREE.Mesh>} memberMeshes - Map of elemId → THREE.Mesh from buildAllMembers
+ * @returns {THREE.LineSegments[]}
+ */
+export function buildProfileEdges(memberMeshes) {
+  const THREE = getThree();
+  if (!THREE) return [];
+
+  const edges = [];
+  const EDGE_COLOR = 0xccddff;  // near-white blue — very visible
+
+  for (const [elemId, mesh] of memberMeshes) {
+    if (!mesh.geometry) continue;
+
+    const edgesGeo = new THREE.EdgesGeometry(mesh.geometry, 15);
+    const mat = new THREE.LineBasicMaterial({
+      color: EDGE_COLOR,
+      depthTest: false,   // always render on top
+    });
+    const lineSegments = new THREE.LineSegments(edgesGeo, mat);
+    lineSegments.renderOrder = 1;  // draw after solid meshes
+
+    // Copy the mesh's transform so edges align with the member
+    lineSegments.position.copy(mesh.position);
+    lineSegments.quaternion.copy(mesh.quaternion);
+    lineSegments.scale.copy(mesh.scale);
+
+    lineSegments.userData = { type: "profileBox", elemId };
+    edges.push(lineSegments);
+  }
+
+  return edges;
 }

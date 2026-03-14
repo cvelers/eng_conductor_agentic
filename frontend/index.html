@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Eurocodes Chatbot (EC3)</title>
-    <link rel="stylesheet" href="/static/styles.css?v=32" />
+    <link rel="stylesheet" href="/static/styles.css?v=34" />
     <script type="importmap">
       { "imports": {
           "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js",
@@ -329,11 +329,23 @@
           </div>
         </section>
         <section class="msg-panel fea-panel hidden">
-          <div class="panel-header">
-            <span class="fea-label">FEA Analysis</span>
+          <div class="panel-header fea-header">
+            <svg class="fea-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+            </svg>
+            <span class="fea-label">Finite Element Analysis</span>
             <div class="fea-toolbar">
-              <button data-view="3d" class="fea-view-btn active">3D Model</button>
-              <button data-view="results" class="fea-view-btn">Results</button>
+              <div class="fea-tab-group">
+                <button data-view="3d" class="fea-tab active" type="button">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                  3D Model
+                </button>
+                <button data-view="results" class="fea-tab" type="button">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+                  Results
+                </button>
+              </div>
             </div>
             <button class="panel-collapse-btn" type="button" aria-label="Collapse">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 15 12 9 18 15"/></svg>
@@ -341,20 +353,65 @@
           </div>
           <div class="fea-viewer-container">
             <canvas class="fea-canvas"></canvas>
-            <div class="fea-viewer-controls">
-              <button data-action="fit" title="Fit to view">Fit</button>
-              <button data-action="front" title="Front view">Front</button>
-              <button data-action="top" title="Top view">Top</button>
-              <button data-action="iso" title="Isometric view">Iso</button>
-              <select class="fea-result-select">
-                <option value="none">Model</option>
-                <option value="deformed">Deformed</option>
-                <option value="moment">Moment (M)</option>
-                <option value="shear">Shear (V)</option>
-                <option value="axial">Axial (N)</option>
-              </select>
-              <label class="fea-deformed-label"><input type="checkbox" class="fea-deformed-toggle"> Deformed</label>
+
+            <!-- Top-right: theme toggle + visibility panel trigger -->
+            <div class="fea-viewport-top-right">
+              <button class="fea-theme-btn" type="button" title="Toggle light/dark theme" data-fea-action="toggle-theme">
+                <svg class="fea-theme-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                <svg class="fea-theme-moon hidden" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+              </button>
+              <button class="fea-layers-btn" type="button" title="Show/hide layers" data-fea-action="toggle-layers">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+              </button>
             </div>
+
+            <!-- Layers panel (toggleable) -->
+            <div class="fea-layers-panel hidden">
+              <div class="fea-layers-title">Layers</div>
+              <label class="fea-layer-row"><input type="checkbox" data-layer="members" checked /><span>Members</span></label>
+              <label class="fea-layer-row"><input type="checkbox" data-layer="loads" checked /><span>Loads</span></label>
+              <label class="fea-layer-row"><input type="checkbox" data-layer="supports" checked /><span>Supports</span></label>
+              <label class="fea-layer-row"><input type="checkbox" data-layer="profiles" /><span>Section outlines</span></label>
+              <label class="fea-layer-row"><input type="checkbox" data-layer="grid" checked /><span>Grid</span></label>
+              <label class="fea-layer-row"><input type="checkbox" data-layer="axes" checked /><span>Axes</span></label>
+              <div class="fea-layers-sep"></div>
+              <div class="fea-layers-title">Symbol scale</div>
+              <div class="fea-scale-row">
+                <button type="button" data-fea-action="scale-down" title="Decrease scale">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+                <span class="fea-scale-label">1.0×</span>
+                <button type="button" data-fea-action="scale-up" title="Increase scale">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+                <button type="button" data-fea-action="scale-reset" title="Reset to 1×" class="fea-scale-reset">Reset</button>
+              </div>
+            </div>
+
+            <!-- Bottom controls bar -->
+            <div class="fea-viewer-controls">
+              <div class="fea-view-presets">
+                <button data-action="fit" title="Fit to view" type="button">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/></svg>
+                </button>
+                <button data-action="front" title="Front view" type="button">F</button>
+                <button data-action="side" title="Side view" type="button">S</button>
+                <button data-action="top" title="Top view" type="button">T</button>
+                <button data-action="iso" title="Isometric view" type="button">3D</button>
+              </div>
+              <div class="fea-controls-sep"></div>
+              <div class="fea-result-select-wrap">
+                <select class="fea-result-select">
+                  <option value="none">Model</option>
+                  <option value="deformed">Deformed</option>
+                  <option value="moment">Moment (M)</option>
+                  <option value="shear">Shear (V)</option>
+                  <option value="axial">Axial (N)</option>
+                </select>
+              </div>
+            </div>
+            <div class="fea-ruler fea-ruler-h hidden"></div>
+            <div class="fea-ruler fea-ruler-v hidden"></div>
             <div class="fea-color-bar hidden"></div>
             <div class="fea-progress hidden">
               <div class="fea-progress-bar"><div class="fea-progress-fill"></div></div>
@@ -376,6 +433,6 @@
       </article>
     </template>
 
-    <script src="/static/app.js?v=32" defer></script>
+    <script src="/static/app.js?v=34" defer></script>
   </body>
 </html>

@@ -283,6 +283,7 @@ export class FEAPanelController {
     this.scene.clearSupports();
     this.scene.clearLoads();
     this.scene.clearLabels();
+    this.scene.clearProfileBoxes();
 
     // Build members
     const meshes = _memberModule.buildAllMembers(this.model);
@@ -307,14 +308,44 @@ export class FEAPanelController {
     ) || 1000;
 
     for (const lcId of Object.keys(this.model.loadCases)) {
-      const loadMeshes = _loadModule.buildAllLoads(this.model, lcId, maxDim);
+      const loadScale = this.scene?.getLoadScale() || 1;
+      const loadMeshes = _loadModule.buildAllLoads(this.model, lcId, maxDim, loadScale);
       for (const m of loadMeshes) {
         this.scene.addLoadMesh(m);
       }
     }
 
-    // Fit camera
+    // Build profile edge wireframes from actual member meshes
+    const profileEdges = _memberModule.buildProfileEdges(meshes);
+    for (const edge of profileEdges) {
+      this.scene.addProfileBox(edge);
+    }
+
+    // Update grid to model scale and fit camera
+    this.scene.updateGrid(bbox);
     this.scene.fitToModel(bbox);
+  }
+
+  // ── Load rebuild (for scale changes) ─────────────────────────
+
+  _rebuildLoads() {
+    if (!this._viewerReady) return;
+    this.scene.clearLoads();
+
+    const bbox = this.model.getBoundingBox();
+    const maxDim = Math.max(
+      bbox.max.x - bbox.min.x,
+      bbox.max.y - bbox.min.y,
+      bbox.max.z - bbox.min.z,
+    ) || 1000;
+    const loadScale = this.scene?.getLoadScale() || 1;
+
+    for (const lcId of Object.keys(this.model.loadCases)) {
+      const loadMeshes = _loadModule.buildAllLoads(this.model, lcId, maxDim, loadScale);
+      for (const m of loadMeshes) {
+        this.scene.addLoadMesh(m);
+      }
+    }
   }
 
   // ── Result visualization ───────────────────────────────────────
@@ -332,9 +363,10 @@ export class FEAPanelController {
     if (!this.results || !this.results.elementForces) return;
     this.scene.clearResults();
     const resolvedType = this._resolveForceComponent(forceType);
+    const scale = scaleFactor || this.scene?.getDiagramScale() || 1;
 
     const group = _resultModule.createForceDiagram(
-      this.model, this.results.elementForces, resolvedType, scaleFactor || 1,
+      this.model, this.results.elementForces, resolvedType, scale,
     );
     if (group) this.scene.addResultMesh(group);
   }
@@ -505,19 +537,10 @@ export class FEAPanelController {
       });
     }
 
-    // Deformed toggle
-    const defToggle = this.panelEl.querySelector(".fea-deformed-toggle");
-    if (defToggle) {
-      defToggle.addEventListener("change", () => {
-        if (defToggle.checked) this._showDeformedShape();
-        else this.scene?.clearResults();
-      });
-    }
-
     // Tab buttons
-    this.panelEl.querySelectorAll(".fea-view-btn").forEach(btn => {
+    this.panelEl.querySelectorAll(".fea-tab").forEach(btn => {
       btn.addEventListener("click", () => {
-        this.panelEl.querySelectorAll(".fea-view-btn").forEach(b => b.classList.remove("active"));
+        this.panelEl.querySelectorAll(".fea-tab").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
         const view = btn.dataset.view;
         const viewerContainer = this.panelEl.querySelector(".fea-viewer-container");
@@ -531,6 +554,67 @@ export class FEAPanelController {
           this.populateResultsTable();
         }
       });
+    });
+
+    // ── Theme toggle ──
+    const themeBtn = this.panelEl.querySelector('[data-fea-action="toggle-theme"]');
+    if (themeBtn) {
+      themeBtn.addEventListener("click", () => {
+        if (!this.scene) return;
+        const newTheme = this.scene.toggleTheme();
+        const sun = themeBtn.querySelector(".fea-theme-sun");
+        const moon = themeBtn.querySelector(".fea-theme-moon");
+        if (newTheme === "light") {
+          sun?.classList.add("hidden");
+          moon?.classList.remove("hidden");
+        } else {
+          sun?.classList.remove("hidden");
+          moon?.classList.add("hidden");
+        }
+      });
+    }
+
+    // ── Layers panel toggle ──
+    const layersBtn = this.panelEl.querySelector('[data-fea-action="toggle-layers"]');
+    const layersPanel = this.panelEl.querySelector(".fea-layers-panel");
+    if (layersBtn && layersPanel) {
+      layersBtn.addEventListener("click", () => {
+        layersPanel.classList.toggle("hidden");
+        layersBtn.classList.toggle("active", !layersPanel.classList.contains("hidden"));
+      });
+
+      // Layer checkboxes
+      layersPanel.querySelectorAll("[data-layer]").forEach(cb => {
+        cb.addEventListener("change", () => {
+          this.scene?.setVisibility(cb.dataset.layer, cb.checked);
+        });
+      });
+    }
+
+    // ── Unified symbol scale controls (diagrams + loads) ──
+    const scaleLabel = this.panelEl.querySelector(".fea-scale-label");
+    const updateScaleLabel = () => {
+      if (scaleLabel && this.scene) {
+        scaleLabel.textContent = this.scene.getDiagramScale().toFixed(1) + "×";
+      }
+    };
+    this.panelEl.querySelector('[data-fea-action="scale-up"]')?.addEventListener("click", () => {
+      this.scene?.adjustDiagramScale(0.3);
+      updateScaleLabel();
+      this._applyCurrentResultView();
+      this._rebuildLoads();
+    });
+    this.panelEl.querySelector('[data-fea-action="scale-down"]')?.addEventListener("click", () => {
+      this.scene?.adjustDiagramScale(-0.3);
+      updateScaleLabel();
+      this._applyCurrentResultView();
+      this._rebuildLoads();
+    });
+    this.panelEl.querySelector('[data-fea-action="scale-reset"]')?.addEventListener("click", () => {
+      this.scene?.setDiagramScale(1.0);
+      updateScaleLabel();
+      this._applyCurrentResultView();
+      this._rebuildLoads();
     });
 
     // Collapse button

@@ -8,17 +8,17 @@ import { getSelfWeightDistributedLoad } from "../fea/load_helpers.js";
 const FORCE_COLOR = 0xff4444;    // red for forces
 const MOMENT_COLOR = 0x4488ff;   // blue for moments
 const DIST_COLOR = 0xff6644;     // orange for distributed
-const ARROW_SCALE = 0.3;         // relative to max model dimension
+const BASE_ARROW_SCALE = 0.3;    // relative to max model dimension
 
 /**
  * Create an arrow for a nodal point load.
  */
-export function createNodalForceArrow(position, fx, fy, fz, maxDim) {
+export function createNodalForceArrow(position, fx, fy, fz, maxDim, loadScale = 1) {
   const THREE = getThree();
   if (!THREE) return null;
 
   const group = new THREE.Group();
-  const arrowLen = maxDim * ARROW_SCALE;
+  const arrowLen = maxDim * BASE_ARROW_SCALE * loadScale;
 
   const components = [
     { val: fx, dir: new THREE.Vector3(1, 0, 0) },
@@ -50,12 +50,12 @@ export function createNodalForceArrow(position, fx, fy, fz, maxDim) {
 /**
  * Create a moment arc indicator at a node.
  */
-export function createNodalMomentArc(position, mx, my, mz, maxDim) {
+export function createNodalMomentArc(position, mx, my, mz, maxDim, loadScale = 1) {
   const THREE = getThree();
   if (!THREE) return null;
 
   const group = new THREE.Group();
-  const arcRadius = maxDim * ARROW_SCALE * 0.3;
+  const arcRadius = maxDim * BASE_ARROW_SCALE * loadScale * 0.3;
 
   const components = [
     { val: mx, axis: "x" },
@@ -88,7 +88,7 @@ export function createNodalMomentArc(position, mx, my, mz, maxDim) {
 /**
  * Create distributed load arrows along a member.
  */
-export function createDistributedLoadVis(node1, node2, qx, qy, qz, maxDim) {
+export function createDistributedLoadVis(node1, node2, qx, qy, qz, maxDim, loadScale = 1) {
   const THREE = getThree();
   if (!THREE) return null;
 
@@ -104,7 +104,7 @@ export function createDistributedLoadVis(node1, node2, qx, qy, qz, maxDim) {
   if (qMag < 1e-6) return null;
 
   const loadDir = new THREE.Vector3(qx, qy, qz).normalize();
-  const arrowLen = maxDim * ARROW_SCALE * 0.4;
+  const arrowLen = maxDim * BASE_ARROW_SCALE * loadScale * 0.4;
 
   // Number of arrows along member
   const nArrows = Math.max(5, Math.min(15, Math.round(memberLen / (maxDim * 0.05))));
@@ -141,7 +141,7 @@ export function createDistributedLoadVis(node1, node2, qx, qy, qz, maxDim) {
   return group;
 }
 
-function createSelfWeightVis(model, element, load, maxDim) {
+function createSelfWeightVis(model, element, load, maxDim, loadScale = 1) {
   const node1 = model.nodes[element.nodeIds[0]];
   const node2 = model.nodes[element.nodeIds[1]];
   if (!node1 || !node2) return null;
@@ -155,13 +155,14 @@ function createSelfWeightVis(model, element, load, maxDim) {
     gravity.qy,
     gravity.qz,
     maxDim,
+    loadScale,
   );
 }
 
 /**
  * Build all load visualizations for a model and load case.
  */
-export function buildAllLoads(model, loadCaseId, maxDim) {
+export function buildAllLoads(model, loadCaseId, maxDim, loadScale = 1) {
   const meshes = [];
   const lc = model.loadCases[loadCaseId];
   if (!lc) return meshes;
@@ -175,11 +176,11 @@ export function buildAllLoads(model, loadCaseId, maxDim) {
       const mx = load.mx || 0, my = load.my || 0, mz = load.mz || 0;
 
       if (Math.abs(fx) + Math.abs(fy) + Math.abs(fz) > 1e-6) {
-        const arrow = createNodalForceArrow(node, fx, fy, fz, maxDim);
+        const arrow = createNodalForceArrow(node, fx, fy, fz, maxDim, loadScale);
         if (arrow) meshes.push(arrow);
       }
       if (Math.abs(mx) + Math.abs(my) + Math.abs(mz) > 1e-6) {
-        const arc = createNodalMomentArc(node, mx, my, mz, maxDim);
+        const arc = createNodalMomentArc(node, mx, my, mz, maxDim, loadScale);
         if (arc) meshes.push(arc);
       }
     }
@@ -192,14 +193,14 @@ export function buildAllLoads(model, loadCaseId, maxDim) {
       if (!n1 || !n2) continue;
 
       const qx = load.qx || 0, qy = load.qy || 0, qz = load.qz || 0;
-      const vis = createDistributedLoadVis(n1, n2, qx, qy, qz, maxDim);
+      const vis = createDistributedLoadVis(n1, n2, qx, qy, qz, maxDim, loadScale);
       if (vis) meshes.push(vis);
     }
 
     if (load.type === "self_weight") {
       for (const elem of Object.values(model.elements)) {
         if (!elem || !Array.isArray(elem.nodeIds) || elem.nodeIds.length < 2) continue;
-        const vis = createSelfWeightVis(model, elem, load, maxDim);
+        const vis = createSelfWeightVis(model, elem, load, maxDim, loadScale);
         if (vis) meshes.push(vis);
       }
     }

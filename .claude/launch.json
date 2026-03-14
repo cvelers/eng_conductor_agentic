@@ -3,7 +3,7 @@
   "configurations": [
     {
       "name": "dev",
-      "runtimeExecutable": "/Users/ivancvetkovic/eng_conductor/.venv/bin/uvicorn",
+      "runtimeExecutable": "/Users/ivancvetkovic/eng_conductor_agentic/.venv/bin/uvicorn",
       "runtimeArgs": ["backend.app:app", "--reload", "--host", "127.0.0.1", "--port", "8001"],
       "port": 8001
     }

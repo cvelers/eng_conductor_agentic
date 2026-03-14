@@ -93,11 +93,13 @@ function getForceDiagramAxis(forceType, nodeI, nodeJ) {
   const memberLength = Math.hypot(dx, dy, dz);
   if (memberLength < 1e-9) return [0, 1, 0];
 
-  if (forceType === "M" || forceType === "V") {
-    return normalizeVector([-dy, dx, 0], [0, 1, 0]);
-  }
-
   const { yLocal, zLocal } = frame3dLocalAxes(nodeI, nodeJ);
+
+  if (forceType === "M" || forceType === "V") {
+    // For combined M/V views, use yLocal (the principal bending plane axis).
+    // The old 2D approach [-dy, dx, 0] failed for out-of-plane 3D members.
+    return yLocal;
+  }
   if (forceType === "N" || forceType === "Vy" || forceType === "Mz") {
     return yLocal;
   }
